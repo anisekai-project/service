@@ -1,0 +1,25 @@
+package me.anisekai.toshiko.exceptions.animes;
+
+import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
+import net.dv8tion.jda.api.EmbedBuilder;
+
+import java.awt.*;
+
+public class InvalidAnimeStatusException extends RuntimeException implements DiscordEmbeddable {
+
+    @Override
+    public EmbedBuilder asEmbed() {
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setColor(Color.RED);
+        builder.setDescription("La progression ne peut être modifiée avec le status actuel de l'anime.");
+
+        return builder;
+    }
+
+    @Override
+    public boolean showToEveryone() {
+
+        return false;
+    }
+}

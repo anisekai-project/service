@@ -1,0 +1,42 @@
+version: '3'
+services:
+    toshiko.service:
+        env_file:
+            - .env
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        image: akionakao/toshiko
+        ports:
+            - '8082:${SERVER_PORT:-8080}'
+        networks:
+            - toshiko
+        links:
+            - "toshiko.mariadb:mariadb"
+        depends_on:
+            - toshiko.mariadb
+    toshiko.mariadb:
+        image: 'mariadb:10.8'
+        ports:
+            - '3307:${DB_PORT}'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: "%"
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+        volumes:
+            - 'toshiko:/var/lib/mysql'
+        networks:
+            - toshiko
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
+            retries: 3
+            timeout: 5s
+
+networks:
+    toshiko:
+        driver: bridge
+volumes:
+    toshiko:
+        driver: local

@@ -1,0 +1,227 @@
+package me.anisekai.toshiko.commands;
+
+import fr.alexpado.jda.interactions.annotations.Interact;
+import fr.alexpado.jda.interactions.annotations.Option;
+import fr.alexpado.jda.interactions.annotations.Param;
+import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.Texts;
+import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.entities.DiscordUser;
+import me.anisekai.toshiko.entities.Interest;
+import me.anisekai.toshiko.enums.AnimeStatus;
+import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.helpers.InteractionBean;
+import me.anisekai.toshiko.helpers.embeds.AnimeSheetMessage;
+import me.anisekai.toshiko.interfaces.AnimeProvider;
+import me.anisekai.toshiko.services.AnimeService;
+import me.anisekai.toshiko.services.responses.SimpleResponse;
+import me.anisekai.toshiko.utils.DiscordUtils;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.interactions.Interaction;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
+import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Component
+@InteractionBean
+public class AnimeInteractions {
+
+    private final AnimeService service;
+
+    public AnimeInteractions(AnimeService service) {
+
+        this.service = service;
+    }
+
+    // <editor-fold desc="@ anime/new">
+    @Interact(
+            name = "anime/new",
+            description = Texts.ANIME_NEW__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "link",
+                            description = Texts.ANIME_NEW__OPTION_LINK,
+                            type = OptionType.STRING,
+                            required = true
+                    )
+            },
+            defer = true
+    )
+    public SlashResponse createAnime(DiscordUser discordUser, User user, @Param("link") String link) {
+
+        if (discordUser.getEmote() == null) {
+            return new SimpleResponse("Avant de pouvoir ajouter un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
+        }
+
+        AnimeProvider provider = AnimeProvider.of(link);
+        Anime         anime    = this.service.createFromProvider(user, provider);
+        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/about">
+    @Interact(
+            name = "anime/about",
+            description = Texts.ANIME_ABOUT__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = Texts.ANIME_ABOUT__OPTION_ANIME,
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    )
+            }
+    )
+    public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
+
+        Anime             anime        = this.service.findById(animeId);
+        List<Interest>    interests    = this.service.getInterests(anime);
+        AnimeSheetMessage sheetMessage = new AnimeSheetMessage(anime, interests);
+        return new SimpleResponse(sheetMessage.getMessage(true, null), false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/status">
+    @Interact(
+            name = "anime/status",
+            description = Texts.ANIME_UPDATE__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = Texts.ANIME_UPDATE__OPTION_ANIME,
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "status",
+                            description = Texts.ANIME_UPDATE__OPTION_STATUS,
+                            type = OptionType.STRING,
+                            required = true,
+                            autoComplete = true
+                    )
+            }
+    )
+    public SlashResponse changeAnimeStatus(@Param("anime") long animeId, @Param("status") String statusName) {
+
+        AnimeStatus status = AnimeStatus.from(statusName);
+        this.service.swapAnimeStatus(animeId, status);
+        return new SimpleResponse("Le statut de l'anime a bien été changé.", false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/interest">
+    @Interact(
+            name = "anime/interest",
+            description = Texts.ANIME_INTEREST__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = Texts.ANIME_INTEREST__OPTION_NAME,
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "interest",
+                            description = Texts.ANIME_UPDATE__OPTION_STATUS,
+                            type = OptionType.STRING,
+                            required = true,
+                            autoComplete = true
+                    )
+            },
+            hideAsButton = true
+    )
+    public SlashResponse interestedByAnime(Interaction interaction, DiscordUser discordUser, User user, @Param("anime") long animeId, @Param("interest") String interestName) {
+
+        if (discordUser.getEmote() == null) {
+            return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
+        }
+
+        InterestLevel level = InterestLevel.from(interestName);
+        this.service.swapAnimeInterest(user, animeId, level);
+        return new SimpleResponse("Ton niveau d'interêt pour cet anime a bien été mis à jour.", false, interaction instanceof ButtonInteraction);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/progress">
+    @Interact(
+            name = "anime/progress",
+            description = Texts.ANIME_PROGRESS__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = Texts.ANIME_UPDATE__OPTION_ANIME,
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "watched",
+                            description = Texts.ANIME_PROGRESS__OPTION_WATCHED,
+                            type = OptionType.INTEGER,
+                            required = true
+                    )
+            }
+    )
+    public SlashResponse changeAnimeProgress(Member member, @Param("anime") long animeId, @Param("watched") long watched) {
+
+        if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR)) {
+            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
+        }
+
+        if (this.service.setAnimeProgress(animeId, watched)) {
+            return new SimpleResponse("La progression a été sauvegardée et l'anime marqué comme terminé.", false, false);
+        } else {
+            return new SimpleResponse("La progression a été sauvegardée.", false, false);
+        }
+
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/refresh">
+    @Interact(
+            name = "anime/refresh",
+            description = "Refraichi les watchlist"
+    )
+    public SlashResponse refreshWatchlist(Member member) {
+
+        if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR)) {
+            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
+        }
+        this.service.refreshWatchlist();
+        return new SimpleResponse("C'est parti !", false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/top ─ Affiche le top des animes">
+    @Interact(
+            name = "anime/top",
+            description = "Affiche le top des animes"
+    )
+    public SlashResponse showTop() {
+
+        Map<Anime, Double>                   animeVotes = this.service.getAnimeVotes();
+
+        EmbedBuilder builder = new EmbedBuilder();
+
+        String simulcast = DiscordUtils.getTopFormatted(this.service, animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
+        String download = DiscordUtils.getTopFormatted(this.service, animeVotes, AnimeStatus.DOWNLOADED, 5);
+
+        builder.addField(AnimeStatus.SIMULCAST_AVAILABLE.getDisplay(), simulcast, false);
+        builder.addBlankField(false);
+        builder.addField(AnimeStatus.DOWNLOADED.getDisplay(), download, false);
+
+        return new SimpleResponse(builder, false, false);
+    }
+    // </editor-fold>
+}
