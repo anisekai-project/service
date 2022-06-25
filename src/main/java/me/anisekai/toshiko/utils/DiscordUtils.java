@@ -8,11 +8,7 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.comparators.AnimeScoreComparator;
 import me.anisekai.toshiko.helpers.containers.VariablePair;
 import me.anisekai.toshiko.services.AnimeService;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,16 +18,24 @@ public final class DiscordUtils {
 
     private DiscordUtils() {}
 
-    public static String getTopFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count) {
+    public static String getTopDescFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count) {
 
+        return getTopFormatted(service, votes, status, count, true);
+    }
+
+    public static String getTopAscFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count) {
+
+        return getTopFormatted(service, votes, status, count, false);
+    }
+
+    public static String getTopFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count, boolean reverse) {
         return votes.entrySet().stream()
                     .filter(entry -> entry.getKey().getStatus() == status)
-                    .sorted(new AnimeScoreComparator())
+                    .sorted(new AnimeScoreComparator(reverse))
                     .limit(count)
                     .map(entry -> DiscordUtils.buildAnimeList(service, entry.getKey(), entry.getValue()).getFirst())
                     .collect(Collectors.joining("\n\n"));
     }
-
 
     public static VariablePair<String, String> buildAnimeList(AnimeService service, Anime anime, Double score) {
 

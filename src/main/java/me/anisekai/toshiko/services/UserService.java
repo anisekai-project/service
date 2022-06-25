@@ -1,23 +1,34 @@
 package me.anisekai.toshiko.services;
 
+import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
+import me.anisekai.toshiko.entities.Interest;
+import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.exceptions.users.EmojiAlreadyUsedException;
 import me.anisekai.toshiko.exceptions.users.InvalidEmojiException;
+import me.anisekai.toshiko.helpers.comparators.AnimeScoreComparator;
+import me.anisekai.toshiko.repositories.InterestRepository;
 import me.anisekai.toshiko.repositories.UserRepository;
-import me.anisekai.toshiko.services.responses.SimpleResponse;
+import me.anisekai.toshiko.utils.DiscordUtils;
 import net.dv8tion.jda.api.entities.User;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository     repository;
+    private final InterestRepository interestRepository;
 
-    public UserService(UserRepository repository) {
+    public UserService(UserRepository repository, InterestRepository interestRepository) {
 
-        this.repository = repository;
+        this.repository         = repository;
+        this.interestRepository = interestRepository;
     }
 
     public DiscordUser retrieve(User user) {
@@ -48,4 +59,32 @@ public class UserService {
         return true;
     }
 
+    public Map<DiscordUser, Double> getVotePercentage() {
+
+        Map<DiscordUser, Double> power     = new HashMap<>();
+
+        List<Interest> interests = this.interestRepository.findAll()
+                                                          .stream()
+                                                          .filter(vote -> vote.getAnime().getStatus().isWatchable())
+                                                          .filter(vote -> vote.getLevel() != InterestLevel.NEUTRAL)
+                                                          .toList();
+
+        List<DiscordUser> users = interests.stream()
+                                           .map(Interest::getUser)
+                                           .distinct()
+                                           .toList();
+
+
+        long nonNeutralVote = interests.size();
+
+        for (DiscordUser user : users) {
+            long nonNeutralUserVote = interests.stream()
+                                               .filter(vote -> vote.getUser().equals(user))
+                                               .count();
+
+            power.put(user, (double) nonNeutralUserVote / (double) nonNeutralVote);
+        }
+
+        return power;
+    }
 }

@@ -73,7 +73,7 @@ public class WatchlistTask {
         }
     }
 
-    @Scheduled(cron = "0/2 * * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void execute() {
 
         AnimeStatus status = this.statuses.poll();

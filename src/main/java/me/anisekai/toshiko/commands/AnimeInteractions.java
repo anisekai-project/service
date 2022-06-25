@@ -25,10 +25,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @InteractionBean
@@ -147,7 +145,7 @@ public class AnimeInteractions {
             return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
         }
 
-        InterestLevel level = InterestLevel.from(interestName);
+        InterestLevel level    = InterestLevel.from(interestName);
         Interest      interest = this.service.swapAnimeInterest(user, animeId, level);
 
         EmbedBuilder builder = new EmbedBuilder();
@@ -209,25 +207,4 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/top ─ Affiche le top des animes">
-    @Interact(
-            name = "anime/top",
-            description = "Affiche le top des animes"
-    )
-    public SlashResponse showTop() {
-
-        Map<Anime, Double>                   animeVotes = this.service.getAnimeVotes();
-
-        EmbedBuilder builder = new EmbedBuilder();
-
-        String simulcast = DiscordUtils.getTopFormatted(this.service, animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
-        String download = DiscordUtils.getTopFormatted(this.service, animeVotes, AnimeStatus.DOWNLOADED, 5);
-
-        builder.addField(AnimeStatus.SIMULCAST_AVAILABLE.getDisplay(), simulcast, false);
-        builder.addBlankField(false);
-        builder.addField(AnimeStatus.DOWNLOADED.getDisplay(), download, false);
-
-        return new SimpleResponse(builder, false, false);
-    }
-    // </editor-fold>
 }

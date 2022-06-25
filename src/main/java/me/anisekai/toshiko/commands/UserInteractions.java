@@ -56,4 +56,5 @@ public class UserInteractions {
         return new SimpleResponse("Ton icône de vote a été mise à jour.", false, false);
     }
     // </editor-fold>
+
 }

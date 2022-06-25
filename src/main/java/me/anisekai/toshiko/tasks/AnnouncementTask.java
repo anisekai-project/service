@@ -61,7 +61,7 @@ public class AnnouncementTask {
         this.notificationQueue.offer(event);
     }
 
-    @Scheduled(cron = "0/2 * * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void execute() {
         AnimeUpdateEvent event = this.notificationQueue.poll();
 
