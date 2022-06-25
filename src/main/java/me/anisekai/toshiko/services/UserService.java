@@ -65,7 +65,6 @@ public class UserService {
 
         List<Interest> interests = this.interestRepository.findAll()
                                                           .stream()
-                                                          .filter(vote -> vote.getAnime().getStatus().isWatchable())
                                                           .filter(vote -> vote.getLevel() != InterestLevel.NEUTRAL)
                                                           .toList();
 
