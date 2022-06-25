@@ -148,8 +148,14 @@ public class AnimeInteractions {
         }
 
         InterestLevel level = InterestLevel.from(interestName);
-        this.service.swapAnimeInterest(user, animeId, level);
-        return new SimpleResponse("Ton niveau d'interêt pour cet anime a bien été mis à jour.", false, interaction instanceof ButtonInteraction);
+        Interest      interest = this.service.swapAnimeInterest(user, animeId, level);
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setDescription("Ton niveau d'interêt pour cet anime a bien été mis à jour.");
+        builder.addField("Anime", interest.getAnime().getName(), false);
+        builder.addField("Niveau d'interêt", interest.getLevel().getDisplayText(), false);
+
+        return new SimpleResponse(builder, false, interaction instanceof ButtonInteraction);
     }
     // </editor-fold>
 

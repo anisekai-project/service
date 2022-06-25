@@ -22,7 +22,6 @@ import net.dv8tion.jda.api.entities.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
@@ -194,32 +193,33 @@ public class AnimeService {
      * @param level
      *         The new {@link InterestLevel}.
      */
-    public void swapAnimeInterest(User target, long id, InterestLevel level) {
+    public Interest swapAnimeInterest(User target, long id, InterestLevel level) {
 
         Anime       anime = this.findById(id);
         DiscordUser user  = this.userService.retrieve(target);
 
         Optional<Interest> optionalInterest = this.interestRepository.findById(new InterestKey(anime, user));
-
+        Interest interest;
         if (optionalInterest.isPresent()) {
-            Interest interest = optionalInterest.get();
+             interest = optionalInterest.get();
             if (interest.getLevel() == level) {
                 throw new InterestLevelUnchangedException(interest);
             }
-            InterestLevel oldLevel = interest.getLevel();
             interest.setLevel(level);
             this.interestRepository.save(interest);
             this.publisher.publishEvent(new WatchlistUpdatedEvent(this, anime.getStatus()));
         } else {
-            Interest interest = new Interest(anime, user, level);
+            interest = new Interest(anime, user, level);
             this.interestRepository.save(interest);
 
             if (level != InterestLevel.NEUTRAL) {
                 this.publisher.publishEvent(new WatchlistUpdatedEvent(this, anime.getStatus()));
             }
+
         }
 
         this.publisher.publishEvent(new AnimeUpdateEvent(this, anime, AnimeUpdateType.UPDATE));
+        return interest;
     }
 
     /**
