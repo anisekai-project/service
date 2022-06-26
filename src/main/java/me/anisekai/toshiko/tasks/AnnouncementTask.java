@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
-import org.springframework.jdbc.object.UpdatableSqlQuery;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -43,13 +42,15 @@ public class AnnouncementTask {
     private long toshikoAnimeWatchlistChannel;
 
     private final JDAStore                        store;
+    private final DelayedTask                     delayedTask;
     private final AnimeService                    service;
     private final AnimeRepository                 repository;
     private final BlockingDeque<AnimeUpdateEvent> notificationQueue;
 
-    public AnnouncementTask(JDAStore store, AnimeService service, AnimeRepository repository) {
+    public AnnouncementTask(JDAStore store, DelayedTask delayedTask, AnimeService service, AnimeRepository repository) {
 
         this.store             = store;
+        this.delayedTask       = delayedTask;
         this.service           = service;
         this.repository        = repository;
         this.notificationQueue = new LinkedBlockingDeque<>();
@@ -61,8 +62,9 @@ public class AnnouncementTask {
         this.notificationQueue.offer(event);
     }
 
-    @Scheduled(cron = "0/10 * * * * *")
+    @Scheduled(cron = "0/2 * * * * *")
     public void execute() {
+
         AnimeUpdateEvent event = this.notificationQueue.poll();
 
         if (event == null) {
@@ -70,7 +72,7 @@ public class AnnouncementTask {
         }
 
         try {
-            Anime anime = event.getAnime();
+            Anime             anime = event.getAnime();
             Optional<Message> existingMessage;
 
             if (anime.getAnnounceMessage() != null && anime.getAnnounceMessage() == -1) {
@@ -79,21 +81,31 @@ public class AnnouncementTask {
                 existingMessage = this.findExistingMessage(anime);
             }
 
-            LOGGER.info("Handling notification for anime {} ({}): {}", anime.getId(), anime.getName(), event.getType().name());
+            LOGGER.info("Handling notification for anime {} ({}): {}", anime.getId(), anime.getName(), event.getType()
+                                                                                                            .name());
 
             if (event.getType().shouldNotify()) {
                 existingMessage.ifPresent(msg -> msg.delete().complete());
                 LOGGER.info("Sending announce for anime {} ({})", anime.getId(), anime.getName());
                 Message message = this.getMessage(anime, event.getType());
-                Message sentMessage = this.getTextChannel().sendMessage(message).complete();
-                anime.setAnnounceMessage(sentMessage.getIdLong());
-                this.repository.save(anime);
+
+                TextChannel channel = this.getTextChannel();
+
+                Runnable runnable = () -> {
+                    Message sentMessage = channel.sendMessage(message).complete();
+                    anime.setAnnounceMessage(sentMessage.getIdLong());
+                    this.repository.save(anime);
+                };
+                this.delayedTask.queue(runnable);
+
                 return;
             }
 
             existingMessage.ifPresent(msg -> {
                 LOGGER.info("Updating announce for anime {} ({})", anime.getId(), anime.getName());
-                msg.editMessage(this.getMessage(anime, msg.getContentRaw())).complete();
+
+                Runnable runnable = () -> msg.editMessage(this.getMessage(anime, msg.getContentRaw())).complete();
+                this.delayedTask.queue(runnable);
             });
         } catch (Exception e) {
 
@@ -110,7 +122,7 @@ public class AnnouncementTask {
             String roleMention      = this.getRole().getAsMention();
             String userMention      = UserSnowflake.fromId(anime.getAddedBy().getId()).getAsMention();
             content = notificationText.formatted(roleMention, userMention);
-        } else if (type == AnimeUpdateType.RELEASING){
+        } else if (type == AnimeUpdateType.RELEASING) {
             String notificationText = "Hey %s ! Un anime est désormais disponible en simulcast !";
             String roleMention      = this.getRole().getAsMention();
             content = notificationText.formatted(roleMention);

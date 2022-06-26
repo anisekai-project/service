@@ -1,11 +1,8 @@
 package me.anisekai.toshiko.tasks;
 
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.entities.DiscordUser;
-import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.entities.Watchlist;
 import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.events.WatchlistUpdatedEvent;
 import me.anisekai.toshiko.helpers.JDAStore;
 import me.anisekai.toshiko.helpers.containers.VariablePair;
@@ -29,11 +26,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.stream.Collectors;
 
 @Service
 public class WatchlistTask {
@@ -53,16 +48,18 @@ public class WatchlistTask {
     private long toshikoAnimeWatchlistChannel;
 
     private final JDAStore                   store;
+    private final DelayedTask                delayedTask;
     private final AnimeService               service;
     private final WatchlistRepository        repository;
     private final BlockingDeque<AnimeStatus> statuses;
 
-    public WatchlistTask(JDAStore store, AnimeService service, WatchlistRepository repository) {
+    public WatchlistTask(JDAStore store, DelayedTask delayedTask, AnimeService service, WatchlistRepository repository) {
 
-        this.store      = store;
-        this.service    = service;
-        this.repository = repository;
-        this.statuses   = new LinkedBlockingDeque<>();
+        this.store       = store;
+        this.delayedTask = delayedTask;
+        this.service     = service;
+        this.repository  = repository;
+        this.statuses    = new LinkedBlockingDeque<>();
     }
 
     @EventListener(WatchlistUpdatedEvent.class)
@@ -106,12 +103,20 @@ public class WatchlistTask {
         }
 
         LOGGER.info("Updating message for watchlist {}", status.name());
-        this.updateExistingMessage(watchlist, message);
+
+        Watchlist finalWatchlist = watchlist;
+        this.delayedTask.queue(() -> this.updateExistingMessage(finalWatchlist, message));
+
         this.repository.save(watchlist);
 
-        TextChannel channel = this.getTextChannel();
+        TextChannel        channel = this.getTextChannel();
         TextChannelManager manager = channel.getManager();
-        manager.setTopic(String.format("Il y a en tout %s animes", this.service.getDisplayableCount())).complete();
+        this.delayedTask.queue(() -> manager.setTopic(
+                                                    String.format(
+                                                            "Il y a en tout %s animes",
+                                                            this.service.getDisplayableCount()
+                                                    )
+                                            ).complete());
     }
 
     private TextChannel getTextChannel() {
@@ -148,8 +153,8 @@ public class WatchlistTask {
 
             VariablePair<String, String> result = DiscordUtils.buildAnimeList(this.service, anime);
 
-            String entryWithLink = result.getFirst();
-            String entryWithoutLink =result.getSecond();
+            String entryWithLink    = result.getFirst();
+            String entryWithoutLink = result.getSecond();
 
             withLinks.append(entryWithLink).append("\n\n");
             withoutLinks.append(entryWithoutLink).append("\n\n");
@@ -180,5 +185,4 @@ public class WatchlistTask {
             throw e;
         }
     }
-
 }

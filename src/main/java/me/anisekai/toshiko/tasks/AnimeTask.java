@@ -61,7 +61,7 @@ public class AnimeTask {
 
         try {
             AnimeProvider   provider = AnimeProvider.of(anime.getLink());
-            AnimeUpdateType type = null;
+            AnimeUpdateType type     = null;
 
             if (provider.getEpisodeCount().isPresent()) {
                 type = AnimeUpdateType.UPDATE;
