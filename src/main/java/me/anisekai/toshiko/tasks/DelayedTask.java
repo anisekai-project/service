@@ -20,7 +20,7 @@ public class DelayedTask {
         this.tasks = new LinkedBlockingDeque<>();
     }
 
-    @Scheduled(cron = "0/2 * * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void execute() {
 
         Runnable poll = this.tasks.poll();
