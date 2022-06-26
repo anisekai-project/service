@@ -25,6 +25,7 @@ public class DelayedTask {
 
         Runnable poll = this.tasks.poll();
         if (poll != null) {
+            LOGGER.info(" - Still {} tasks to execute", this.tasks.size());
             poll.run();
         }
     }
