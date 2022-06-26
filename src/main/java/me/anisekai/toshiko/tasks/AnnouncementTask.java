@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +97,7 @@ public class AnnouncementTask {
                     anime.setAnnounceMessage(sentMessage.getIdLong());
                     this.repository.save(anime);
                 };
-                this.delayedTask.queue(runnable);
+                this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable);
 
                 return;
             }
@@ -105,8 +106,19 @@ public class AnnouncementTask {
                 LOGGER.info("Updating announce for anime {} ({})", anime.getId(), anime.getName());
 
                 Runnable runnable = () -> msg.editMessage(this.getMessage(anime, msg.getContentRaw())).complete();
-                this.delayedTask.queue(runnable);
+                this.delayedTask.queue(String.format("ANNOUNCEMENT REFRESH " + anime.getId()), runnable);
             });
+
+            if (event.getType() == AnimeUpdateType.ADDED) {
+                TextChannel channel = this.getTextChannel();
+                TextChannelManager  manager = channel.getManager();
+                this.delayedTask.queue("ANIME COUNT REFRESH", () -> manager.setTopic(
+                        String.format(
+                                "Il y a en tout %s animes",
+                                this.service.getDisplayableCount()
+                        )
+                ).complete());
+            }
         } catch (Exception e) {
 
             this.notificationQueue.offer(event);

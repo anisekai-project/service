@@ -105,18 +105,9 @@ public class WatchlistTask {
         LOGGER.info("Updating message for watchlist {}", status.name());
 
         Watchlist finalWatchlist = watchlist;
-        this.delayedTask.queue(() -> this.updateExistingMessage(finalWatchlist, message));
+        this.delayedTask.queue(String.format("WATCHLIST UPDATE " + watchlist.getStatus().name()), () -> this.updateExistingMessage(finalWatchlist, message));
 
         this.repository.save(watchlist);
-
-        TextChannel        channel = this.getTextChannel();
-        TextChannelManager manager = channel.getManager();
-        this.delayedTask.queue(() -> manager.setTopic(
-                                                    String.format(
-                                                            "Il y a en tout %s animes",
-                                                            this.service.getDisplayableCount()
-                                                    )
-                                            ).complete());
     }
 
     private TextChannel getTextChannel() {
