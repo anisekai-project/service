@@ -129,11 +129,6 @@ public class AnimeService {
         WatchlistUpdatedEvent oldWatchlist = new WatchlistUpdatedEvent(this, anime.getStatus());
         WatchlistUpdatedEvent newWatchlist = new WatchlistUpdatedEvent(this, status);
 
-        // Reprocess vote power
-        boolean targetedStatusIsVotePowered = status == AnimeStatus.DOWNLOADED || status == AnimeStatus.SIMULCAST_AVAILABLE;
-        boolean currentStatusIsVotePowered  = anime.getStatus() == AnimeStatus.DOWNLOADED || anime.getStatus() == AnimeStatus.SIMULCAST_AVAILABLE;
-        boolean reprocessVote               = (currentStatusIsVotePowered && !targetedStatusIsVotePowered) || (!currentStatusIsVotePowered && targetedStatusIsVotePowered);
-
         anime.setStatus(status);
 
         if (status == AnimeStatus.WATCHED) {
@@ -144,12 +139,6 @@ public class AnimeService {
 
         this.publisher.publishEvent(oldWatchlist);
         this.publisher.publishEvent(newWatchlist);
-
-        // Reprocess vote power
-        if (reprocessVote) {
-            this.publisher.publishEvent(new WatchlistUpdatedEvent(this, AnimeStatus.SIMULCAST_AVAILABLE));
-            this.publisher.publishEvent(new WatchlistUpdatedEvent(this, AnimeStatus.DOWNLOADED));
-        }
 
         this.publisher.publishEvent(new AnimeUpdateEvent(this, anime, AnimeUpdateType.UPDATE));
     }
@@ -173,11 +162,12 @@ public class AnimeService {
         }
         anime.setWatched(watched);
         this.repository.save(anime);
-        this.publisher.publishEvent(new WatchlistUpdatedEvent(this, anime.getStatus()));
 
         if (anime.getWatched() == anime.getTotal()) {
             this.swapAnimeStatus(anime.getId(), AnimeStatus.WATCHED);
             return true;
+        } else {
+            this.publisher.publishEvent(new WatchlistUpdatedEvent(this, anime.getStatus()));
         }
 
         return false;
@@ -199,9 +189,9 @@ public class AnimeService {
         DiscordUser user  = this.userService.retrieve(target);
 
         Optional<Interest> optionalInterest = this.interestRepository.findById(new InterestKey(anime, user));
-        Interest interest;
+        Interest           interest;
         if (optionalInterest.isPresent()) {
-             interest = optionalInterest.get();
+            interest = optionalInterest.get();
             if (interest.getLevel() == level) {
                 throw new InterestLevelUnchangedException(interest);
             }
@@ -215,7 +205,6 @@ public class AnimeService {
             if (level != InterestLevel.NEUTRAL) {
                 this.publisher.publishEvent(new WatchlistUpdatedEvent(this, anime.getStatus()));
             }
-
         }
 
         this.publisher.publishEvent(new AnimeUpdateEvent(this, anime, AnimeUpdateType.UPDATE));

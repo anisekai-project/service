@@ -73,7 +73,7 @@ public class WatchlistTask {
         }
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0/10 * * * * *")
     public void execute() {
 
         AnimeStatus status = this.statuses.poll();
@@ -146,7 +146,7 @@ public class WatchlistTask {
 
         for (Anime anime : animes) {
 
-            VariablePair<String, String> result = DiscordUtils.buildAnimeList(this.service, anime, animeVotes.get(anime));
+            VariablePair<String, String> result = DiscordUtils.buildAnimeList(this.service, anime);
 
             String entryWithLink = result.getFirst();
             String entryWithoutLink =result.getSecond();

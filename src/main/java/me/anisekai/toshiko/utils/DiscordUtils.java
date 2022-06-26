@@ -33,11 +33,11 @@ public final class DiscordUtils {
                     .filter(entry -> entry.getKey().getStatus() == status)
                     .sorted(new AnimeScoreComparator(reverse))
                     .limit(count)
-                    .map(entry -> DiscordUtils.buildAnimeList(service, entry.getKey(), entry.getValue()).getFirst())
+                    .map(entry -> DiscordUtils.buildAnimeList(service, entry.getKey()).getFirst())
                     .collect(Collectors.joining("\n\n"));
     }
 
-    public static VariablePair<String, String> buildAnimeList(AnimeService service, Anime anime, Double score) {
+    public static VariablePair<String, String> buildAnimeList(AnimeService service, Anime anime) {
 
         List<Interest> interested = service.getInterests(anime);
 
@@ -55,7 +55,6 @@ public final class DiscordUtils {
                                                  .filter(Objects::nonNull)
                                                  .collect(Collectors.joining());
 
-        boolean hasVotes     = score != null;
         boolean hasUpVotes   = !interestedUserIcon.isEmpty();
         boolean hasDownVotes = !notInterestedUserIcon.isEmpty();
         boolean hasProgress  = anime.getStatus() == AnimeStatus.WATCHING || anime.getStatus() == AnimeStatus.SIMULCAST;
@@ -71,11 +70,7 @@ public final class DiscordUtils {
         entryWithLinkBuilder.append(linkEntry.formatted(anime.getName(), anime.getLink()));
         entryWithoutLinkBuilder.append(anime.getName());
 
-        if (hasVotes) {
-            String vote = String.format("%.0f", score * 100);
-            entryWithLinkBuilder.append(" ─ ").append(vote);
-            entryWithoutLinkBuilder.append(" ─ ").append(vote);
-        } else if (hasProgress) {
+        if (hasProgress) {
             entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
             entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
         }
