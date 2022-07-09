@@ -15,8 +15,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.stream.Stream;
 
 @Service
 public class AnimeTask {
@@ -39,13 +41,10 @@ public class AnimeTask {
     @Scheduled(cron = "0 0 * * * *")
     public void execute() {
 
-        this.service.getUpdatableAnime().forEach(this.animes::offer);
-    }
+        List<Anime> updatableAnime = this.service.getUpdatableAnime();
+        List<Anime> badEpisodeAnime = this.repository.findAllEpisodeUpdatable();
 
-    @Scheduled(cron = "0 * * * * *")
-    public void listBadEpisodeCount() {
-
-        this.repository.findAllEpisodeUpdatable().forEach(this.animes::offer);
+        Stream.concat(updatableAnime.stream(), badEpisodeAnime.stream()).distinct().forEach(this.animes::offer);
     }
 
     @Scheduled(cron = "0/5 * * * * *")
