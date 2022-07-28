@@ -6,7 +6,6 @@ import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.DateHelper;
-import me.anisekai.toshiko.interfaces.AnimeProvider;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -32,37 +31,40 @@ public class AnimeSheetMessage {
     public Message getMessage(boolean showButtons, String mainContent) {
 
         List<String> interestedUsers = this.interests.stream()
-                .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
-                .map(Interest::getUser)
-                .map(DiscordUser::getId)
-                .map(User::fromId)
-                .map(UserSnowflake::getAsMention)
-                .toList();
+                                                     .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
+                                                     .map(Interest::getUser)
+                                                     .map(DiscordUser::getId)
+                                                     .map(User::fromId)
+                                                     .map(UserSnowflake::getAsMention)
+                                                     .toList();
 
         List<String> notInterestedUsers = this.interests.stream()
-                .filter(interest -> interest.getLevel() == InterestLevel.NOT_INTERESTED)
-                .map(Interest::getUser)
-                .map(DiscordUser::getId)
-                .map(User::fromId)
-                .map(UserSnowflake::getAsMention)
-                .toList();
+                                                        .filter(interest -> interest.getLevel() == InterestLevel.NOT_INTERESTED)
+                                                        .map(Interest::getUser)
+                                                        .map(DiscordUser::getId)
+                                                        .map(User::fromId)
+                                                        .map(UserSnowflake::getAsMention)
+                                                        .toList();
 
         MessageBuilder messageBuilder = new MessageBuilder();
         EmbedBuilder   embedBuilder   = new EmbedBuilder();
 
         messageBuilder.setAllowedMentions(Collections.singletonList(Message.MentionType.ROLE));
-        AnimeProvider provider = AnimeProvider.of(this.anime.getLink());
+        //AnimeProvider provider = AnimeProvider.of(this.anime.getLink());
 
         embedBuilder.setTitle(this.anime.getName());
         embedBuilder.setTitle(this.anime.getName(), this.anime.getLink());
-        embedBuilder.setDescription(provider.getSynopsis());
-        embedBuilder.addField("Tag(s)", String.join(", ", provider.getTags()), false);
-        embedBuilder.setThumbnail(provider.getImage());
+        //embedBuilder.setDescription(provider.getSynopsis());
+        embedBuilder.setDescription("*Récupération des données impossible*");
+        embedBuilder.addField("Tag(s)", "*Récupération des données impossible*", false);
+        //embedBuilder.setThumbnail(provider.getImage());
 
+        embedBuilder.addField("Nombre d'épisode", "*Récupération des données impossible*", false);
+        embedBuilder.addField("Note", "*Récupération des données impossible*", false);
 
-        provider.getEpisodeCount()
+        /*provider.getEpisodeCount()
                 .ifPresent(epCount -> embedBuilder.addField("Nombre d'épisode", epCount.toString(), false));
-        provider.getRating().ifPresent(rating -> embedBuilder.addField("Note", rating.toString(), false));
+        provider.getRating().ifPresent(rating -> embedBuilder.addField("Note", rating.toString(), false));*/
 
         embedBuilder.addField("Proposé par", User.fromId(this.anime.getAddedBy().getId()).getAsMention(), false);
         embedBuilder.addField("Statut", this.anime.getStatus().getDisplay(), false);

@@ -29,6 +29,7 @@ public final class DiscordUtils {
     }
 
     public static String getTopFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count, boolean reverse) {
+
         return votes.entrySet().stream()
                     .filter(entry -> entry.getKey().getStatus() == status)
                     .sorted(new AnimeScoreComparator(reverse))

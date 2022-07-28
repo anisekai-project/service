@@ -13,7 +13,7 @@ public class AnimeUpdateEvent extends ApplicationEvent {
 
         super(source);
         this.anime = anime;
-        this.type = type;
+        this.type  = type;
     }
 
     public Anime getAnime() {

@@ -17,16 +17,6 @@ public enum InterestLevel {
         this.displayText   = displayText;
     }
 
-    public int getPowerModifier() {
-
-        return this.powerModifier;
-    }
-
-    public String getDisplayText() {
-
-        return this.displayText;
-    }
-
     public static InterestLevel from(String value) {
 
         String upperValue = value.toUpperCase();
@@ -35,5 +25,15 @@ public enum InterestLevel {
         } catch (IllegalArgumentException e) {
             return InterestLevel.NEUTRAL;
         }
+    }
+
+    public int getPowerModifier() {
+
+        return this.powerModifier;
+    }
+
+    public String getDisplayText() {
+
+        return this.displayText;
     }
 }

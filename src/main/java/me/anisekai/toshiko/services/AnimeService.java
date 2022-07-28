@@ -67,13 +67,15 @@ public class AnimeService {
      * Create a new {@link Anime} entry from the provided {@link AnimeProvider}.
      *
      * @param user
-     *         The owner of the soon-to-be newly {@link Anime}.
+     *         The owner of the soon-to-be newly created {@link Anime}.
      * @param provider
      *         The {@link AnimeProvider} containing the raw {@link Anime} data.
+     * @param status
+     *         The {@link AnimeStatus} of the soon-to-be newly created {@link Anime}.
      *
      * @return The newly created {@link Anime}
      */
-    public Anime createFromProvider(User user, AnimeProvider provider) {
+    public Anime createFromProvider(User user, AnimeProvider provider, AnimeStatus status) {
 
         Optional<Anime> optionalAnime = this.repository.findByName(provider.getName());
 
@@ -82,7 +84,7 @@ public class AnimeService {
         }
 
         DiscordUser discordUser = this.userService.retrieve(user);
-        Anime       anime       = new Anime(discordUser, provider);
+        Anime       anime       = new Anime(discordUser, provider, status);
 
         try {
             anime = this.repository.save(anime);

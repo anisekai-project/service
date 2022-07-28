@@ -9,6 +9,7 @@ public final class DateHelper {
     private DateHelper() {}
 
     public static String format(ChronoLocalDateTime<LocalDate> time) {
+
         return time.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm:ss"));
     }
 

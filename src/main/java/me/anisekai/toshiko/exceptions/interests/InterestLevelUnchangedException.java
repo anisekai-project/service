@@ -14,7 +14,7 @@ public class InterestLevelUnchangedException extends RuntimeException implements
 
     public InterestLevelUnchangedException(Interest interest) {
 
-        this.interest  = interest;
+        this.interest = interest;
     }
 
     public Anime getAnime() {

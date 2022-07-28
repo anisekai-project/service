@@ -48,8 +48,13 @@ public class Anime implements Comparable<Anime> {
 
     public Anime(DiscordUser user, AnimeProvider provider) {
 
+        this(user, provider, provider.getPublicationState().getStatus());
+    }
+
+    public Anime(DiscordUser user, AnimeProvider provider, AnimeStatus status) {
+
         this.name    = provider.getName();
-        this.status  = provider.getPublicationState().getStatus();
+        this.status  = status;
         this.addedBy = user;
         this.link    = provider.getUrl();
         this.addedAt = LocalDateTime.now().withNano(0);

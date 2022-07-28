@@ -2,7 +2,7 @@ package me.anisekai.toshiko.tasks.entity;
 
 public class TaskEntry {
 
-    private final String name;
+    private final String   name;
     private final Runnable runnable;
 
     public TaskEntry(String name, Runnable runnable) {

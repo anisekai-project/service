@@ -3,6 +3,7 @@ package me.anisekai.toshiko.commands;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
+import fr.alexpado.jda.interactions.enums.SlashTarget;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.Anime;
@@ -13,9 +14,9 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.InteractionBean;
 import me.anisekai.toshiko.helpers.embeds.AnimeSheetMessage;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
+import me.anisekai.toshiko.providers.OfflineProvider;
 import me.anisekai.toshiko.services.AnimeService;
 import me.anisekai.toshiko.services.responses.SimpleResponse;
-import me.anisekai.toshiko.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -26,7 +27,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Map;
 
 @Component
 @InteractionBean
@@ -59,9 +59,10 @@ public class AnimeInteractions {
             return new SimpleResponse("Avant de pouvoir ajouter un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
         }
 
-        AnimeProvider provider = AnimeProvider.of(link);
+        return new SimpleResponse("L'ajout d'anime via lien a été désactivé.", false, false);
+        /*AnimeProvider provider = AnimeProvider.of(link);
         Anime         anime    = this.service.createFromProvider(user, provider);
-        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
+        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);*/
     }
     // </editor-fold>
 
@@ -207,4 +208,48 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
+    // <editor-fold desc="@ anime/add">
+    @Interact(
+            name = "anime/add",
+            description = "Ajoute un anime à la liste",
+            target = SlashTarget.GUILD,
+            options = {
+                    @Option(
+                            name = "name",
+                            description = "Nom de l'anime (nom en Japonais s'il vous plait)",
+                            required = true,
+                            type = OptionType.STRING
+                    ),
+                    @Option(
+                            name = "link",
+                            description = "Lien vers la fiche Nautiljon (même si on peut plus l'utiliser...)",
+                            required = true,
+                            type = OptionType.STRING
+                    ),
+                    @Option(
+                            name = "status",
+                            description = "Statut de l'anime",
+                            required = true,
+                            type = OptionType.STRING,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "episode",
+                            description = "Nombre d'épisode total",
+                            type = OptionType.INTEGER
+                    )
+            }
+    )
+    public SlashResponse addAnime(User user, String name, String link, String status, Long episode) {
+
+        if (!AnimeProvider.isSupported(link)) {
+            return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
+        }
+
+        AnimeStatus   animeStatus = AnimeStatus.from(status);
+        AnimeProvider provider    = new OfflineProvider(name, link, animeStatus, episode);
+        Anime         anime       = this.service.createFromProvider(user, provider, animeStatus);
+        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
+    }
+    // </editor-fold>
 }

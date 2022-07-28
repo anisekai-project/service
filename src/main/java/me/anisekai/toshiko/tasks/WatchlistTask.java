@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,24 +33,19 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class WatchlistTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
-
-    @Value("${toshiko.anime.server}")
-    private long toshikoAnimeServer;
-
-    @Value("${toshiko.anime.notification.channel}")
-    private long toshikoAnimeNotificationChannel;
-
-    @Value("${toshiko.anime.notification.role}")
-    private long toshikoAnimeNotificationRole;
-
-    @Value("${toshiko.anime.watchlist.channel}")
-    private long toshikoAnimeWatchlistChannel;
-
     private final JDAStore                   store;
     private final DelayedTask                delayedTask;
     private final AnimeService               service;
     private final WatchlistRepository        repository;
     private final BlockingDeque<AnimeStatus> statuses;
+    @Value("${toshiko.anime.server}")
+    private long toshikoAnimeServer;
+    @Value("${toshiko.anime.notification.channel}")
+    private long toshikoAnimeNotificationChannel;
+    @Value("${toshiko.anime.notification.role}")
+    private long toshikoAnimeNotificationRole;
+    @Value("${toshiko.anime.watchlist.channel}")
+    private long toshikoAnimeWatchlistChannel;
 
     public WatchlistTask(JDAStore store, DelayedTask delayedTask, AnimeService service, WatchlistRepository repository) {
 
@@ -105,7 +99,8 @@ public class WatchlistTask {
         LOGGER.info("Updating message for watchlist {}", status.name());
 
         Watchlist finalWatchlist = watchlist;
-        this.delayedTask.queue(String.format("WATCHLIST UPDATE " + watchlist.getStatus().name()), () -> this.updateExistingMessage(finalWatchlist, message));
+        this.delayedTask.queue(String.format("WATCHLIST UPDATE " + watchlist.getStatus()
+                                                                            .name()), () -> this.updateExistingMessage(finalWatchlist, message));
 
         this.repository.save(watchlist);
     }

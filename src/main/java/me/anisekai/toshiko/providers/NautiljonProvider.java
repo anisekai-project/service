@@ -1,6 +1,5 @@
 package me.anisekai.toshiko.providers;
 
-import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
 import me.anisekai.toshiko.enums.PublicationState;
 import me.anisekai.toshiko.exceptions.providers.StupidUserException;
 import me.anisekai.toshiko.helpers.JsoupHelper;
@@ -33,13 +32,13 @@ public class NautiljonProvider implements AnimeProvider {
 
     public NautiljonProvider(URI uri) throws IOException {
 
-        Document    document = Jsoup.connect(uri.toString()).get();
+        Document document = Jsoup.connect(uri.toString()).get();
 
         if (uri.getPath().startsWith("/mangas/")) {
             throw new StupidUserException();
         }
 
-        JsoupHelper helper   = new JsoupHelper(document);
+        JsoupHelper helper = new JsoupHelper(document);
 
         this.name         = helper.readMetaContent("og:title").orElse("*No title*");
         this.synopsis     = helper.readClassContent("description").orElse("*No description available*");

@@ -12,7 +12,6 @@ import me.anisekai.toshiko.services.AnimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,16 +37,16 @@ public class AnimeTask {
         this.animes     = new LinkedBlockingDeque<>();
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    //@Scheduled(cron = "0 0 * * * *")
     public void execute() {
 
-        List<Anime> updatableAnime = this.service.getUpdatableAnime();
+        List<Anime> updatableAnime  = this.service.getUpdatableAnime();
         List<Anime> badEpisodeAnime = this.repository.findAllEpisodeUpdatable();
 
         Stream.concat(updatableAnime.stream(), badEpisodeAnime.stream()).distinct().forEach(this.animes::offer);
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
+    //@Scheduled(cron = "0/5 * * * * *")
     public void check() {
 
         Anime anime = this.animes.poll();

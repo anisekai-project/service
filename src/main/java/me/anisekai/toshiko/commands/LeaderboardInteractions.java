@@ -88,9 +88,9 @@ public class LeaderboardInteractions {
     )
     public SlashResponse topUser() {
 
-        EmbedBuilder builder = new EmbedBuilder();
+        EmbedBuilder  builder     = new EmbedBuilder();
         StringBuilder description = new StringBuilder();
-        AtomicInteger counter = new AtomicInteger(1);
+        AtomicInteger counter     = new AtomicInteger(1);
 
         this.userService.getVotePercentage().entrySet().stream()
                         .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))

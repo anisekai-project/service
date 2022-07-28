@@ -7,12 +7,12 @@ public enum PublicationState {
     AIRING("Diffusion en cours", AnimeStatus.SIMULCAST_AVAILABLE),
     UNAVAILABLE("Non disponible", AnimeStatus.UNAVAILABLE);
 
-    private final String label;
+    private final String      label;
     private final AnimeStatus status;
 
     PublicationState(String label, AnimeStatus status) {
 
-        this.label = label;
+        this.label  = label;
         this.status = status;
     }
 

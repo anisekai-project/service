@@ -12,14 +12,15 @@ public class Watchlist {
     @Enumerated(EnumType.STRING)
     private AnimeStatus status;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true,
+            nullable = false)
     private Long messageId;
 
     public Watchlist() {}
 
     public Watchlist(AnimeStatus status, Message message) {
 
-        this.status = status;
+        this.status    = status;
         this.messageId = message.getIdLong();
     }
 

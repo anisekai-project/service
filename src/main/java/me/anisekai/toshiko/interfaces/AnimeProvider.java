@@ -1,10 +1,9 @@
 package me.anisekai.toshiko.interfaces;
 
-import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
 import me.anisekai.toshiko.enums.PublicationState;
-import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
 import me.anisekai.toshiko.exceptions.providers.InvalidLinkException;
 import me.anisekai.toshiko.exceptions.providers.ProviderLoadingException;
+import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
 import me.anisekai.toshiko.providers.NautiljonProvider;
 
 import java.io.IOException;
@@ -15,6 +14,23 @@ import java.util.Set;
 
 public interface AnimeProvider {
 
+    static boolean isSupported(String link) {
+
+        try {
+            return isSupported(new URI(link));
+        } catch (URISyntaxException e) {
+            throw new InvalidLinkException(link);
+        }
+    }
+
+    static boolean isSupported(URI uri) {
+
+        return switch (uri.getHost()) {
+            case "nautiljon.com", "www.nautiljon.com" -> true;
+            default -> false;
+        };
+    }
+
     static AnimeProvider of(String link) {
 
         try {
@@ -22,10 +38,10 @@ public interface AnimeProvider {
         } catch (URISyntaxException e) {
             throw new InvalidLinkException(link);
         }
-
     }
 
     static AnimeProvider of(URI uri) {
+
         try {
             return switch (uri.getHost()) {
                 case "nautiljon.com", "www.nautiljon.com" -> new NautiljonProvider(uri);

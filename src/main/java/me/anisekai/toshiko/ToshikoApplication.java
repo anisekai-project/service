@@ -9,13 +9,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ToshikoApplication {
 
 
-    public static void main(String[] args) {
-
-        SpringApplication.run(ToshikoApplication.class, args);
-    }
-
     ToshikoApplication(ToshikoBot bot) {
 
         bot.login();
+    }
+
+    public static void main(String[] args) {
+
+        SpringApplication.run(ToshikoApplication.class, args);
     }
 }

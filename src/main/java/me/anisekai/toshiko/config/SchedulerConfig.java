@@ -6,21 +6,20 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 /**
- * Configures the scheduler to allow multiple concurrent pools.
- * Prevents blocking.
+ * Configures the scheduler to allow multiple concurrent pools. Prevents blocking.
  */
 @Configuration
-public class SchedulerConfig implements SchedulingConfigurer
-{
+public class SchedulerConfig implements SchedulingConfigurer {
 
     /**
      * Configures the scheduler to allow multiple pools.
      *
-     * @param taskRegistrar The task registrar.
+     * @param taskRegistrar
+     *         The task registrar.
      */
     @Override
-    public void configureTasks(ScheduledTaskRegistrar taskRegistrar)
-    {
+    public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
         threadPoolTaskScheduler.setPoolSize(10);

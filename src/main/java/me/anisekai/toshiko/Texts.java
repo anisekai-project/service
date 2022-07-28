@@ -23,7 +23,7 @@ public final class Texts {
     public static final String ANIME_NEW__DESCRIPTION = "Ajouter un anime à la liste";
     public static final String ANIME_NEW__OPTION_LINK = "Lien vers la fiche de l'anime (Site(s) Supporté(s): Nautiljon)";
 
-    public static final String ANIME_PROGRESS__DESCRIPTION = "Change la progession de visionnage d'un anime";
+    public static final String ANIME_PROGRESS__DESCRIPTION    = "Change la progession de visionnage d'un anime";
     public static final String ANIME_PROGRESS__OPTION_WATCHED = "Nombre d'épisodes visionnés";
 
     public static final String USER_ICON__DESCRIPTION = "Changer votre icône de vote";

@@ -20,6 +20,7 @@ public class JDAStore extends ListenerAdapter {
     }
 
     public Optional<JDA> getInstance() {
+
         return Optional.ofNullable(this.jda);
     }
 }

@@ -29,24 +29,19 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class AnnouncementTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
-
-    @Value("${toshiko.anime.server}")
-    private long toshikoAnimeServer;
-
-    @Value("${toshiko.anime.notification.channel}")
-    private long toshikoAnimeNotificationChannel;
-
-    @Value("${toshiko.anime.notification.role}")
-    private long toshikoAnimeNotificationRole;
-
-    @Value("${toshiko.anime.watchlist.channel}")
-    private long toshikoAnimeWatchlistChannel;
-
     private final JDAStore                        store;
     private final DelayedTask                     delayedTask;
     private final AnimeService                    service;
     private final AnimeRepository                 repository;
     private final BlockingDeque<AnimeUpdateEvent> notificationQueue;
+    @Value("${toshiko.anime.server}")
+    private long toshikoAnimeServer;
+    @Value("${toshiko.anime.notification.channel}")
+    private long toshikoAnimeNotificationChannel;
+    @Value("${toshiko.anime.notification.role}")
+    private long toshikoAnimeNotificationRole;
+    @Value("${toshiko.anime.watchlist.channel}")
+    private long toshikoAnimeWatchlistChannel;
 
     public AnnouncementTask(JDAStore store, DelayedTask delayedTask, AnimeService service, AnimeRepository repository) {
 
@@ -109,16 +104,15 @@ public class AnnouncementTask {
                 this.delayedTask.queue(String.format("ANNOUNCEMENT REFRESH " + anime.getId()), runnable);
             });
 
-            if (event.getType() == AnimeUpdateType.ADDED) {
-                TextChannel channel = this.getTextChannel();
-                TextChannelManager  manager = channel.getManager();
-                this.delayedTask.queue("ANIME COUNT REFRESH", () -> manager.setTopic(
-                        String.format(
-                                "Il y a en tout %s animes",
-                                this.service.getDisplayableCount()
-                        )
-                ).complete());
-            }
+            TextChannel        channel = this.getTextChannel();
+            TextChannelManager manager = channel.getManager();
+            this.delayedTask.queue("ANIME COUNT REFRESH", () -> manager.setTopic(
+                    String.format(
+                            "Il y a en tout %s animes",
+                            this.service.getDisplayableCount()
+                    )
+            ).complete());
+
         } catch (Exception e) {
 
             this.notificationQueue.offer(event);
