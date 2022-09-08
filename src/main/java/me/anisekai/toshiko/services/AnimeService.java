@@ -153,12 +153,17 @@ public class AnimeService {
      * @param watched
      *         The progress made
      */
-    public boolean setAnimeProgress(long id, long watched) {
+    public boolean setAnimeProgress(long id, long watched, Long amount) {
 
         Anime anime = this.findById(id);
         if (anime.getStatus() != AnimeStatus.WATCHING && anime.getStatus() != AnimeStatus.SIMULCAST) {
             throw new InvalidAnimeStatusException();
         }
+
+        if (amount != null) {
+            anime.setTotal(amount);
+        }
+
         if (anime.getTotal() < watched || watched < 0) {
             throw new InvalidAnimeProgressException();
         }

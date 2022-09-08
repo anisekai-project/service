@@ -175,16 +175,21 @@ public class AnimeInteractions {
                             description = Texts.ANIME_PROGRESS__OPTION_WATCHED,
                             type = OptionType.INTEGER,
                             required = true
+                    ),
+                    @Option(
+                            name = "amount",
+                            description = Texts.ANIME_PROGRESS__OPTION_AMOUNT,
+                            type = OptionType.INTEGER
                     )
             }
     )
-    public SlashResponse changeAnimeProgress(Member member, @Param("anime") long animeId, @Param("watched") long watched) {
+    public SlashResponse changeAnimeProgress(Member member, @Param("anime") long animeId, @Param("watched") long watched, @Param("amount") Long amount) {
 
         if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR)) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
 
-        if (this.service.setAnimeProgress(animeId, watched)) {
+        if (this.service.setAnimeProgress(animeId, watched, amount)) {
             return new SimpleResponse("La progression a été sauvegardée et l'anime marqué comme terminé.", false, false);
         } else {
             return new SimpleResponse("La progression a été sauvegardée.", false, false);

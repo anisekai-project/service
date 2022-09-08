@@ -25,6 +25,7 @@ public final class Texts {
 
     public static final String ANIME_PROGRESS__DESCRIPTION    = "Change la progession de visionnage d'un anime";
     public static final String ANIME_PROGRESS__OPTION_WATCHED = "Nombre d'épisodes visionnés";
+    public static final String ANIME_PROGRESS__OPTION_AMOUNT = "Nombre total d'épisodes";
 
     public static final String USER_ICON__DESCRIPTION = "Changer votre icône de vote";
     public static final String USER_ICON__OPTION_ICON = "Icône de vote";
