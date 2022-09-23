@@ -110,7 +110,11 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse changeAnimeStatus(@Param("anime") long animeId, @Param("status") String statusName) {
+    public SlashResponse changeAnimeStatus(DiscordUser discordUser, @Param("anime") long animeId, @Param("status") String statusName) {
+
+        if (!discordUser.isAdmin()) {
+            return new SimpleResponse("Tu n'as pas le droit de faire ça.", false, false);
+        }
 
         AnimeStatus status = AnimeStatus.from(statusName);
         this.service.swapAnimeStatus(animeId, status);
@@ -151,6 +155,12 @@ public class AnimeInteractions {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setDescription("Ton niveau d'interêt pour cet anime a bien été mis à jour.");
+
+        if (discordUser.isBanned()) {
+            builder.appendDescription("\n");
+            builder.appendDescription("Cependant, suite à une décision *administrative*, tes votes ne sont plus comptabilisés.");
+        }
+
         builder.addField("Anime", interest.getAnime().getName(), false);
         builder.addField("Niveau d'interêt", interest.getLevel().getDisplayText(), false);
 
@@ -183,9 +193,9 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse changeAnimeProgress(Member member, @Param("anime") long animeId, @Param("watched") long watched, @Param("amount") Long amount) {
+    public SlashResponse changeAnimeProgress(DiscordUser user, @Param("anime") long animeId, @Param("watched") long watched, @Param("amount") Long amount) {
 
-        if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR)) {
+        if (!user.isAdmin()) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
 
@@ -203,9 +213,9 @@ public class AnimeInteractions {
             name = "anime/refresh",
             description = "Refraichi les watchlist"
     )
-    public SlashResponse refreshWatchlist(Member member) {
+    public SlashResponse refreshWatchlist(DiscordUser user) {
 
-        if (!member.isOwner() && !member.hasPermission(Permission.ADMINISTRATOR)) {
+        if (!user.isAdmin()) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
         this.service.refreshWatchlist();
@@ -245,10 +255,14 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse addAnime(User user, String name, String link, String status, Long episode) {
+    public SlashResponse addAnime(DiscordUser discordUser, User user, String name, String link, String status, Long episode) {
 
         if (!AnimeProvider.isSupported(link)) {
             return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
+        }
+
+        if (discordUser.isBanned()) {
+            return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
         }
 
         AnimeStatus   animeStatus = AnimeStatus.from(status);

@@ -5,6 +5,7 @@ import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
+import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.events.WatchlistUpdatedEvent;
 import me.anisekai.toshiko.helpers.InteractionBean;
@@ -41,14 +42,16 @@ public class UserInteractions {
                     )
             }
     )
-    public SlashResponse changeUserIcon(User user, @Param("icon") String icon) {
+    public SlashResponse changeUserIcon(DiscordUser discordUser, User user, @Param("icon") String icon) {
 
         if (!this.service.swapEmoji(user, icon)) {
             return new SimpleResponse("Ton icône de vote reste inchangée.", false, true);
         }
 
-        for (AnimeStatus status : AnimeStatus.getDisplayable()) {
-            this.publisher.publishEvent(new WatchlistUpdatedEvent(this, status));
+        if (!discordUser.isBanned()) {
+            for (AnimeStatus status : AnimeStatus.getDisplayable()) {
+                this.publisher.publishEvent(new WatchlistUpdatedEvent(this, status));
+            }
         }
 
         return new SimpleResponse("Ton icône de vote a été mise à jour.", false, false);

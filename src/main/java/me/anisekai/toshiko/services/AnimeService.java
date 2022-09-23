@@ -228,7 +228,7 @@ public class AnimeService {
      */
     public List<Interest> getInterests(Anime anime) {
 
-        return this.interestRepository.findAllByAnime(anime);
+        return this.interestRepository.findAllActiveByAnime(anime);
     }
 
     /**
@@ -251,7 +251,7 @@ public class AnimeService {
         Map<DiscordUser, Double> power = new HashMap<>();
         Map<Anime, Double>       votes = new HashMap<>();
 
-        List<Interest> interests = this.interestRepository.findAll()
+        List<Interest> interests = this.interestRepository.findAllActive()
                                                           .stream()
                                                           .filter(vote -> vote.getLevel() != InterestLevel.NEUTRAL)
                                                           .toList();

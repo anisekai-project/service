@@ -27,11 +27,19 @@ public class DiscordUser {
     @Column(unique = true)
     private @Nullable String emote;
 
+    @Column(nullable = false)
+    private boolean banned;
+
+    @Column(nullable = false)
+    private boolean admin;
+
     public DiscordUser() {}
 
     public DiscordUser(User user) {
 
         this.updateWith(user);
+        this.banned = false;
+        this.admin  = false;
     }
 
     public void updateWith(User user) {
@@ -64,6 +72,26 @@ public class DiscordUser {
     public void setEmote(@Nullable String emote) {
 
         this.emote = emote;
+    }
+
+    public boolean isBanned() {
+
+        return this.banned;
+    }
+
+    public void setBanned(boolean banned) {
+
+        this.banned = banned;
+    }
+
+    public boolean isAdmin() {
+
+        return this.admin;
+    }
+
+    public void setAdmin(boolean admin) {
+
+        this.admin = admin;
     }
 
     @Override

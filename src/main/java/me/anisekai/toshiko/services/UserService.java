@@ -59,7 +59,7 @@ public class UserService {
 
         Map<DiscordUser, Double> power = new HashMap<>();
 
-        List<Interest> interests = this.interestRepository.findAll()
+        List<Interest> interests = this.interestRepository.findAllActive()
                                                           .stream()
                                                           .filter(vote -> vote.getLevel() != InterestLevel.NEUTRAL)
                                                           .toList();
