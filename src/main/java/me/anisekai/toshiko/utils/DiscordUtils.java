@@ -72,7 +72,7 @@ public final class DiscordUtils {
         entryWithoutLinkBuilder.append(anime.getName());
 
         if (hasProgress) {
-            if (anime.getTotal() == -1) {
+            if (anime.getTotal() > -1) {
                 entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
                 entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
             } else {
