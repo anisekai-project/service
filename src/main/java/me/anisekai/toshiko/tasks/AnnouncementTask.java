@@ -114,14 +114,6 @@ public class AnnouncementTask {
                 this.delayedTask.queue(String.format("ANNOUNCEMENT REFRESH " + anime.getId()), runnable);
             });
 
-            TextChannel channel = this.getTextChannel();
-            this.delayedTask.queue("ANIME COUNT REFRESH", () -> {
-                channel.getManager().setTopic(String.format(
-                        "Il y a en tout %s animes",
-                        this.service.getDisplayableCount()
-                )).complete();
-            });
-
         } catch (Exception e) {
 
             this.notificationQueue.offer(event);

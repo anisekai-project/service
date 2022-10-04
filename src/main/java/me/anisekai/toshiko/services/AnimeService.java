@@ -168,7 +168,7 @@ public class AnimeService {
             anime.setTotal(amount);
         }
 
-        if (anime.getTotal() < watched || watched < 0) {
+        if (anime.getTotal() > 0 && (anime.getTotal() < watched || watched < 0)) {
             throw new InvalidAnimeProgressException();
         }
         anime.setWatched(watched);

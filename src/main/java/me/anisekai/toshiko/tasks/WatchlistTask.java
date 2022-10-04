@@ -98,6 +98,14 @@ public class WatchlistTask {
 
         LOGGER.info("Updating message for watchlist {}", status.name());
 
+        TextChannel channel = this.getTextChannel();
+        this.delayedTask.queue("ANIME COUNT REFRESH", () -> {
+            channel.getManager().setTopic(String.format(
+                    "Il y a en tout %s animes",
+                    this.service.getDisplayableCount()
+            )).complete();
+        });
+
         Watchlist finalWatchlist = watchlist;
         this.delayedTask.queue(
                 String.format(

@@ -72,8 +72,13 @@ public final class DiscordUtils {
         entryWithoutLinkBuilder.append(anime.getName());
 
         if (hasProgress) {
-            entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
-            entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
+            if (anime.getTotal() == -1) {
+                entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
+                entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
+            } else {
+                entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), "?"));
+                entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), "?"));
+            }
         }
 
         if (!hasUpVotes && !hasDownVotes) {
