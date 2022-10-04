@@ -3,14 +3,15 @@ package me.anisekai.toshiko.services.responses;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
+
+import java.util.function.Consumer;
 
 public class SimpleResponse implements SlashResponse, ButtonResponse {
 
-    private final Message message;
-    private final boolean edit;
-    private final boolean ephemeral;
+    private final EmbedBuilder builder;
+    private final boolean      edit;
+    private final boolean      ephemeral;
 
     public SimpleResponse(String message, boolean edit, boolean ephemeral) {
 
@@ -19,12 +20,7 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
 
     public SimpleResponse(EmbedBuilder builder, boolean edit, boolean ephemeral) {
 
-        this(new MessageBuilder().setEmbeds(builder.build()).build(), edit, ephemeral);
-    }
-
-    public SimpleResponse(Message message, boolean edit, boolean ephemeral) {
-
-        this.message   = message;
+        this.builder   = builder;
         this.edit      = edit;
         this.ephemeral = ephemeral;
     }
@@ -36,9 +32,9 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
     }
 
     @Override
-    public Message getMessage() {
+    public Consumer<AbstractMessageBuilder<?, ?>> getHandler() {
 
-        return this.message;
+        return (amb) -> amb.setEmbeds(this.builder.build());
     }
 
     @Override

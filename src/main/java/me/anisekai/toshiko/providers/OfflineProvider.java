@@ -1,9 +1,11 @@
 package me.anisekai.toshiko.providers;
 
+import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.PublicationState;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -12,14 +14,22 @@ public class OfflineProvider implements AnimeProvider {
     private final String      name;
     private final String      link;
     private final AnimeStatus status;
-    private final Integer     episode;
+    private final Long        episode;
+
+    public OfflineProvider(Anime anime) {
+
+        this.name    = anime.getName();
+        this.link    = anime.getLink();
+        this.status  = anime.getStatus();
+        this.episode = anime.getTotal();
+    }
 
     public OfflineProvider(String name, String link, AnimeStatus status, Long episode) {
 
         this.name    = name;
         this.link    = link;
         this.status  = status;
-        this.episode = Optional.ofNullable(episode).map(Long::intValue).orElse(null);
+        this.episode = episode;
     }
 
     @Override
@@ -31,7 +41,7 @@ public class OfflineProvider implements AnimeProvider {
     @Override
     public String getSynopsis() {
 
-        return null;
+        return "*Impossible de récupérer le synopsis.*";
     }
 
     @Override
@@ -55,11 +65,11 @@ public class OfflineProvider implements AnimeProvider {
     @Override
     public Set<String> getTags() {
 
-        return Set.of();
+        return Collections.emptySet();
     }
 
     @Override
-    public Optional<Integer> getEpisodeCount() {
+    public Optional<Long> getEpisodeCount() {
 
         return Optional.ofNullable(this.episode);
     }

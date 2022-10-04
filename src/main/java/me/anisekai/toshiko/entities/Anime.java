@@ -58,7 +58,7 @@ public class Anime implements Comparable<Anime> {
         this.addedBy = user;
         this.link    = provider.getUrl();
         this.addedAt = LocalDateTime.now().withNano(0);
-        this.total   = provider.getEpisodeCount().orElse(-1);
+        this.total   = provider.getEpisodeCount().orElse(-1L);
     }
 
     public Long getId() {

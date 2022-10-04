@@ -9,11 +9,13 @@ import me.anisekai.toshiko.repositories.AnimeRepository;
 import me.anisekai.toshiko.services.AnimeService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
-import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,24 +26,25 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Consumer;
 
 @Service
 public class AnnouncementTask {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
-    private final JDAStore                        store;
-    private final DelayedTask                     delayedTask;
-    private final AnimeService                    service;
-    private final AnimeRepository                 repository;
-    private final BlockingDeque<AnimeUpdateEvent> notificationQueue;
+    private static final Logger                          LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
+    private final        JDAStore                        store;
+    private final        DelayedTask                     delayedTask;
+    private final        AnimeService                    service;
+    private final        AnimeRepository                 repository;
+    private final        BlockingDeque<AnimeUpdateEvent> notificationQueue;
     @Value("${toshiko.anime.server}")
-    private long toshikoAnimeServer;
+    private              long                            toshikoAnimeServer;
     @Value("${toshiko.anime.notification.channel}")
-    private long toshikoAnimeNotificationChannel;
+    private              long                            toshikoAnimeNotificationChannel;
     @Value("${toshiko.anime.notification.role}")
-    private long toshikoAnimeNotificationRole;
+    private              long                            toshikoAnimeNotificationRole;
     @Value("${toshiko.anime.watchlist.channel}")
-    private long toshikoAnimeWatchlistChannel;
+    private              long                            toshikoAnimeWatchlistChannel;
 
     public AnnouncementTask(JDAStore store, DelayedTask delayedTask, AnimeService service, AnimeRepository repository) {
 
@@ -81,37 +84,43 @@ public class AnnouncementTask {
                                                                                                             .name());
 
             if (event.getType().shouldNotify()) {
-                existingMessage.ifPresent(msg -> msg.delete().complete());
-                LOGGER.info("Sending announce for anime {} ({})", anime.getId(), anime.getName());
-                Message message = this.getMessage(anime, event.getType());
+                existingMessage.ifPresent(msg -> {
+                    LOGGER.info("Removing existing announce for anime {} ({})", anime.getId(), anime.getName());
+                    msg.delete().complete();
+                });
 
                 TextChannel channel = this.getTextChannel();
 
                 Runnable runnable = () -> {
-                    Message sentMessage = channel.sendMessage(message).complete();
+                    LOGGER.info("Sending announce for anime {} ({})", anime.getId(), anime.getName());
+                    MessageCreateBuilder createBuilder = new MessageCreateBuilder();
+                    this.getMessage(anime, event.getType()).accept(createBuilder);
+                    Message sentMessage = channel.sendMessage(createBuilder.build()).complete();
                     anime.setAnnounceMessage(sentMessage.getIdLong());
                     this.repository.save(anime);
                 };
                 this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable);
-
                 return;
             }
 
             existingMessage.ifPresent(msg -> {
-                LOGGER.info("Updating announce for anime {} ({})", anime.getId(), anime.getName());
+                Runnable runnable = () -> {
+                    LOGGER.info("Updating announce for anime {} ({})", anime.getId(), anime.getName());
+                    MessageEditBuilder editBuilder = MessageEditBuilder.fromMessage(msg);
+                    this.getMessage(anime, msg.getContentRaw()).accept(editBuilder);
+                    msg.editMessage(editBuilder.build()).complete();
+                };
 
-                Runnable runnable = () -> msg.editMessage(this.getMessage(anime, msg.getContentRaw())).complete();
                 this.delayedTask.queue(String.format("ANNOUNCEMENT REFRESH " + anime.getId()), runnable);
             });
 
-            TextChannel        channel = this.getTextChannel();
-            TextChannelManager manager = channel.getManager();
-            this.delayedTask.queue("ANIME COUNT REFRESH", () -> manager.setTopic(
-                    String.format(
-                            "Il y a en tout %s animes",
-                            this.service.getDisplayableCount()
-                    )
-            ).complete());
+            TextChannel channel = this.getTextChannel();
+            this.delayedTask.queue("ANIME COUNT REFRESH", () -> {
+                channel.getManager().setTopic(String.format(
+                        "Il y a en tout %s animes",
+                        this.service.getDisplayableCount()
+                )).complete();
+            });
 
         } catch (Exception e) {
 
@@ -119,7 +128,7 @@ public class AnnouncementTask {
         }
     }
 
-    private Message getMessage(Anime anime, AnimeUpdateType type) {
+    private Consumer<AbstractMessageBuilder<?, ?>> getMessage(Anime anime, AnimeUpdateType type) {
 
         String content;
 
@@ -141,10 +150,12 @@ public class AnnouncementTask {
         return this.getMessage(anime, content);
     }
 
-    private Message getMessage(Anime anime, String content) {
+    private Consumer<AbstractMessageBuilder<?, ?>> getMessage(Anime anime, String content) {
 
         AnimeSheetMessage message = new AnimeSheetMessage(anime, this.service.getInterests(anime));
-        return message.getMessage(true, content);
+        message.setContent(content);
+        message.setShowButtons(true);
+        return message.getHandler();
     }
 
 

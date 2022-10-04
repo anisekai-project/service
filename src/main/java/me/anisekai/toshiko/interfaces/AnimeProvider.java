@@ -4,7 +4,6 @@ import me.anisekai.toshiko.enums.PublicationState;
 import me.anisekai.toshiko.exceptions.providers.InvalidLinkException;
 import me.anisekai.toshiko.exceptions.providers.ProviderLoadingException;
 import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
-import me.anisekai.toshiko.providers.NautiljonProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,14 +41,7 @@ public interface AnimeProvider {
 
     static AnimeProvider of(URI uri) {
 
-        try {
-            return switch (uri.getHost()) {
-                case "nautiljon.com", "www.nautiljon.com" -> new NautiljonProvider(uri);
-                default -> throw new UnsupportedAnimeProviderException(uri);
-            };
-        } catch (IOException e) {
-            throw new ProviderLoadingException(e);
-        }
+        throw new UnsupportedAnimeProviderException(uri);
     }
 
     String getName();
@@ -64,7 +56,7 @@ public interface AnimeProvider {
 
     Set<String> getTags();
 
-    Optional<Integer> getEpisodeCount();
+    Optional<Long> getEpisodeCount();
 
     Optional<Double> getRating();
 

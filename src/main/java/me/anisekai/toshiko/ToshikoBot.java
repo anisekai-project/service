@@ -6,6 +6,7 @@ import me.anisekai.toshiko.helpers.JDAStore;
 import me.anisekai.toshiko.services.InteractionWrapper;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -14,8 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.security.auth.login.LoginException;
 
 @Service
 public class ToshikoBot extends ListenerAdapter {
@@ -43,11 +42,13 @@ public class ToshikoBot extends ListenerAdapter {
             builder.addEventListeners(this, this.store);
             builder.setToken(this.token);
             builder.build();
-        } catch (LoginException e) {
+        } catch (Exception e) {
             LOGGER.warn("Unable to connect to Discord. The token provided is probably invalid.", e);
 
-            Sentry.withScope(scope -> scope.setLevel(SentryLevel.FATAL));
-            Sentry.captureException(e, SentryLevel.ERROR);
+            Sentry.withScope(scope -> {
+                scope.setLevel(SentryLevel.FATAL);
+                Sentry.captureException(e);
+            });
         }
     }
 
@@ -55,6 +56,10 @@ public class ToshikoBot extends ListenerAdapter {
     public void onReady(@NotNull ReadyEvent event) {
 
         // Refresh roles in the database.
+        User self = event.getJDA().getSelfUser();
+        LOGGER.info("== == == == == == == Toshiko Bot == == == == == == ==");
+        LOGGER.info("Logged in as '{} ({})'", self.getName(), self.getId());
+
         Guild guild = event.getJDA().getGuildById(this.toshikoAnimeServer);
 
         if (guild == null) {
@@ -63,6 +68,8 @@ public class ToshikoBot extends ListenerAdapter {
         }
 
         this.wrapper.hook(guild);
+        LOGGER.info("Successfully hooked to server '{} ({})'", guild.getName(), guild.getId());
+        LOGGER.info("== == == == == == == == == == == == == == == == == ==");
     }
 
 

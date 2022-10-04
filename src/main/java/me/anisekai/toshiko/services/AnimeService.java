@@ -63,6 +63,10 @@ public class AnimeService {
         return this.repository.findAllByStatus(status).stream().sorted().toList();
     }
 
+    public Anime createFromProvider(User user, AnimeProvider provider) {
+        return this.createFromProvider(user, provider, provider.getPublicationState().getStatus());
+    }
+
     /**
      * Create a new {@link Anime} entry from the provided {@link AnimeProvider}.
      *

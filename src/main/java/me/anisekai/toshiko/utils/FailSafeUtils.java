@@ -13,6 +13,17 @@ public final class FailSafeUtils {
         }
     }
 
+    public static Long parseLong(String str) {
+
+        try {
+            return Long.parseLong(str);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+
     public static Double parseDouble(String str) {
 
         try {

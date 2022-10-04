@@ -21,7 +21,7 @@ public class DelayedTask {
         this.tasks = new LinkedBlockingDeque<>();
     }
 
-    @Scheduled(cron = "0/10 * * * * *")
+    @Scheduled(cron = "0/6 * * * * *")
     public void execute() {
 
         TaskEntry poll = this.tasks.poll();

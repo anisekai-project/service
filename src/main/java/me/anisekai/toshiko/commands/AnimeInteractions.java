@@ -11,6 +11,7 @@ import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
 import me.anisekai.toshiko.helpers.InteractionBean;
 import me.anisekai.toshiko.helpers.embeds.AnimeSheetMessage;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
@@ -18,8 +19,6 @@ import me.anisekai.toshiko.providers.OfflineProvider;
 import me.anisekai.toshiko.services.AnimeService;
 import me.anisekai.toshiko.services.responses.SimpleResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -38,33 +37,6 @@ public class AnimeInteractions {
 
         this.service = service;
     }
-
-    // <editor-fold desc="@ anime/new">
-    @Interact(
-            name = "anime/new",
-            description = Texts.ANIME_NEW__DESCRIPTION,
-            options = {
-                    @Option(
-                            name = "link",
-                            description = Texts.ANIME_NEW__OPTION_LINK,
-                            type = OptionType.STRING,
-                            required = true
-                    )
-            },
-            defer = true
-    )
-    public SlashResponse createAnime(DiscordUser discordUser, User user, @Param("link") String link) {
-
-        if (discordUser.getEmote() == null) {
-            return new SimpleResponse("Avant de pouvoir ajouter un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
-        }
-
-        return new SimpleResponse("L'ajout d'anime via lien a été désactivé.", false, false);
-        /*AnimeProvider provider = AnimeProvider.of(link);
-        Anime         anime    = this.service.createFromProvider(user, provider);
-        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);*/
-    }
-    // </editor-fold>
 
     // <editor-fold desc="@ anime/about">
     @Interact(
@@ -85,7 +57,8 @@ public class AnimeInteractions {
         Anime             anime        = this.service.findById(animeId);
         List<Interest>    interests    = this.service.getInterests(anime);
         AnimeSheetMessage sheetMessage = new AnimeSheetMessage(anime, interests);
-        return new SimpleResponse(sheetMessage.getMessage(true, null), false, false);
+        sheetMessage.setShowButtons(true);
+        return sheetMessage;
     }
     // </editor-fold>
 
@@ -107,6 +80,11 @@ public class AnimeInteractions {
                             type = OptionType.STRING,
                             required = true,
                             autoComplete = true
+                    ),
+                    @Option(
+                            name = "episode",
+                            description = Texts.ANIME_PROGRESS__OPTION_AMOUNT,
+                            type = OptionType.INTEGER
                     )
             }
     )
@@ -255,7 +233,7 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse addAnime(DiscordUser discordUser, User user, String name, String link, String status, Long episode) {
+    public SlashResponse addAnime(DiscordUser discordUser, User user, @Param("name") String name, @Param("link") String link, @Param("status") String status, @Param("episode") Long episode) {
 
         if (!AnimeProvider.isSupported(link)) {
             return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
