@@ -7,6 +7,7 @@ import fr.alexpado.jda.interactions.impl.interactions.autocomplete.AutocompleteI
 import fr.alexpado.jda.interactions.impl.interactions.button.ButtonInteractionTargetImpl;
 import fr.alexpado.jda.interactions.impl.interactions.slash.SlashInteractionTargetImpl;
 import fr.alexpado.jda.interactions.interfaces.interactions.Injection;
+import fr.alexpado.jda.interactions.interfaces.interactions.InteractionPreprocessor;
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutocompleteInteractionTarget;
 import fr.alexpado.jda.interactions.interfaces.interactions.button.ButtonInteractionTarget;
 import fr.alexpado.jda.interactions.interfaces.interactions.slash.SlashInteractionTarget;
@@ -23,12 +24,14 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -70,6 +73,22 @@ public class InteractionWrapper {
     public void hook(Guild guild) {
 
         this.hook(guild.getJDA(), guild::updateCommands);
+
+        this.extension.registerPreprocessor(new InteractionPreprocessor() {
+
+            @Override
+            public <T extends Interaction> boolean mayContinue(@NotNull DispatchEvent<T> dispatchEvent) {
+
+                Guild g = dispatchEvent.getInteraction().getGuild();
+                return g == null || guild.getIdLong() == g.getIdLong();
+            }
+
+            @Override
+            public <T extends Interaction> Optional<Object> preprocess(@NotNull DispatchEvent<T> dispatchEvent) {
+
+                return Optional.empty();
+            }
+        });
     }
 
     public void register(Object obj) {
@@ -141,5 +160,4 @@ public class InteractionWrapper {
                 .findById(event.getInteraction().getUser().getIdLong())
                 .orElseGet(() -> this.userRepository.save(new DiscordUser(event.getInteraction().getUser())));
     }
-
 }
