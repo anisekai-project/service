@@ -8,9 +8,8 @@ import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.services.AnimeService;
-import me.anisekai.toshiko.services.UserService;
-import me.anisekai.toshiko.services.responses.SimpleResponse;
+import me.anisekai.toshiko.helpers.responses.SimpleResponse;
+import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.UserSnowflake;
@@ -25,13 +24,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @InteractionBean
 public class LeaderboardInteractions {
 
-    private final AnimeService animeService;
-    private final UserService  userService;
+    private final ToshikoService toshikoService;
 
-    public LeaderboardInteractions(AnimeService animeService, UserService userService) {
+    public LeaderboardInteractions(ToshikoService toshikoService) {
 
-        this.animeService = animeService;
-        this.userService  = userService;
+        this.toshikoService = toshikoService;
     }
 
     // <editor-fold desc="@ top/anime">
@@ -59,17 +56,17 @@ public class LeaderboardInteractions {
     )
     public SlashResponse topAnime(@Param("order") String order) {
 
-        Map<Anime, Double> animeVotes = this.animeService.getAnimeVotes();
+        Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
 
         EmbedBuilder builder = new EmbedBuilder();
         String       simulcast;
         String       download;
         if (order.equalsIgnoreCase("DESC")) {
-            simulcast = DiscordUtils.getTopDescFormatted(this.animeService, animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
-            download  = DiscordUtils.getTopDescFormatted(this.animeService, animeVotes, AnimeStatus.DOWNLOADED, 5);
+            simulcast = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
+            download  = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.DOWNLOADED, 5);
         } else {
-            simulcast = DiscordUtils.getTopAscFormatted(this.animeService, animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
-            download  = DiscordUtils.getTopAscFormatted(this.animeService, animeVotes, AnimeStatus.DOWNLOADED, 5);
+            simulcast = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
+            download  = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.DOWNLOADED, 5);
         }
 
         builder.addField(AnimeStatus.SIMULCAST_AVAILABLE.getDisplay(), simulcast, false);
@@ -79,7 +76,6 @@ public class LeaderboardInteractions {
         return new SimpleResponse(builder, false, false);
     }
     // </editor-fold>
-
 
     // <editor-fold desc="@ top/user">
     @Interact(
@@ -92,25 +88,23 @@ public class LeaderboardInteractions {
         StringBuilder description = new StringBuilder();
         AtomicInteger counter     = new AtomicInteger(1);
 
-        this.userService.getVotePercentage().entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                        .forEach(entry -> {
-                            description
-                                    .append("**")
-                                    .append(counter.getAndIncrement())
-                                    .append(".** ")
-                                    .append(entry.getKey().getEmote())
-                                    .append(" ─ ")
-                                    .append(String.format("%.2f", entry.getValue() * 100))
-                                    .append(" ─ ")
-                                    .append(UserSnowflake.fromId(entry.getKey().getId()).getAsMention())
-                                    .append("\n\n");
-                        });
+        this.toshikoService.getInterestPower().getUserInterestPower().entrySet().stream()
+                           .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                           .forEach(entry -> {
+                               description.append(
+                                       String.format(
+                                               "**%s.** %s  ─  %.2f  ─ %s\n\n",
+                                               counter.getAndIncrement(), // Position
+                                               entry.getKey().getEmote(), // Icon
+                                               entry.getValue() * 100, // Vote power
+                                               UserSnowflake.fromId(entry.getKey().getId()).getAsMention() // @user
+                                       )
+                               );
+                           });
 
         builder.setDescription(description);
         return new SimpleResponse(builder, false, false);
     }
     // </editor-fold>
-
 
 }

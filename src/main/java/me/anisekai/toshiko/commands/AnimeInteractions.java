@@ -11,13 +11,12 @@ import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
-import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.embeds.AnimeSheetMessage;
+import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
+import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import me.anisekai.toshiko.providers.OfflineProvider;
-import me.anisekai.toshiko.services.AnimeService;
-import me.anisekai.toshiko.services.responses.SimpleResponse;
+import me.anisekai.toshiko.services.ToshikoService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
@@ -25,17 +24,15 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
 @InteractionBean
 public class AnimeInteractions {
 
-    private final AnimeService service;
+    private final ToshikoService toshikoService;
 
-    public AnimeInteractions(AnimeService service) {
+    public AnimeInteractions(ToshikoService toshikoService) {
 
-        this.service = service;
+        this.toshikoService = toshikoService;
     }
 
     // <editor-fold desc="@ anime/about">
@@ -54,9 +51,8 @@ public class AnimeInteractions {
     )
     public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
 
-        Anime             anime        = this.service.findById(animeId);
-        List<Interest>    interests    = this.service.getInterests(anime);
-        AnimeSheetMessage sheetMessage = new AnimeSheetMessage(anime, interests);
+        Anime      anime        = this.toshikoService.findAnime(animeId);
+        AnimeEmbed sheetMessage = new AnimeEmbed(anime);
         sheetMessage.setShowButtons(true);
         return sheetMessage;
     }
@@ -65,25 +61,25 @@ public class AnimeInteractions {
     // <editor-fold desc="@ anime/status">
     @Interact(
             name = "anime/status",
-            description = Texts.ANIME_UPDATE__DESCRIPTION,
+            description = Texts.ANIME_STATUS__DESCRIPTION,
             options = {
                     @Option(
                             name = "anime",
-                            description = Texts.ANIME_UPDATE__OPTION_ANIME,
+                            description = Texts.ANIME_STATUS__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             required = true,
                             autoComplete = true
                     ),
                     @Option(
                             name = "status",
-                            description = Texts.ANIME_UPDATE__OPTION_STATUS,
+                            description = Texts.ANIME_STATUS__OPTION_STATUS,
                             type = OptionType.STRING,
                             required = true,
                             autoComplete = true
                     ),
                     @Option(
                             name = "episode",
-                            description = Texts.ANIME_PROGRESS__OPTION_AMOUNT,
+                            description = Texts.ANIME_STATUS__OPTION_WATCHED,
                             type = OptionType.INTEGER
                     )
             }
@@ -95,8 +91,8 @@ public class AnimeInteractions {
         }
 
         AnimeStatus status = AnimeStatus.from(statusName);
-        this.service.swapAnimeStatus(animeId, status);
-        return new SimpleResponse("Le statut de l'anime a bien été changé.", false, false);
+        Anime       anime  = this.toshikoService.setAnimeStatus(animeId, status);
+        return new SimpleResponse(String.format("Le statut de l'anime '%s' a bien été changé.", anime.getName()), false, false);
     }
     // </editor-fold>
 
@@ -114,7 +110,7 @@ public class AnimeInteractions {
                     ),
                     @Option(
                             name = "interest",
-                            description = Texts.ANIME_UPDATE__OPTION_STATUS,
+                            description = Texts.ANIME_INTEREST__OPTION_LEVEL,
                             type = OptionType.STRING,
                             required = true,
                             autoComplete = true
@@ -122,21 +118,28 @@ public class AnimeInteractions {
             },
             hideAsButton = true
     )
-    public SlashResponse interestedByAnime(Interaction interaction, DiscordUser discordUser, User user, @Param("anime") long animeId, @Param("interest") String interestName) {
+    public SlashResponse interestedByAnime(
+            Interaction interaction,
+            DiscordUser discordUser,
+            User user,
+            @Param("anime") long animeId,
+            @Param("interest") String interestName
+    ) {
 
         if (discordUser.getEmote() == null) {
             return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
         }
 
         InterestLevel level    = InterestLevel.from(interestName);
-        Interest      interest = this.service.swapAnimeInterest(user, animeId, level);
+        Interest      interest = this.toshikoService.setInterestLevel(animeId, user, level);
+
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setDescription("Ton niveau d'interêt pour cet anime a bien été mis à jour.");
 
         if (discordUser.isBanned()) {
             builder.appendDescription("\n");
-            builder.appendDescription("Cependant, suite à une décision *administrative*, tes votes ne sont plus comptabilisés.");
+            builder.appendDescription("Mais suite à une décision *administrative*, tes votes ne sont plus comptabilisés.");
         }
 
         builder.addField("Anime", interest.getAnime().getName(), false);
@@ -153,7 +156,7 @@ public class AnimeInteractions {
             options = {
                     @Option(
                             name = "anime",
-                            description = Texts.ANIME_UPDATE__OPTION_ANIME,
+                            description = Texts.ANIME_PROGRESS__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             required = true,
                             autoComplete = true
@@ -171,69 +174,83 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse changeAnimeProgress(DiscordUser user, @Param("anime") long animeId, @Param("watched") long watched, @Param("amount") Long amount) {
+    public SlashResponse changeAnimeProgress(
+            DiscordUser user,
+            @Param("anime") long animeId,
+            @Param("watched") long watched,
+            @Param("amount") Long amount
+    ) {
 
         if (!user.isAdmin()) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
 
-        if (this.service.setAnimeProgress(animeId, watched, amount)) {
+        Anime anime;
+        if (amount != null) {
+            anime = this.toshikoService.setAnimeProgression(animeId, watched, amount);
+        } else {
+            anime = this.toshikoService.setAnimeProgression(animeId, watched);
+        }
+
+        if (anime.getStatus() == AnimeStatus.WATCHED) {
             return new SimpleResponse("La progression a été sauvegardée et l'anime marqué comme terminé.", false, false);
         } else {
             return new SimpleResponse("La progression a été sauvegardée.", false, false);
         }
-
     }
     // </editor-fold>
 
     // <editor-fold desc="@ anime/refresh">
     @Interact(
             name = "anime/refresh",
-            description = "Refraichi les watchlist"
+            description = Texts.ANIME_REFRESH__DESCRIPTION
     )
     public SlashResponse refreshWatchlist(DiscordUser user) {
 
         if (!user.isAdmin()) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
-        this.service.refreshWatchlist();
-        return new SimpleResponse("C'est parti !", false, false);
+
+        this.toshikoService.queueUpdateAll();
+        return new SimpleResponse("Les listes seront actualisées sous peu.", false, false);
     }
     // </editor-fold>
 
     // <editor-fold desc="@ anime/add">
     @Interact(
             name = "anime/add",
-            description = "Ajoute un anime à la liste",
+            description = Texts.ANIME_ADD__DESCRIPTION,
             target = SlashTarget.GUILD,
             options = {
                     @Option(
                             name = "name",
-                            description = "Nom de l'anime (nom en Japonais s'il vous plait)",
+                            description = Texts.ANIME_ADD__OPTION_NAME,
                             required = true,
                             type = OptionType.STRING
                     ),
                     @Option(
                             name = "link",
-                            description = "Lien vers la fiche Nautiljon (même si on peut plus l'utiliser...)",
+                            description = Texts.ANIME_ADD__OPTION_LINK,
                             required = true,
                             type = OptionType.STRING
                     ),
                     @Option(
                             name = "status",
-                            description = "Statut de l'anime",
+                            description = Texts.ANIME_ADD__OPTION_STATUS,
                             required = true,
                             type = OptionType.STRING,
                             autoComplete = true
                     ),
                     @Option(
                             name = "episode",
-                            description = "Nombre d'épisode total",
+                            description = Texts.ANIME_ADD__OPTION_EPISODE,
                             type = OptionType.INTEGER
                     )
             }
     )
-    public SlashResponse addAnime(DiscordUser discordUser, User user, @Param("name") String name, @Param("link") String link, @Param("status") String status, @Param("episode") Long episode) {
+    public SlashResponse addAnime(DiscordUser discordUser, User user,
+            @Param("name") String name,
+            @Param("link") String link, @Param("status") String status, @Param("episode") Long episode) {
 
         if (!AnimeProvider.isSupported(link)) {
             return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
@@ -245,7 +262,7 @@ public class AnimeInteractions {
 
         AnimeStatus   animeStatus = AnimeStatus.from(status);
         AnimeProvider provider    = new OfflineProvider(name, link, animeStatus, episode);
-        Anime         anime       = this.service.createFromProvider(user, provider, animeStatus);
+        Anime         anime       = this.toshikoService.createAnime(user, provider, animeStatus);
         return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
     }
     // </editor-fold>

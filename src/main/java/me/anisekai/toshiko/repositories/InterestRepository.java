@@ -10,9 +10,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InterestRepository extends JpaRepository<Interest, InterestKey> {
+
+    Optional<Interest> findByAnimeAndUser(Anime anime, DiscordUser user);
 
     @Query("SELECT i FROM Interest i WHERE i.user.banned = false AND i.anime = :anime")
     List<Interest> findAllActiveByAnime(Anime anime);

@@ -2,119 +2,96 @@ package me.anisekai.toshiko.tasks;
 
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.Watchlist;
-import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.events.WatchlistUpdatedEvent;
+import me.anisekai.toshiko.enums.CronState;
 import me.anisekai.toshiko.helpers.JDAStore;
-import me.anisekai.toshiko.helpers.containers.VariablePair;
+import me.anisekai.toshiko.helpers.embeds.WatchlistEmbed;
 import me.anisekai.toshiko.repositories.WatchlistRepository;
-import me.anisekai.toshiko.services.AnimeService;
-import me.anisekai.toshiko.utils.DiscordUtils;
-import net.dv8tion.jda.api.EmbedBuilder;
+import me.anisekai.toshiko.services.ToshikoService;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 
 @Service
 public class WatchlistTask {
 
-    private static final Logger                     LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
-    private final        JDAStore                   store;
-    private final        DelayedTask                delayedTask;
-    private final        AnimeService               service;
-    private final        WatchlistRepository        repository;
-    private final        BlockingDeque<AnimeStatus> statuses;
-    @Value("${toshiko.anime.server}")
-    private              long                       toshikoAnimeServer;
-    @Value("${toshiko.anime.notification.channel}")
-    private              long                       toshikoAnimeNotificationChannel;
-    @Value("${toshiko.anime.notification.role}")
-    private              long                       toshikoAnimeNotificationRole;
+    private static final Logger              LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
+    private final        JDAStore            store;
+    private final DelayedTask         delayedTask;
+    private final ToshikoService      service;
+    private final WatchlistRepository repository;
     @Value("${toshiko.anime.watchlist.channel}")
-    private              long                       toshikoAnimeWatchlistChannel;
+    private              long                toshikoAnimeWatchlistChannel;
 
-    public WatchlistTask(JDAStore store, DelayedTask delayedTask, AnimeService service, WatchlistRepository repository) {
+    public WatchlistTask(JDAStore store, DelayedTask delayedTask, ToshikoService service, WatchlistRepository repository) {
 
         this.store       = store;
         this.delayedTask = delayedTask;
         this.service     = service;
         this.repository  = repository;
-        this.statuses    = new LinkedBlockingDeque<>();
     }
 
-    @EventListener(WatchlistUpdatedEvent.class)
-    public void onWatchlistUpdateDetected(WatchlistUpdatedEvent event) {
-
-        if (!this.statuses.contains(event.getStatus())) {
-            this.statuses.add(event.getStatus());
-        }
-    }
-
-    @Scheduled(cron = "0/1 * * * * *")
+    @Scheduled(cron = "0/2 * * * * *")
     public void execute() {
 
-        AnimeStatus status = this.statuses.poll();
+        List<Watchlist> items = this.repository.findAll()
+                                               .stream()
+                                               .filter(w -> w.getState() == CronState.REQUIRED)
+                                               .sorted().toList();
 
-        if (status == null || !status.shouldDisplayList()) {
+        if (items.isEmpty()) {
             return;
         }
 
-        Optional<Watchlist> optionalWatchlist = this.repository.findById(status);
-        EmbedBuilder        builder           = new EmbedBuilder();
+        Map<Anime, Double> animeVotes = this.service.getAnimeVotes();
 
-        Message   message;
-        Watchlist watchlist;
+        for (Watchlist watchlist : items) {
+            watchlist.setState(CronState.QUEUED);
+            this.repository.save(watchlist);
 
-        if (optionalWatchlist.isEmpty()) {
-            LOGGER.info("Creating message for watchlist {}", status.name());
-            message   = this.createNewMessage();
-            watchlist = new Watchlist(status, message);
-        } else {
-            watchlist = optionalWatchlist.get();
-            Optional<Message> existingMessage = this.findExistingMessage(watchlist);
+            this.delayedTask.queue(String.format("WL:%s", watchlist.getStatus().name()), () -> {
+                boolean           requireMessage  = watchlist.getMessageId() == null;
+                WatchlistEmbed    embed           = new WatchlistEmbed(watchlist, animeVotes);
+                Optional<Message> existingMessage = this.findExistingMessage(watchlist);
 
-            if (existingMessage.isEmpty()) {
-                LOGGER.info("Creating message for watchlist {}", status.name());
-                message   = this.createNewMessage();
-                watchlist = new Watchlist(status, message);
-            } else {
-                message = existingMessage.get();
-            }
+                if (requireMessage || existingMessage.isEmpty()) {
+                    MessageCreateBuilder createBuilder = new MessageCreateBuilder();
+                    embed.getHandler().accept(createBuilder);
+                    Message message = this.getTextChannel().sendMessage(createBuilder.build()).complete();
+                    watchlist.setState(CronState.DONE);
+                    watchlist.setMessageId(message.getIdLong());
+                    this.repository.save(watchlist);
+                } else {
+                    MessageEditBuilder editBuilder = new MessageEditBuilder();
+                    embed.getHandler().accept(editBuilder);
+                    existingMessage.get().editMessage(editBuilder.build()).complete();
+                    watchlist.setState(CronState.DONE);
+                    this.repository.save(watchlist);
+                }
+            }, (ex) -> {
+                LOGGER.error("An error occurred.", ex);
+                watchlist.setState(CronState.REQUIRED);
+                this.repository.save(watchlist);
+            });
         }
 
-        LOGGER.info("Updating message for watchlist {}", status.name());
-
-        TextChannel channel = this.getTextChannel();
-        this.delayedTask.queue("ANIME COUNT REFRESH", () -> {
-            channel.getManager().setTopic(String.format(
+        this.delayedTask.queue("ANIME_COUNT", () -> {
+            this.getTextChannel().getManager().setTopic(String.format(
                     "Il y a en tout %s animes",
-                    this.service.getDisplayableCount()
+                    this.service.getDisplayableAnimeCount()
             )).complete();
-        });
-
-        Watchlist finalWatchlist = watchlist;
-        this.delayedTask.queue(
-                String.format(
-                        "WATCHLIST UPDATE %s",
-                        watchlist.getStatus().name()
-                ), () -> this.updateExistingMessage(finalWatchlist, message)
-        );
-
-        this.repository.save(watchlist);
+        }, (ex) -> LOGGER.error("Unable to execute ANIME_COUNT", ex));
     }
 
     private TextChannel getTextChannel() {
@@ -124,54 +101,11 @@ public class WatchlistTask {
                          .orElseThrow(() -> new IllegalStateException("Wololo, le channel même qu'il est pas trouvéééééééé"));
     }
 
-    private Message createNewMessage() {
-
-        TextChannel channel = this.getTextChannel();
-        return channel.sendMessageEmbeds(new EmbedBuilder().setDescription("Isekai en cours...").build()).complete();
-    }
-
-    private void updateExistingMessage(Watchlist watchlist, Message message) {
-
-        this.displayGenericEmbed(watchlist, message);
-    }
-
-    private void displayGenericEmbed(Watchlist watchlist, Message message) {
-
-        EmbedBuilder builder = new EmbedBuilder();
-        List<Anime>  animes  = this.service.findAllByStatus(watchlist.getStatus());
-        LOGGER.info(" > {} animes found", animes.size());
-        Map<Anime, Double> animeVotes = this.service.getAnimeVotes();
-
-        builder.setAuthor(String.format("%s (%s)", watchlist.getStatus().getDisplay(), animes.size()));
-
-        StringBuilder withLinks    = new StringBuilder();
-        StringBuilder withoutLinks = new StringBuilder();
-
-        for (Anime anime : animes) {
-
-            VariablePair<String, String> result = DiscordUtils.buildAnimeList(this.service, anime);
-
-            String entryWithLink    = result.getFirst();
-            String entryWithoutLink = result.getSecond();
-
-            withLinks.append(entryWithLink).append("\n\n");
-            withoutLinks.append(entryWithoutLink).append("\n\n");
-        }
-
-        if (withLinks.length() > MessageEmbed.DESCRIPTION_MAX_LENGTH) {
-            builder.setDescription(withoutLinks);
-        } else {
-            builder.setDescription(withLinks);
-        }
-
-        builder.setFooter("Dernière actualisation le");
-        builder.setTimestamp(LocalDateTime.now());
-
-        LOGGER.info(" > Refresh...");
-        message.editMessageEmbeds(builder.build()).complete();
-    }
-
     private Optional<Message> findExistingMessage(Watchlist watchlist) {
+
+        if (watchlist.getMessageId() == null) {
+            return Optional.empty();
+        }
 
         TextChannel channel = this.getTextChannel();
         try {

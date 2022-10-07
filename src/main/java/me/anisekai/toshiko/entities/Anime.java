@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Anime implements Comparable<Anime> {
@@ -17,19 +18,20 @@ public class Anime implements Comparable<Anime> {
     @Column(nullable = false)
     private Long id;
 
-    @Column(nullable = false,
-            unique = true)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private AnimeStatus status;
 
+    @OneToMany(mappedBy = "anime", fetch = FetchType.EAGER)
+    private Set<Interest> interests;
+
     @ManyToOne(optional = false)
     private DiscordUser addedBy;
 
-    @Column(nullable = false,
-            unique = true)
+    @Column(nullable = false, unique = true)
     private String link;
 
     @Column(nullable = false)
@@ -46,19 +48,19 @@ public class Anime implements Comparable<Anime> {
 
     public Anime() {}
 
-    public Anime(DiscordUser user, AnimeProvider provider) {
+    public Anime(@NotNull DiscordUser user, @NotNull AnimeProvider provider) {
 
         this(user, provider, provider.getPublicationState().getStatus());
     }
 
-    public Anime(DiscordUser user, AnimeProvider provider, AnimeStatus status) {
+    public Anime(@NotNull DiscordUser user, @NotNull AnimeProvider provider, @NotNull AnimeStatus status) {
 
         this.name    = provider.getName();
         this.status  = status;
         this.addedBy = user;
         this.link    = provider.getUrl();
         this.addedAt = LocalDateTime.now().withNano(0);
-        this.total   = provider.getEpisodeCount().orElse(-1L);
+        this.total   = provider.getEpisodeCount().orElse(0L);
     }
 
     public Long getId() {
@@ -66,27 +68,32 @@ public class Anime implements Comparable<Anime> {
         return this.id;
     }
 
-    public String getName() {
+    public @NotNull String getName() {
 
         return this.name;
     }
 
-    public void setName(String name) {
+    public void setName(@NotNull String name) {
 
         this.name = name;
     }
 
-    public AnimeStatus getStatus() {
+    public @NotNull AnimeStatus getStatus() {
 
         return this.status;
     }
 
-    public void setStatus(AnimeStatus status) {
+    public void setStatus(@NotNull AnimeStatus status) {
 
         this.status = status;
     }
 
-    public DiscordUser getAddedBy() {
+    public Set<Interest> getInterests() {
+
+        return this.interests;
+    }
+
+    public @NotNull DiscordUser getAddedBy() {
 
         return this.addedBy;
     }
@@ -121,22 +128,22 @@ public class Anime implements Comparable<Anime> {
         this.total = total;
     }
 
-    public Long getAnnounceMessage() {
+    public @Nullable Long getAnnounceMessage() {
 
         return this.announceMessage;
     }
 
-    public void setAnnounceMessage(Long announceMessage) {
+    public void setAnnounceMessage(@Nullable Long announceMessage) {
 
         this.announceMessage = announceMessage;
     }
 
-    public LocalDateTime getAddedAt() {
+    public @NotNull LocalDateTime getAddedAt() {
 
         return this.addedAt;
     }
 
-    public void setAddedAt(LocalDateTime addedAt) {
+    public void setAddedAt(@NotNull LocalDateTime addedAt) {
 
         this.addedAt = addedAt;
     }
@@ -144,8 +151,12 @@ public class Anime implements Comparable<Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) {return true;}
-        if (o == null || this.getClass() != o.getClass()) {return false;}
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
         Anime anime = (Anime) o;
         return Objects.equals(this.getId(), anime.getId());
     }

@@ -7,40 +7,39 @@ import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.comparators.AnimeScoreComparator;
 import me.anisekai.toshiko.helpers.containers.VariablePair;
-import me.anisekai.toshiko.services.AnimeService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class DiscordUtils {
 
     private DiscordUtils() {}
 
-    public static String getTopDescFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count) {
+    public static String getTopDescFormatted(Map<Anime, Double> votes, AnimeStatus status, int count) {
 
-        return getTopFormatted(service, votes, status, count, true);
+        return getTopFormatted(votes, status, count, true);
     }
 
-    public static String getTopAscFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count) {
+    public static String getTopAscFormatted(Map<Anime, Double> votes, AnimeStatus status, int count) {
 
-        return getTopFormatted(service, votes, status, count, false);
+        return getTopFormatted(votes, status, count, false);
     }
 
-    public static String getTopFormatted(AnimeService service, Map<Anime, Double> votes, AnimeStatus status, int count, boolean reverse) {
+    public static String getTopFormatted(Map<Anime, Double> votes, AnimeStatus status, int count, boolean reverse) {
 
         return votes.entrySet().stream()
                     .filter(entry -> entry.getKey().getStatus() == status)
                     .sorted(new AnimeScoreComparator(reverse))
                     .limit(count)
-                    .map(entry -> DiscordUtils.buildAnimeList(service, entry.getKey()).getFirst())
+                    .map(entry -> DiscordUtils.buildAnimeList(entry.getKey()).getFirst())
                     .collect(Collectors.joining("\n\n"));
     }
 
-    public static VariablePair<String, String> buildAnimeList(AnimeService service, Anime anime) {
+    public static VariablePair<String, String> buildAnimeList(Anime anime) {
 
-        List<Interest> interested = service.getInterests(anime);
+        Set<Interest> interested = anime.getInterests();
 
         String interestedUserIcon = interested.stream()
                                               .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
@@ -72,9 +71,11 @@ public final class DiscordUtils {
         entryWithoutLinkBuilder.append(anime.getName());
 
         if (hasProgress) {
-            if (anime.getTotal() > -1) {
-                entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
-                entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
+            if (anime.getTotal() > 0) {
+                entryWithLinkBuilder.append(" ─ ")
+                                    .append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
+                entryWithoutLinkBuilder.append(" ─ ")
+                                       .append(progressEntry.formatted(anime.getWatched(), anime.getTotal()));
             } else {
                 entryWithLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), "?"));
                 entryWithoutLinkBuilder.append(" ─ ").append(progressEntry.formatted(anime.getWatched(), "?"));

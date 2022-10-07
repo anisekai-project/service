@@ -7,7 +7,6 @@ import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.InterestLevel;
-import me.anisekai.toshiko.helpers.DateHelper;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import me.anisekai.toshiko.providers.OfflineProvider;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -18,21 +17,23 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
-public class AnimeSheetMessage implements SlashResponse, ButtonResponse {
+public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
-    private final Anime          anime;
-    private final List<Interest> interests;
-    private       boolean        showButtons;
-    private       String         content;
+    private final Anime         anime;
+    private final Set<Interest> interests;
+    private       boolean       showButtons;
+    private       String        content;
 
-    public AnimeSheetMessage(Anime anime, List<Interest> interests) {
+    public AnimeEmbed(Anime anime) {
 
         this.anime     = anime;
-        this.interests = interests;
+        this.interests = anime.getInterests();
     }
 
     public void setContent(String content) {
@@ -99,7 +100,12 @@ public class AnimeSheetMessage implements SlashResponse, ButtonResponse {
 
         builder.addField("Proposé par", User.fromId(this.anime.getAddedBy().getId()).getAsMention(), false);
         builder.addField("Statut", this.anime.getStatus().getDisplay(), false);
-        builder.addField("Ajouté le", DateHelper.format(this.anime.getAddedAt()), false);
+
+        builder.addField(
+                "Ajouté le",
+                this.anime.getAddedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm:ss")),
+                false
+        );
 
         builder.addField("Personne(s) intéressée(s)", String.join("\n", interestedUsers), false);
         builder.addField("Personne(s) non intéressée(s)", String.join("\n", notInterestedUsers), false);

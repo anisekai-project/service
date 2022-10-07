@@ -4,9 +4,8 @@ import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeUpdateType;
 import me.anisekai.toshiko.events.AnimeUpdateEvent;
 import me.anisekai.toshiko.helpers.JDAStore;
-import me.anisekai.toshiko.helpers.embeds.AnimeSheetMessage;
-import me.anisekai.toshiko.repositories.AnimeRepository;
-import me.anisekai.toshiko.services.AnimeService;
+import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
+import me.anisekai.toshiko.services.ToshikoService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.UserSnowflake;
@@ -34,24 +33,18 @@ public class AnnouncementTask {
     private static final Logger                          LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
     private final        JDAStore                        store;
     private final        DelayedTask                     delayedTask;
-    private final        AnimeService                    service;
-    private final        AnimeRepository                 repository;
+    private final        ToshikoService                  toshikoService;
     private final        BlockingDeque<AnimeUpdateEvent> notificationQueue;
-    @Value("${toshiko.anime.server}")
-    private              long                            toshikoAnimeServer;
     @Value("${toshiko.anime.notification.channel}")
     private              long                            toshikoAnimeNotificationChannel;
     @Value("${toshiko.anime.notification.role}")
     private              long                            toshikoAnimeNotificationRole;
-    @Value("${toshiko.anime.watchlist.channel}")
-    private              long                            toshikoAnimeWatchlistChannel;
 
-    public AnnouncementTask(JDAStore store, DelayedTask delayedTask, AnimeService service, AnimeRepository repository) {
+    public AnnouncementTask(JDAStore store, DelayedTask delayedTask, ToshikoService toshikoService) {
 
         this.store             = store;
         this.delayedTask       = delayedTask;
-        this.service           = service;
-        this.repository        = repository;
+        this.toshikoService    = toshikoService;
         this.notificationQueue = new LinkedBlockingDeque<>();
     }
 
@@ -80,8 +73,12 @@ public class AnnouncementTask {
                 existingMessage = this.findExistingMessage(anime);
             }
 
-            LOGGER.info("Handling notification for anime {} ({}): {}", anime.getId(), anime.getName(), event.getType()
-                                                                                                            .name());
+            LOGGER.info(
+                    "Handling notification for anime {} ({}): {}",
+                    anime.getId(),
+                    anime.getName(),
+                    event.getType().name()
+            );
 
             if (event.getType().shouldNotify()) {
                 existingMessage.ifPresent(msg -> {
@@ -96,8 +93,7 @@ public class AnnouncementTask {
                     MessageCreateBuilder createBuilder = new MessageCreateBuilder();
                     this.getMessage(anime, event.getType()).accept(createBuilder);
                     Message sentMessage = channel.sendMessage(createBuilder.build()).complete();
-                    anime.setAnnounceMessage(sentMessage.getIdLong());
-                    this.repository.save(anime);
+                    this.toshikoService.setAnimeAnnouncementMessage(anime, sentMessage);
                 };
                 this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable);
                 return;
@@ -144,7 +140,7 @@ public class AnnouncementTask {
 
     private Consumer<AbstractMessageBuilder<?, ?>> getMessage(Anime anime, String content) {
 
-        AnimeSheetMessage message = new AnimeSheetMessage(anime, this.service.getInterests(anime));
+        AnimeEmbed message = new AnimeEmbed(anime);
         message.setContent(content);
         message.setShowButtons(true);
         return message.getHandler();

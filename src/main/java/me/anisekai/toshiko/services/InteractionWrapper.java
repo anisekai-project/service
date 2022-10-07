@@ -13,12 +13,12 @@ import fr.alexpado.jda.interactions.interfaces.interactions.button.ButtonInterac
 import fr.alexpado.jda.interactions.interfaces.interactions.slash.SlashInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
+import me.anisekai.toshiko.annotations.InteractAt;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.AnimeStatus;
+import me.anisekai.toshiko.enums.InteractionType;
 import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.repositories.AnimeRepository;
-import me.anisekai.toshiko.repositories.UserRepository;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.Interaction;
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,17 +39,15 @@ import java.util.stream.Stream;
 @Service
 public class InteractionWrapper {
 
-    private final AnimeRepository      animeRepository;
-    private final UserRepository       userRepository;
+    private final ToshikoService       toshikoService;
     private final ListableBeanFactory  beanFactory;
     private final InteractionExtension extension;
 
-    public InteractionWrapper(AnimeRepository animeRepository, UserRepository userRepository, ListableBeanFactory beanFactory) {
+    public InteractionWrapper(ToshikoService toshikoService, ListableBeanFactory beanFactory) {
 
-        this.animeRepository = animeRepository;
-        this.userRepository  = userRepository;
-        this.beanFactory     = beanFactory;
-        this.extension       = new InteractionExtension();
+        this.toshikoService = toshikoService;
+        this.beanFactory    = beanFactory;
+        this.extension      = new InteractionExtension();
 
         this.extension.getSlashContainer().addClassMapping(DiscordUser.class, this.entityUserMapper());
         this.extension.getButtonContainer().addClassMapping(DiscordUser.class, this.entityUserMapper());
@@ -97,67 +96,81 @@ public class InteractionWrapper {
             if (method.isAnnotationPresent(Interact.class)) {
                 Interact annotation = method.getAnnotation(Interact.class);
 
+                List<InteractionType> types = new ArrayList<>();
+
+                if (method.isAnnotationPresent(InteractAt.class)) {
+                    InteractAt at = method.getAnnotation(InteractAt.class);
+                    types.addAll(Arrays.asList(at.value()));
+                } else {
+                    types.addAll(Arrays.asList(InteractionType.values()));
+                }
+
                 List<OptionMeta> options = Arrays.stream(annotation.options()).map(OptionMeta::new).toList();
 
-                InteractionMeta slashMeta = new InteractionMeta(
-                        annotation.name(),
-                        annotation.description(),
-                        annotation.target(),
-                        options,
-                        annotation.hideAsSlash(),
-                        false,
-                        true
-                );
+                if (types.contains(InteractionType.SLASH)) {
+                    InteractionMeta slashMeta = new InteractionMeta(
+                            annotation.name(),
+                            annotation.description(),
+                            annotation.target(),
+                            options,
+                            annotation.hideAsSlash(),
+                            false,
+                            true
+                    );
 
-                InteractionMeta buttonMeta = new InteractionMeta(
-                        annotation.name(),
-                        annotation.description(),
-                        annotation.target(),
-                        options,
-                        annotation.hideAsButton(),
-                        false,
-                        annotation.shouldReply()
-                );
+                    SlashInteractionTarget slash = new SlashInteractionTargetImpl(obj, method, slashMeta);
+                    this.extension.getSlashContainer().register(slash);
 
-                SlashInteractionTarget        slash      = new SlashInteractionTargetImpl(obj, method, slashMeta);
-                ButtonInteractionTarget       button     = new ButtonInteractionTargetImpl(obj, method, buttonMeta);
-                AutocompleteInteractionTarget completion = new AutocompleteInteractionTargetImpl(slashMeta);
+                    AutocompleteInteractionTarget completion = new AutocompleteInteractionTargetImpl(slashMeta);
 
-                completion.addCompletionProvider("anime", (event, name, value) ->
-                        this.animeRepository
-                                .findAll()
-                                .stream()
-                                .filter(anime -> anime.getName().toLowerCase().contains(value.toLowerCase()))
-                                .sorted()
-                                .map(anime -> new Command.Choice(anime.getName(), anime.getId()))
-                                .toList()
-                );
+                    completion.addCompletionProvider("anime", (event, name, value) ->
+                            this.toshikoService
+                                    .getAnimeRepository()
+                                    .findAll()
+                                    .stream()
+                                    .filter(anime -> anime.getName().toLowerCase().contains(value.toLowerCase()))
+                                    .sorted()
+                                    .map(anime -> new Command.Choice(anime.getName(), anime.getId()))
+                                    .toList()
+                    );
 
-                completion.addCompletionProvider("interest", (event, name, value) ->
-                        Stream.of(InterestLevel.values())
-                              .filter(level -> level.getDisplayText().toLowerCase().contains(value.toLowerCase()))
-                              .map(level -> new Command.Choice(level.getDisplayText(), level.name()))
-                              .toList()
-                );
+                    completion.addCompletionProvider("interest", (event, name, value) ->
+                            Stream.of(InterestLevel.values())
+                                  .filter(level -> level.getDisplayText().toLowerCase().contains(value.toLowerCase()))
+                                  .map(level -> new Command.Choice(level.getDisplayText(), level.name()))
+                                  .toList()
+                    );
 
-                completion.addCompletionProvider("status", (event, name, value) ->
-                        Stream.of(AnimeStatus.values())
-                              .filter(status -> status.getDisplay().toLowerCase().contains(value.toLowerCase()))
-                              .map(status -> new Command.Choice(status.getDisplay(), status.name()))
-                              .toList()
-                );
+                    completion.addCompletionProvider("status", (event, name, value) ->
+                            Stream.of(AnimeStatus.values())
+                                  .filter(status -> status.getDisplay().toLowerCase().contains(value.toLowerCase()))
+                                  .map(status -> new Command.Choice(status.getDisplay(), status.name()))
+                                  .toList()
+                    );
 
-                this.extension.getSlashContainer().register(slash);
-                this.extension.getButtonContainer().register(button);
-                this.extension.getAutocompleteContainer().register(completion);
+
+                    this.extension.getAutocompleteContainer().register(completion);
+                }
+
+                if (types.contains(InteractionType.BUTTON)) {
+                    InteractionMeta buttonMeta = new InteractionMeta(
+                            annotation.name(),
+                            annotation.description(),
+                            annotation.target(),
+                            options,
+                            annotation.hideAsButton(),
+                            false,
+                            annotation.shouldReply()
+                    );
+                    ButtonInteractionTarget button = new ButtonInteractionTargetImpl(obj, method, buttonMeta);
+                    this.extension.getButtonContainer().register(button);
+                }
             }
         }
     }
 
     private <T extends Interaction> Injection<DispatchEvent<T>, DiscordUser> entityUserMapper() {
 
-        return event -> () -> this.userRepository
-                .findById(event.getInteraction().getUser().getIdLong())
-                .orElseGet(() -> this.userRepository.save(new DiscordUser(event.getInteraction().getUser())));
+        return event -> () -> this.toshikoService.findUser(event.getInteraction().getUser());
     }
 }

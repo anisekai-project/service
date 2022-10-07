@@ -1,16 +1,21 @@
 package me.anisekai.toshiko.entities;
 
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
 import java.util.Objects;
 
-@Table(name = "user",
-       uniqueConstraints = {
-               @UniqueConstraint(name = "UK_USER_DISCORD",
-                                 columnNames = {"username", "discriminator"})
-       })
+@Table(
+        name = "user",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "UK_USER_DISCORD",
+                        columnNames = {"username", "discriminator"}
+                )
+        }
+)
 @Entity
 public class DiscordUser {
 
@@ -24,7 +29,7 @@ public class DiscordUser {
     @Column(nullable = false)
     private String discriminator;
 
-    @Column(unique = true)
+    @Column
     private @Nullable String emote;
 
     @Column(nullable = false)
@@ -35,31 +40,31 @@ public class DiscordUser {
 
     public DiscordUser() {}
 
-    public DiscordUser(User user) {
+    public DiscordUser(@NotNull User user) {
 
         this.updateWith(user);
         this.banned = false;
         this.admin  = false;
     }
 
-    public void updateWith(User user) {
+    public void updateWith(@NotNull User user) {
 
         this.id            = user.getIdLong();
         this.username      = user.getName();
         this.discriminator = user.getDiscriminator();
     }
 
-    public Long getId() {
+    public @NotNull Long getId() {
 
         return this.id;
     }
 
-    public String getUsername() {
+    public @NotNull String getUsername() {
 
         return this.username;
     }
 
-    public String getDiscriminator() {
+    public @NotNull String getDiscriminator() {
 
         return this.discriminator;
     }
@@ -97,8 +102,12 @@ public class DiscordUser {
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) {return true;}
-        if (o == null || this.getClass() != o.getClass()) {return false;}
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
         DiscordUser that = (DiscordUser) o;
         return this.getId().equals(that.getId());
     }

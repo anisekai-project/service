@@ -1,4 +1,4 @@
-package me.anisekai.toshiko.services.responses;
+package me.anisekai.toshiko.helpers.responses;
 
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
