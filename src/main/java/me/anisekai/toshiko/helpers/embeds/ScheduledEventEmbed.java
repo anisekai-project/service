@@ -62,25 +62,6 @@ public class ScheduledEventEmbed implements SlashResponse, ButtonResponse {
                     builder.appendDescription("\n" + date);
                     progressAppender.accept(anime, builder);
 
-                    List<String> interestedUsers = anime.getInterests().stream()
-                                                        .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
-                                                        .map(Interest::getUser)
-                                                        .map(DiscordUser::getId)
-                                                        .map(User::fromId)
-                                                        .map(UserSnowflake::getAsMention)
-                                                        .toList();
-
-                    List<String> notInterestedUsers = anime.getInterests().stream()
-                                                           .filter(interest -> interest.getLevel() == InterestLevel.NOT_INTERESTED)
-                                                           .map(Interest::getUser)
-                                                           .map(DiscordUser::getId)
-                                                           .map(User::fromId)
-                                                           .map(UserSnowflake::getAsMention)
-                                                           .toList();
-
-                    builder.addField("Personne(s) intéressée(s)", String.join("\n", interestedUsers), false);
-                    builder.addField("Personne(s) non intéressée(s)", String.join("\n", notInterestedUsers), false);
-
                     amb.setActionRow(
                             Button.danger(this.getButtonUrl("cancel"), "Annuler"),
                             Button.success(this.getButtonUrl("start"), "Démarrer")
