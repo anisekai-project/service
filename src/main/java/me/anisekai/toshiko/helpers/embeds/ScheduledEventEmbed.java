@@ -3,19 +3,14 @@ package me.anisekai.toshiko.helpers.embeds;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.entities.DiscordUser;
-import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.entities.ScheduledEvent;
-import me.anisekai.toshiko.enums.InterestLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.List;
+import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -45,8 +40,10 @@ public class ScheduledEventEmbed implements SlashResponse, ButtonResponse {
             builder.setDescription(this.event.getDescription());
             builder.setColor(this.event.getState().getColor());
 
-            DateTimeFormatter dtf  = DateTimeFormatter.ofPattern("EEEE d MMMM à HH:mm");
-            String            date = this.event.getEventStartAt().format(dtf);
+            DateTimeFormatter dtf = DateTimeFormatter
+                    .ofPattern("EEEE d MMMM à HH:mm")
+                    .withLocale(Locale.forLanguageTag("fr-FR"));
+            String date = this.event.getEventStartAt().format(dtf);
 
             BiConsumer<Anime, EmbedBuilder> progressAppender = (ani, eb) -> {
                 if (anime.getWatched() + 1 == this.event.getLastEpisode()) {
