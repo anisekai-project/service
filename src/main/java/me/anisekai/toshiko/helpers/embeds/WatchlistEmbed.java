@@ -11,19 +11,17 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class WatchlistEmbed implements SlashResponse, ButtonResponse {
 
-    private final Watchlist          watchlist;
-    private final Map<Anime, Double> animeVotes;
+    private final Watchlist watchlist;
 
-    public WatchlistEmbed(Watchlist watchlist, Map<Anime, Double> animeVotes) {
+    public WatchlistEmbed(Watchlist watchlist) {
 
-        this.watchlist  = watchlist;
-        this.animeVotes = animeVotes;
+        this.watchlist = watchlist;
     }
 
     @Override
@@ -37,7 +35,8 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
 
         return (amb) -> {
             EmbedBuilder builder = new EmbedBuilder();
-            Set<Anime>   animes  = this.watchlist.getAnimes();
+            List<Anime>  animes  = new ArrayList<>(this.watchlist.getAnimes());
+            animes.sort(Anime::compareTo);
 
             builder.setAuthor(String.format("%s (%s)", this.watchlist.getStatus().getDisplay(), animes.size()));
 
