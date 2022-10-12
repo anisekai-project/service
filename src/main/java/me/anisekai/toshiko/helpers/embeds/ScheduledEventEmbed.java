@@ -46,13 +46,14 @@ public class ScheduledEventEmbed implements SlashResponse, ButtonResponse {
             String date = this.event.getEventStartAt().format(dtf);
 
             BiConsumer<Anime, EmbedBuilder> progressAppender = (ani, eb) -> {
-                if (anime.getWatched() + 1 == this.event.getLastEpisode()) {
+                long count = this.event.getLastEpisode() - anime.getWatched();
+
+                if (count == 1L) {
                     eb.addField("Épisode", "Épisode %s".formatted(this.event.getLastEpisode()), false);
+                } else if (count == 2L) {
+                    eb.addField("Épisode", "%s et %s".formatted(ani.getWatched() + 1, this.event.getLastEpisode()), false);
                 } else {
-                    eb.addField("Épisode", "%s à %s".formatted(
-                            ani.getWatched() + 1,
-                            this.event.getLastEpisode()
-                    ), false);
+                    eb.addField("Épisode", "%s à %s".formatted(ani.getWatched() + 1, this.event.getLastEpisode()), false);
                 }
             };
 
