@@ -3,20 +3,20 @@ package me.anisekai.toshiko.commands;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
-import fr.alexpado.jda.interactions.responses.ButtonResponse;
-import me.anisekai.toshiko.annotations.InteractAt;
+import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.entities.DiscordUser;
-import me.anisekai.toshiko.entities.ScheduledEvent;
-import me.anisekai.toshiko.enums.InteractionType;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.embeds.ScheduledEventEmbed;
 import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.services.ToshikoService;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @InteractionBean
@@ -29,99 +29,65 @@ public class ScheduledInteractions {
         this.toshikoService = toshikoService;
     }
 
-    // <editor-fold desc="@ schedule/cancel ─ Cancel the given scheduled event">
+    // <editor-fold desc="@ schedule/anime">
     @Interact(
-            name = "schedule/cancel",
-            description = "Cancel the given scheduled event",
+            name = "schedule/anime",
+            description = "Programme une soirée animé.",
+            defer = true,
             options = {
                     @Option(
-                            name = "id",
-                            description = "",
-                            required = true,
-                            type = OptionType.INTEGER
+                            name = "anime",
+                            description = "L'anime a regarder",
+                            type = OptionType.INTEGER,
+                            autoComplete = true,
+                            required = true
+                    ),
+                    @Option(
+                            name = "time",
+                            description = "Heure de visionnage",
+                            type = OptionType.STRING,
+                            required = true
+                    ),
+                    @Option(
+                            name = "date",
+                            description = "Date de visionnage",
+                            type = OptionType.INTEGER,
+                            autoComplete = true,
+                            required = true
+                    ),
+                    @Option(
+                            name = "amount",
+                            description = "Nombre d'épisode pour la scéance",
+                            type = OptionType.INTEGER,
+                            required = true
                     )
             }
     )
-    @InteractAt(InteractionType.BUTTON)
-    public ButtonResponse cancelScheduledEvent(User user, @Param("id") Long id) {
+    public SlashResponse scheduleAnimeNight(
+            DiscordUser user,
+            @Param("anime") long animeId,
+            @Param("time") String time,
+            @Param("date") long date,
+            @Param("amount") long amount
+    ) {
 
-        DiscordUser discordUser = this.toshikoService.findUser(user);
-
-        if (!discordUser.isAdmin()) {
-            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, true);
+        if (!user.isAdmin()) {
+            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
         }
 
-        Optional<ScheduledEvent> optionalEvent = this.toshikoService.cancelEvent(id.intValue());
+        Anime         anime     = this.toshikoService.findAnime(animeId);
+        LocalDateTime today     = LocalDateTime.now();
+        LocalTime     timeParam = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"));
 
-        if (optionalEvent.isPresent()) {
-            return new ScheduledEventEmbed(optionalEvent.get());
-        } else {
-            return new SimpleResponse("Impossible de trouver l'évènement.", false, true);
-        }
-    }
-    // </editor-fold>
+        LocalDateTime scheduledDate = today.withHour(timeParam.getHour())
+                                           .withMinute(timeParam.getMinute())
+                                           .withSecond(0)
+                                           .withNano(0)
+                                           .plusDays(date);
 
-    // <editor-fold desc="@ schedule/finish ─ Close the given scheduled event">
-    @Interact(
-            name = "schedule/finish",
-            description = "Close the given scheduled event",
-            options = {
-                    @Option(
-                            name = "id",
-                            description = "",
-                            required = true,
-                            type = OptionType.INTEGER
-                    )
-            }
-    )
-    @InteractAt(InteractionType.BUTTON)
-    public ButtonResponse finishScheduledEvent(User user, @Param("id") Long id) {
-
-        DiscordUser discordUser = this.toshikoService.findUser(user);
-
-        if (!discordUser.isAdmin()) {
-            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, true);
-        }
-
-        Optional<ScheduledEvent> optionalEvent = this.toshikoService.finishEvent(id.intValue());
-
-        if (optionalEvent.isPresent()) {
-            return new ScheduledEventEmbed(optionalEvent.get());
-        } else {
-            return new SimpleResponse("Impossible de trouver l'évènement.", false, true);
-        }
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="@ schedule/start ─ Close the given scheduled event">
-    @Interact(
-            name = "schedule/start",
-            description = "Close the given scheduled event",
-            options = {
-                    @Option(
-                            name = "id",
-                            description = "",
-                            required = true,
-                            type = OptionType.INTEGER
-                    )
-            }
-    )
-    @InteractAt(InteractionType.BUTTON)
-    public ButtonResponse startScheduledEvent(User user, @Param("id") Long id) {
-
-        DiscordUser discordUser = this.toshikoService.findUser(user);
-
-        if (!discordUser.isAdmin()) {
-            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, true);
-        }
-
-        Optional<ScheduledEvent> optionalEvent = this.toshikoService.startEvent(id.intValue());
-
-        if (optionalEvent.isPresent()) {
-            return new ScheduledEventEmbed(optionalEvent.get());
-        } else {
-            return new SimpleResponse("Impossible de trouver l'évènement.", false, true);
-        }
+        AnimeNight night = this.toshikoService.schedule(anime, scheduledDate, amount);
+        return new SimpleResponse(String.format("La scéance pour l'anime **%s** a bien été programmée.", night.getAnime()
+                                                                                                              .getName()), false, false);
     }
     // </editor-fold>
 

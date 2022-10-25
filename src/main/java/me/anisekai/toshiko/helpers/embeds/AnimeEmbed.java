@@ -54,11 +54,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
     private AnimeProvider getProvider() {
 
-        try {
-            return AnimeProvider.of(this.anime.getLink());
-        } catch (Exception e) {
-            return new OfflineProvider(this.anime);
-        }
+        return new OfflineProvider(this.anime);
     }
 
     @Override
@@ -84,10 +80,25 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(provider.getName(), provider.getUrl());
-        builder.setDescription(provider.getSynopsis());
 
-        if (!provider.getTags().isEmpty()) {
-            builder.addField("Tag(s)", String.join(", ", provider.getTags()), false);
+        if (provider.getSynopsis() != null) {
+            builder.setDescription(provider.getSynopsis());
+        } else if (this.anime.getSynopsis() != null) {
+            builder.setDescription(this.anime.getSynopsis());
+        } else {
+            builder.setDescription("*Impossible de récupérer le synopsis.*");
+        }
+
+        if (!provider.getGenres().isEmpty()) {
+            builder.addField("Genre(s)", String.join(", ", provider.getGenres()), false);
+        } else if (this.anime.getGenres() != null) {
+            builder.addField("Genre(s)", this.anime.getGenres(), false);
+        }
+
+        if (!provider.getThemes().isEmpty()) {
+            builder.addField("Thème(s)", String.join(", ", provider.getThemes()), false);
+        } else if (this.anime.getThemes() != null) {
+            builder.addField("Thème(s)", this.anime.getThemes(), false);
         }
 
         if (provider.getImage() != null) {

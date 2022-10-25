@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.tasks;
 
+import io.sentry.Sentry;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.Watchlist;
 import me.anisekai.toshiko.enums.CronState;
@@ -80,7 +81,8 @@ public class WatchlistTask {
                     this.repository.save(watchlist);
                 }
             }, (ex) -> {
-                LOGGER.error("An error occurred.", ex);
+                LOGGER.error("Unable to send scheduled event message.", ex);
+                Sentry.captureException(ex);
                 watchlist.setState(CronState.REQUIRED);
                 this.repository.save(watchlist);
             });

@@ -44,7 +44,7 @@ public class UserInteractions {
         }
 
         if (!discordUser.isBanned()) {
-            this.toshikoService.queueUpdateAll();
+            this.toshikoService.queueUpdateAll(false);
         }
 
         return new SimpleResponse("Ton icône de vote a été mise à jour.", false, false);

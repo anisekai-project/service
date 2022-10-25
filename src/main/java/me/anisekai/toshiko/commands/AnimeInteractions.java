@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.commands;
 
+import fr.alexpado.jda.interactions.annotations.Choice;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
@@ -34,6 +35,32 @@ public class AnimeInteractions {
 
         this.toshikoService = toshikoService;
     }
+
+    // <editor-fold desc="@ anime/announce">
+    @Interact(
+            name = "anime/announce",
+            description = Texts.ANIME_NOTIFY_ANNOUNCE__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = Texts.ANIME_NOTIFY_ANNOUNCE__OPTION_ANIME,
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    )
+            }
+    )
+    public SlashResponse sendAnimeNotification(DiscordUser discordUser, @Param("anime") long animeId) {
+
+        if (!discordUser.isAdmin()) {
+            return new SimpleResponse("Tu n'as pas le droit de faire ça.", false, false);
+        }
+
+        Anime anime = this.toshikoService.findAnime(animeId);
+        this.toshikoService.createAnimeAnnounce(anime);
+        return new SimpleResponse("La notification sera envoyée sous peu.", false, false);
+    }
+    // </editor-fold>
 
     // <editor-fold desc="@ anime/about">
     @Interact(
@@ -203,16 +230,49 @@ public class AnimeInteractions {
     // <editor-fold desc="@ anime/refresh">
     @Interact(
             name = "anime/refresh",
-            description = Texts.ANIME_REFRESH__DESCRIPTION
+            description = Texts.ANIME_REFRESH__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "target",
+                            description = "Ce qui doit être actualisé",
+                            type = OptionType.STRING,
+                            required = true,
+                            choices = {
+                                    @Choice(
+                                            id = "watchlist",
+                                            display = "Watchlist"
+                                    ),
+                                    @Choice(
+                                            id = "announce",
+                                            display = "Annonces"
+                                    )
+                            }
+                    ),
+                    @Option(
+                            name = "force",
+                            description = "Si l'actualisation doit être forcée (utile sur la watchlist seulement)",
+                            type = OptionType.BOOLEAN
+                    )
+            }
     )
-    public SlashResponse refreshWatchlist(DiscordUser user) {
+    public SlashResponse refreshWatchlist(DiscordUser user, @Param("target") String target, @Param("force") Boolean force) {
 
         if (!user.isAdmin()) {
             return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
         }
 
-        this.toshikoService.queueUpdateAll();
-        return new SimpleResponse("Les listes seront actualisées sous peu.", false, false);
+        if (target.equals("watchlist")) {
+            this.toshikoService.queueUpdateAll(force);
+            return new SimpleResponse("Les listes seront actualisées sous peu.", false, false);
+        } else if (target.equals("announce")) {
+            this.toshikoService.getAnimeRepository().findAll().stream()
+                               .filter(anime -> anime.getAnnounceMessage() != null)
+                               .forEach(this.toshikoService::refreshAnimeAnnounce);
+
+            return new SimpleResponse("Les annonces seront actualisées sous peu.", false, false);
+        } else {
+            return new SimpleResponse("Hmmm, quelque chose s'est mal passé.", false, false);
+        }
     }
     // </editor-fold>
 

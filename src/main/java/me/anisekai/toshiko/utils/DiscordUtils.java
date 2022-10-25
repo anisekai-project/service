@@ -109,4 +109,12 @@ public final class DiscordUtils {
 
         return new VariablePair<>(entryWithLinkBuilder.toString(), entryWithoutLinkBuilder.toString());
     }
+
+    public static long getNearest(long value, int mod) {
+        long fv = value;
+        while(fv % mod > 0) {
+            fv++;
+        }
+        return fv;
+    }
 }

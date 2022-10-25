@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Anime implements Comparable<Anime> {
+public class  Anime implements Comparable<Anime> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +20,16 @@ public class Anime implements Comparable<Anime> {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @Lob
+    @Column(length = 32_768)
+    private String synopsis;
+
+    @Column
+    private String genres;
+
+    @Column
+    private String themes;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -76,6 +86,36 @@ public class Anime implements Comparable<Anime> {
     public void setName(@NotNull String name) {
 
         this.name = name;
+    }
+
+    public String getSynopsis() {
+
+        return this.synopsis;
+    }
+
+    public void setSynopsis(String synopsis) {
+
+        this.synopsis = synopsis;
+    }
+
+    public String getGenres() {
+
+        return this.genres;
+    }
+
+    public void setGenres(String genres) {
+
+        this.genres = genres;
+    }
+
+    public String getThemes() {
+
+        return this.themes;
+    }
+
+    public void setThemes(String themes) {
+
+        this.themes = themes;
     }
 
     public @NotNull AnimeStatus getStatus() {

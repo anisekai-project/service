@@ -41,7 +41,7 @@ public class OfflineProvider implements AnimeProvider {
     @Override
     public String getSynopsis() {
 
-        return "*Impossible de récupérer le synopsis.*";
+        return null;
     }
 
     @Override
@@ -63,7 +63,13 @@ public class OfflineProvider implements AnimeProvider {
     }
 
     @Override
-    public Set<String> getTags() {
+    public Set<String> getGenres() {
+
+        return Collections.emptySet();
+    }
+
+    @Override
+    public Set<String> getThemes() {
 
         return Collections.emptySet();
     }

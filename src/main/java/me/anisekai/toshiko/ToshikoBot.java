@@ -3,11 +3,12 @@ package me.anisekai.toshiko;
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
 import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.listeners.ScheduledEventListener;
 import me.anisekai.toshiko.services.InteractionWrapper;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
@@ -19,9 +20,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ToshikoBot extends ListenerAdapter {
 
-    private static final Logger             LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
-    private final        InteractionWrapper wrapper;
-    private final        JDAStore           store;
+    private static final Logger                 LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
+    private final        ScheduledEventListener scheduledEventListener;
+    private final        InteractionWrapper     wrapper;
+    private final        JDAStore               store;
 
     @Value("${discord.bot.token}")
     private String token;
@@ -29,17 +31,18 @@ public class ToshikoBot extends ListenerAdapter {
     @Value("${toshiko.anime.server}")
     private long toshikoAnimeServer;
 
-    public ToshikoBot(InteractionWrapper wrapper, JDAStore store) {
+    public ToshikoBot(ScheduledEventListener scheduledEventListener, InteractionWrapper wrapper, JDAStore store) {
 
-        this.wrapper = wrapper;
-        this.store   = store;
+        this.scheduledEventListener = scheduledEventListener;
+        this.wrapper                = wrapper;
+        this.store                  = store;
     }
 
     public final void login() {
 
         try {
             JDABuilder builder = JDABuilder.create(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS));
-            builder.addEventListeners(this, this.store);
+            builder.addEventListeners(this, this.store, this.scheduledEventListener);
             builder.setToken(this.token);
             builder.build();
         } catch (Exception e) {

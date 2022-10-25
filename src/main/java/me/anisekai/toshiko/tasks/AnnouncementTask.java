@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.tasks;
 
+import io.sentry.Sentry;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeUpdateType;
 import me.anisekai.toshiko.events.AnimeUpdateEvent;
@@ -95,7 +96,10 @@ public class AnnouncementTask {
                     Message sentMessage = channel.sendMessage(createBuilder.build()).complete();
                     this.toshikoService.setAnimeAnnouncementMessage(anime, sentMessage);
                 };
-                this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable);
+                this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable, (ex) -> {
+                    LOGGER.error("Unable to send announcement", ex);
+                    Sentry.captureException(ex);
+                });
                 return;
             }
 

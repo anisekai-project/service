@@ -2,6 +2,11 @@ package me.anisekai.toshiko;
 
 public final class Texts {
 
+    public static final String ANIME_NOTIFY_ANNOUNCE__DESCRIPTION  = "Envoi une notification d'un anime dans le salon d'annonce";
+    public static final String ANIME_NOTIFY_ANNOUNCE__OPTION_ANIME = "Nom de l'anime";
+
+    public static final String ANIME_NOTIFY_REFRESH__DESCRIPTION  = "Actualise les messages dans le salon d'annonce";
+
     public static final String ANIME_ABOUT__DESCRIPTION  = "Afficher les détails d'un anime";
     public static final String ANIME_ABOUT__OPTION_ANIME = "Nom de l'anime";
 

@@ -29,10 +29,9 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.format.TextStyle;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -148,6 +147,16 @@ public class InteractionWrapper {
                                   .toList()
                     );
 
+                    LocalDateTime today    = LocalDateTime.now();
+                    LocalDateTime tomorrow = today.plusDays(1);
+
+                    String todayStr    = today.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.FRANCE);
+                    String tomorrowStr = tomorrow.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.FRANCE);
+
+                    completion.addCompletionProvider("date", (event, name, value) -> Arrays.asList(
+                            new Command.Choice(String.format("Aujourd'hui (%s)", todayStr), 0),
+                            new Command.Choice(String.format("Demain (%s)", tomorrowStr), 1)
+                    ));
 
                     this.extension.getAutocompleteContainer().register(completion);
                 }

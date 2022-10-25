@@ -2,10 +2,7 @@ package me.anisekai.toshiko.interfaces;
 
 import me.anisekai.toshiko.enums.PublicationState;
 import me.anisekai.toshiko.exceptions.providers.InvalidLinkException;
-import me.anisekai.toshiko.exceptions.providers.ProviderLoadingException;
-import me.anisekai.toshiko.exceptions.providers.UnsupportedAnimeProviderException;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
@@ -30,20 +27,6 @@ public interface AnimeProvider {
         };
     }
 
-    static AnimeProvider of(String link) {
-
-        try {
-            return of(new URI(link));
-        } catch (URISyntaxException e) {
-            throw new InvalidLinkException(link);
-        }
-    }
-
-    static AnimeProvider of(URI uri) {
-
-        throw new UnsupportedAnimeProviderException(uri);
-    }
-
     String getName();
 
     String getSynopsis();
@@ -54,7 +37,9 @@ public interface AnimeProvider {
 
     PublicationState getPublicationState();
 
-    Set<String> getTags();
+    Set<String> getGenres();
+
+    Set<String> getThemes();
 
     Optional<Long> getEpisodeCount();
 

@@ -1,19 +1,28 @@
 package me.anisekai.toshiko.enums;
 
+import net.dv8tion.jda.api.entities.ScheduledEvent;
+
 import java.awt.*;
 
 public enum ScheduledEventState {
 
-    SCHEDULED(Color.CYAN),
-    OPENED(Color.WHITE),
-    CANCELLED(Color.RED),
-    FINISHED(Color.GREEN);
+    SCHEDULED(ScheduledEvent.Status.SCHEDULED, Color.CYAN),
+    OPENED(ScheduledEvent.Status.ACTIVE, Color.WHITE),
+    CANCELLED(ScheduledEvent.Status.CANCELED, Color.RED),
+    FINISHED(ScheduledEvent.Status.COMPLETED, Color.GREEN);
 
-    private final Color color;
+    private final ScheduledEvent.Status discordStatus;
+    private final Color                 color;
 
-    ScheduledEventState(Color color) {
+    ScheduledEventState(ScheduledEvent.Status discordStatus, Color color) {
 
-        this.color = color;
+        this.discordStatus = discordStatus;
+        this.color         = color;
+    }
+
+    public ScheduledEvent.Status getDiscordStatus() {
+
+        return this.discordStatus;
     }
 
     public Color getColor() {
