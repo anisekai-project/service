@@ -20,13 +20,21 @@ public class RPC {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RPC.class);
 
-    @Value("${rpc.url:#{null}")
+    @Value("${toshiko.rpc.url:#{null}}")
     private String target;
 
     private Optional<String>     sessionId     = Optional.empty();
     private Optional<JSONObject> optionalCache = Optional.empty();
 
+    public boolean isReady() {
+        return this.target != null;
+    }
+
     private JSONObject send(JSONObject data, boolean session) throws Exception {
+
+        if (this.target == null) {
+            throw new IllegalStateException("RPC service not ready.");
+        }
 
         IRestAction<JSONObject> action = new RestAction<>() {
 
@@ -106,7 +114,7 @@ public class RPC {
             @Override
             public JSONObject complete() throws Exception {
 
-                LOGGER.info("Sending packet: {}", data.toString());
+                LOGGER.debug("Sending packet: {}", data.toString());
                 return super.complete();
             }
         };
@@ -114,16 +122,15 @@ public class RPC {
         try {
             return action.complete();
         } catch (RestException e) {
-
-            if (e.getStatusCode() == 409 && !session) {
+            if (e.getCode() == 409 && !session) {
                 this.sessionId = Optional.empty();
-            } else if (e.getStatusCode() == 409 && this.sessionId.isEmpty() && session) {
+            } else if (e.getCode() == 409 && this.sessionId.isEmpty() && session) {
                 LOGGER.info("Trying to authenticate...");
-                List<String> sessionHeaders = e.getHeaders()
-                        .getOrDefault("X-Transmission-Session-Id", Collections.singletonList(""));
+                this.sessionId = Optional.ofNullable(e.getHeaders().getOrDefault("X-Transmission-Session-Id", null));
 
-                this.sessionId = Optional.of(sessionHeaders.get(0));
-                return action.complete();
+                if (this.sessionId.isPresent()) {
+                    return action.complete();
+                }
             }
 
             throw e;

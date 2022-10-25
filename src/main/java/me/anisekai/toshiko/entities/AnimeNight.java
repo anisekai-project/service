@@ -1,11 +1,9 @@
 package me.anisekai.toshiko.entities;
 
-import me.anisekai.toshiko.enums.ScheduledEventState;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -20,6 +18,11 @@ public class AnimeNight {
 
     @Column(nullable = false)
     private long amount;
+
+    @Column(nullable = false)
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ScheduledEvent.Status status;
 
     public AnimeNight() {}
 
@@ -36,6 +39,7 @@ public class AnimeNight {
         this.id     = scheduledEvent.getIdLong();
         this.anime  = anime;
         this.amount = amount;
+        this.status = scheduledEvent.getStatus();
     }
 
     public long getId() {
@@ -61,6 +65,16 @@ public class AnimeNight {
     public void setAmount(long amount) {
 
         this.amount = amount;
+    }
+
+    public ScheduledEvent.@NotNull Status getStatus() {
+
+        return this.status;
+    }
+
+    public void setStatus(ScheduledEvent.Status status) {
+
+        this.status = status;
     }
 
     @Override

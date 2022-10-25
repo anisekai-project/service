@@ -533,6 +533,8 @@ public class ToshikoService {
         }
 
         AnimeNight night = optionalEvent.get();
+        night.setStatus(event.getStatus());
+        night = this.animeNightRepository.save(night);
         return Optional.of(modifier.apply(night));
     }
 

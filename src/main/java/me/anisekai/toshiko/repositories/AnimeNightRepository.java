@@ -1,8 +1,17 @@
 package me.anisekai.toshiko.repositories;
 
 import me.anisekai.toshiko.entities.AnimeNight;
+import net.dv8tion.jda.api.entities.ScheduledEvent;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
+
 @Repository
-public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {}
+public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {
+
+    List<AnimeNight> findAllByStatusIn(Collection<ScheduledEvent.@NotNull Status> status);
+
+}

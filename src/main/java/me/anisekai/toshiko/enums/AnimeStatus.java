@@ -1,7 +1,9 @@
 package me.anisekai.toshiko.enums;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum AnimeStatus {
 
@@ -87,5 +89,14 @@ public enum AnimeStatus {
     public String getDisplay() {
 
         return String.format("%s %s", this.icon, this.label);
+    }
+
+    public Map<String, Object> asMap() {
+        return new HashMap<>() {{
+            this.put("name", AnimeStatus.this.name());
+            this.put("icon", AnimeStatus.this.icon);
+            this.put("label", AnimeStatus.this.label);
+            this.put("displayable", AnimeStatus.this.shouldDisplayList());
+        }};
     }
 }

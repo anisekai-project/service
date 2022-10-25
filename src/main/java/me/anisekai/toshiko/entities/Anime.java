@@ -1,5 +1,7 @@
 package me.anisekai.toshiko.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +38,7 @@ public class  Anime implements Comparable<Anime> {
     private AnimeStatus status;
 
     @OneToMany(mappedBy = "anime", fetch = FetchType.EAGER)
+    @JsonIgnore
     private Set<Interest> interests;
 
     @ManyToOne(optional = false)
