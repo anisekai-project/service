@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class JDAStore extends ListenerAdapter {
+public class JdaStoreService extends ListenerAdapter {
 
     private JDA jda;
 

@@ -13,6 +13,7 @@ import fr.alexpado.jda.interactions.interfaces.interactions.button.ButtonInterac
 import fr.alexpado.jda.interactions.interfaces.interactions.slash.SlashInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
+import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.annotations.InteractAt;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.AnimeStatus;
@@ -29,9 +30,11 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.time.format.TextStyle;
-import java.util.*;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -113,8 +116,8 @@ public class InteractionWrapper {
                             annotation.target(),
                             options,
                             annotation.hideAsSlash(),
-                            false,
-                            true
+                            annotation.defer(),
+                            annotation.shouldReply()
                     );
 
                     SlashInteractionTarget slash = new SlashInteractionTargetImpl(obj, method, slashMeta);
@@ -147,16 +150,14 @@ public class InteractionWrapper {
                                   .toList()
                     );
 
-                    LocalDateTime today    = LocalDateTime.now();
-                    LocalDateTime tomorrow = today.plusDays(1);
-
-                    String todayStr    = today.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.FRANCE);
-                    String tomorrowStr = tomorrow.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.FRANCE);
-
-                    completion.addCompletionProvider("date", (event, name, value) -> Arrays.asList(
-                            new Command.Choice(String.format("Aujourd'hui (%s)", todayStr), 0),
-                            new Command.Choice(String.format("Demain (%s)", tomorrowStr), 1)
-                    ));
+                    completion.addCompletionProvider("day",
+                            (event, name, value) -> Arrays.stream(DayOfWeek.values())
+                                                          .map(Texts::get)
+                                                          .filter(choice -> choice.getName()
+                                                                                  .toLowerCase()
+                                                                                  .contains(value.toLowerCase()))
+                                                          .toList()
+                    );
 
                     this.extension.getAutocompleteContainer().register(completion);
                 }
@@ -168,7 +169,7 @@ public class InteractionWrapper {
                             annotation.target(),
                             options,
                             annotation.hideAsButton(),
-                            false,
+                            annotation.defer(),
                             annotation.shouldReply()
                     );
                     ButtonInteractionTarget button = new ButtonInteractionTargetImpl(obj, method, buttonMeta);

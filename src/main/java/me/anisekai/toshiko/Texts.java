@@ -1,5 +1,11 @@
 package me.anisekai.toshiko;
 
+import net.dv8tion.jda.api.interactions.commands.Command;
+
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 public final class Texts {
 
     public static final String ANIME_NOTIFY_ANNOUNCE__DESCRIPTION  = "Envoi une notification d'un anime dans le salon d'annonce";
@@ -40,4 +46,10 @@ public final class Texts {
 
     private Texts() {}
 
+    public static Command.Choice get(DayOfWeek day) {
+        String rawValue = day.getDisplayName(TextStyle.FULL, Locale.FRANCE);
+        String value = rawValue.substring(0, 1).toUpperCase() + rawValue.substring(1);
+
+        return new Command.Choice(value, day.getValue());
+    }
 }

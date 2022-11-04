@@ -5,27 +5,28 @@ import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.entities.DiscordUser;
+import me.anisekai.toshiko.exceptions.nights.OverlappingScheduleException;
 import me.anisekai.toshiko.helpers.InteractionBean;
 import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.services.ToshikoService;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 @Component
 @InteractionBean
 public class ScheduledInteractions {
 
-    private final ToshikoService toshikoService;
+    private final ApplicationEventPublisher publisher;
+    private final ToshikoService            toshikoService;
 
-    public ScheduledInteractions(ToshikoService toshikoService) {
+    public ScheduledInteractions(ApplicationEventPublisher publisher, ToshikoService toshikoService) {
 
+        this.publisher      = publisher;
         this.toshikoService = toshikoService;
     }
 
@@ -49,8 +50,8 @@ public class ScheduledInteractions {
                             required = true
                     ),
                     @Option(
-                            name = "date",
-                            description = "Date de visionnage",
+                            name = "day",
+                            description = "Jour de visionnage",
                             type = OptionType.INTEGER,
                             autoComplete = true,
                             required = true
@@ -67,7 +68,7 @@ public class ScheduledInteractions {
             DiscordUser user,
             @Param("anime") long animeId,
             @Param("time") String time,
-            @Param("date") long date,
+            @Param("day") Long day,
             @Param("amount") long amount
     ) {
 
@@ -76,18 +77,25 @@ public class ScheduledInteractions {
         }
 
         Anime         anime     = this.toshikoService.findAnime(animeId);
-        LocalDateTime today     = LocalDateTime.now();
+        ZonedDateTime today     = LocalDateTime.now().atZone(ZoneId.systemDefault());
         LocalTime     timeParam = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"));
+        DayOfWeek     dayOfWeek = DayOfWeek.of(day.intValue());
 
-        LocalDateTime scheduledDate = today.withHour(timeParam.getHour())
+        ZonedDateTime scheduledDate = today.withHour(timeParam.getHour())
                                            .withMinute(timeParam.getMinute())
                                            .withSecond(0)
-                                           .withNano(0)
-                                           .plusDays(date);
+                                           .withNano(0);
 
-        AnimeNight night = this.toshikoService.schedule(anime, scheduledDate, amount);
-        return new SimpleResponse(String.format("La scéance pour l'anime **%s** a bien été programmée.", night.getAnime()
-                                                                                                              .getName()), false, false);
+        while (scheduledDate.getDayOfWeek() != dayOfWeek) {
+            scheduledDate = scheduledDate.plusDays(1);
+        }
+
+        if (!this.toshikoService.canSchedule(scheduledDate, amount)) {
+            throw new OverlappingScheduleException(anime);
+        }
+
+        this.toshikoService.schedule(anime, scheduledDate, amount);
+        return new SimpleResponse(String.format("La scéance pour l'anime **%s** a bien été programmée.", anime.getName()), false, false);
     }
     // </editor-fold>
 

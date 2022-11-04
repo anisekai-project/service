@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class RPC {
@@ -23,10 +25,10 @@ public class RPC {
     @Value("${toshiko.rpc.url:#{null}}")
     private String target;
 
-    private Optional<String>     sessionId     = Optional.empty();
-    private Optional<JSONObject> optionalCache = Optional.empty();
+    private Optional<String> sessionId = Optional.empty();
 
     public boolean isReady() {
+
         return this.target != null;
     }
 
@@ -183,15 +185,4 @@ public class RPC {
                         )
                 , false);
     }
-
-    public void putCache(JSONObject o) {
-
-        this.optionalCache = Optional.ofNullable(o);
-    }
-
-    public Optional<JSONObject> getCache() {
-
-        return this.optionalCache;
-    }
-
 }

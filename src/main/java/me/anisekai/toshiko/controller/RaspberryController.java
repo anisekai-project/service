@@ -1,12 +1,12 @@
 package me.anisekai.toshiko.controller;
 
-import me.anisekai.toshiko.controller.response.RaspberryData;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.entities.AnimeNight;
+import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.helpers.RPC;
+import me.anisekai.toshiko.helpers.containers.CachedField;
 import me.anisekai.toshiko.repositories.AnimeNightRepository;
 import me.anisekai.toshiko.repositories.AnimeRepository;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @RestController
 @CrossOrigin("*")
@@ -32,28 +33,48 @@ public class RaspberryController {
             ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED
     );
 
+    private final CachedField<List<Map<String, Object>>> torrentCache = new CachedField<>();
+
     private final RPC                  rpc;
-    private final JDAStore             store;
     private final AnimeRepository      animeRepository;
     private final AnimeNightRepository animeNightRepository;
 
-    public RaspberryController(RPC rpc, JDAStore store, AnimeRepository animeRepository, AnimeNightRepository animeNightRepository) {
+    public RaspberryController(RPC rpc, AnimeRepository animeRepository, AnimeNightRepository animeNightRepository) {
 
         this.rpc                  = rpc;
-        this.store                = store;
         this.animeRepository      = animeRepository;
         this.animeNightRepository = animeNightRepository;
     }
 
-    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
-    public RaspberryData getData() throws Exception {
+    @GetMapping(value = "/statuses", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Map<String, Object>> retrieveStatuses() {
 
-        if (!this.rpc.isReady() || this.store.getInstance().isEmpty()) {
+        return Stream.of(AnimeStatus.values()).map(AnimeStatus::asMap).toList();
+    }
+
+    @GetMapping(value = "/animes", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Anime> retrieveAnimes() {
+
+        return this.animeRepository.findAll();
+    }
+
+    @GetMapping(value = "/anime-nights", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<AnimeNight> retrieveAnimeNights() {
+
+        return this.animeNightRepository.findAllByStatusIn(STATUSES);
+    }
+
+    @GetMapping(value = "/torrents", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Map<String, Object>> getData() throws Exception {
+
+        if (!this.rpc.isReady()) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY);
         }
 
-        JDA                       jda            = this.store.requireInstance();
-        List<Anime>               animes         = this.animeRepository.findAll();
+        if (this.torrentCache.isCacheValid()) {
+            return this.torrentCache.get();
+        }
+
         JSONObject                data           = this.rpc.getTorrents();
         JSONArray                 rawTorrentData = data.getJSONObject("arguments").getJSONArray("torrents");
         List<Map<String, Object>> torrents       = new ArrayList<>();
@@ -61,13 +82,7 @@ public class RaspberryController {
             torrents.add(rawTorrentData.getJSONObject(i).toMap());
         }
 
-        List<RaspberryData.ServerEvent> events = this.animeNightRepository.findAllByStatusIn(STATUSES)
-                                                                          .stream()
-                                                                          .map(animeNight -> {
-                                                                              ScheduledEvent event = jda.getScheduledEventById(animeNight.getId());
-                                                                              return new RaspberryData.ServerEvent(animeNight, event);
-                                                                          }).toList();
-
-        return new RaspberryData(torrents, animes, events);
+        this.torrentCache.set(torrents);
+        return torrents;
     }
 }

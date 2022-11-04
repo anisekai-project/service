@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
     }
 
     @Override
-    public Consumer<AbstractMessageBuilder<?, ?>> getHandler() {
+    public Consumer<MessageRequest<?>> getHandler() {
 
         List<String> interestedUsers = this.interests.stream()
                                                      .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)

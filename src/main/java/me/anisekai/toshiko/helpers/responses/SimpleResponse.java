@@ -4,6 +4,7 @@ import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.util.function.Consumer;
 
@@ -32,7 +33,7 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
     }
 
     @Override
-    public Consumer<AbstractMessageBuilder<?, ?>> getHandler() {
+    public Consumer<MessageRequest<?>> getHandler() {
 
         return (amb) -> amb.setEmbeds(this.builder.build());
     }

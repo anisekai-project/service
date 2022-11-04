@@ -2,7 +2,7 @@ package me.anisekai.toshiko;
 
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
-import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.helpers.JdaStoreService;
 import me.anisekai.toshiko.listeners.ScheduledEventListener;
 import me.anisekai.toshiko.services.InteractionWrapper;
 import net.dv8tion.jda.api.JDABuilder;
@@ -22,8 +22,8 @@ public class ToshikoBot extends ListenerAdapter {
 
     private static final Logger                 LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
     private final        ScheduledEventListener scheduledEventListener;
-    private final        InteractionWrapper     wrapper;
-    private final        JDAStore               store;
+    private final InteractionWrapper wrapper;
+    private final JdaStoreService    store;
 
     @Value("${discord.bot.token}")
     private String token;
@@ -31,7 +31,7 @@ public class ToshikoBot extends ListenerAdapter {
     @Value("${toshiko.anime.server}")
     private long toshikoAnimeServer;
 
-    public ToshikoBot(ScheduledEventListener scheduledEventListener, InteractionWrapper wrapper, JDAStore store) {
+    public ToshikoBot(ScheduledEventListener scheduledEventListener, InteractionWrapper wrapper, JdaStoreService store) {
 
         this.scheduledEventListener = scheduledEventListener;
         this.wrapper                = wrapper;

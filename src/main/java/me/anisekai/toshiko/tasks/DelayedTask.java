@@ -1,8 +1,13 @@
 package me.anisekai.toshiko.tasks;
 
+import io.sentry.Sentry;
+import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
+import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.tasks.entity.TaskEntry;
+import me.anisekai.toshiko.utils.AnimeNights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +21,12 @@ public class DelayedTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(DelayedTask.class);
 
     private final BlockingDeque<TaskEntry> tasks;
+    private final ToshikoService           service;
 
-    public DelayedTask() {
+    public DelayedTask(ToshikoService service) {
 
-        this.tasks = new LinkedBlockingDeque<>();
+        this.service = service;
+        this.tasks   = new LinkedBlockingDeque<>();
     }
 
     @Scheduled(cron = "0/6 * * * * *")
@@ -33,6 +40,8 @@ public class DelayedTask {
                 LOGGER.info("TASK {} | Success. ({} tasks left)", poll.getName(), this.tasks.size());
             } catch (Exception e) {
                 LOGGER.warn("TASK {} | Failure. ({} tasks left)", poll.getName(), this.tasks.size());
+                LOGGER.error("The task failed.", e);
+                Sentry.captureException(e);
                 poll.getFailed().accept(e);
             }
         }
@@ -50,5 +59,19 @@ public class DelayedTask {
         LOGGER.info("Runnable '{}' added; There are {} items in the queue.", name, this.tasks.size());
     }
 
+    @EventListener(AnimeNightUpdateEvent.class)
+    public void onAnimeNightUpdate(AnimeNightUpdateEvent event) {
+
+        this.queue("ANIME-NIGHT:UPDATE", () -> {
+            LOGGER.info("Updating scheduled event {}", event.getAnimeNight().getId());
+            event.getGuild()
+                 .retrieveScheduledEventById(event.getAnimeNight().getId())
+                 .complete()
+                 .getManager()
+                 .setDescription(AnimeNights.createDescription(event))
+                 .complete();
+            LOGGER.info("Scheduled event updated !");
+        });
+    }
 
 }

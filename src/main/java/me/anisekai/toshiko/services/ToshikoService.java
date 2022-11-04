@@ -1,49 +1,42 @@
 package me.anisekai.toshiko.services;
 
-import fr.alexpado.lib.rest.RestAction;
-import fr.alexpado.lib.rest.enums.RequestMethod;
-import fr.alexpado.lib.rest.exceptions.RestException;
 import fr.alexpado.lib.rest.interfaces.IRestAction;
-import fr.alexpado.lib.rest.interfaces.IRestResponse;
 import io.sentry.Sentry;
 import me.anisekai.toshiko.entities.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.AnimeUpdateType;
 import me.anisekai.toshiko.enums.CronState;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
 import me.anisekai.toshiko.events.AnimeUpdateEvent;
 import me.anisekai.toshiko.exceptions.JdaUnavailableException;
 import me.anisekai.toshiko.exceptions.animes.AnimeAlreadyRegisteredException;
 import me.anisekai.toshiko.exceptions.animes.AnimeNotFoundException;
-import me.anisekai.toshiko.exceptions.animes.InvalidAnimeProgressException;
 import me.anisekai.toshiko.exceptions.interests.InterestLevelUnchangedException;
 import me.anisekai.toshiko.exceptions.users.EmojiAlreadyUsedException;
 import me.anisekai.toshiko.exceptions.users.InvalidEmojiException;
-import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.helpers.FileDownloader;
+import me.anisekai.toshiko.helpers.JdaStoreService;
 import me.anisekai.toshiko.helpers.containers.InterestPower;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import me.anisekai.toshiko.repositories.*;
+import me.anisekai.toshiko.utils.AnimeNights;
+import me.anisekai.toshiko.utils.Animes;
 import me.anisekai.toshiko.utils.DiscordUtils;
 import me.anisekai.toshiko.utils.MapUtils;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.restaction.ScheduledEventAction;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.function.Consumer;
 
 @Service
 public class ToshikoService {
@@ -51,7 +44,7 @@ public class ToshikoService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToshikoService.class);
 
     private final ApplicationEventPublisher publisher;
-    private final JDAStore                  store;
+    private final JdaStoreService           store;
     private final AnimeRepository           animeRepository;
     private final UserRepository            userRepository;
     private final WatchlistRepository       watchlistRepository;
@@ -62,7 +55,7 @@ public class ToshikoService {
     private long toshikoAnimeServer;
 
 
-    public ToshikoService(ApplicationEventPublisher publisher, JDAStore store, AnimeRepository animeRepository, UserRepository userRepository, WatchlistRepository watchlistRepository, InterestRepository interestRepository, AnimeNightRepository animeNightRepository) {
+    public ToshikoService(ApplicationEventPublisher publisher, JdaStoreService store, AnimeRepository animeRepository, UserRepository userRepository, WatchlistRepository watchlistRepository, InterestRepository interestRepository, AnimeNightRepository animeNightRepository) {
 
         this.publisher            = publisher;
         this.store                = store;
@@ -446,7 +439,18 @@ public class ToshikoService {
 
     // <editor-fold desc="Anime Night">
 
-    public AnimeNight schedule(Anime anime, LocalDateTime time, long amount) {
+    public boolean canSchedule(ZonedDateTime time, long amount) {
+
+        List<AnimeNight> animeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
+        long             minuteWatch = DiscordUtils.getNearest(amount * 20 + 3, 5); // 20m per episode + 3 minutes of op&ed (1m30 each)
+        OffsetDateTime   startTime   = time.toOffsetDateTime();
+        OffsetDateTime   endTime     = startTime.plusMinutes(minuteWatch);
+
+        return animeNights.stream()
+                          .noneMatch(night -> AnimeNights.isOverlapping(night, startTime, endTime));
+    }
+
+    public void recalibrateSchedule(Anime anime) {
 
         JDA   instance = this.store.requireInstance();
         Guild guild    = instance.getGuildById(this.toshikoAnimeServer);
@@ -455,63 +459,64 @@ public class ToshikoService {
             throw new JdaUnavailableException();
         }
 
-        if (anime.getWatched() + amount > anime.getTotal() || amount == 0) {
-            throw new InvalidAnimeProgressException();
+        List<AnimeNight> allAnimeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
+        allAnimeNights.sort(Comparator.comparing(AnimeNight::getStartTime));
+
+        Map<Anime, List<AnimeNight>> scheduledByAnime = MapUtils.groupBy(allAnimeNights, AnimeNight::getAnime);
+
+        List<AnimeNight> schedule = scheduledByAnime.getOrDefault(anime, Collections.emptyList());
+
+        long effectiveWatched = anime.getWatched();
+
+        for (AnimeNight animeNight : schedule) {
+            // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
+            this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, effectiveWatched));
+            effectiveWatched += animeNight.getAmount();
+        }
+    }
+
+    public AnimeNight schedule(Anime anime, ZonedDateTime time, long amount) {
+
+        JDA   instance = this.store.requireInstance();
+        Guild guild    = instance.getGuildById(this.toshikoAnimeServer);
+
+        if (guild == null) {
+            throw new JdaUnavailableException();
         }
 
-        String descriptionSingleFormat   = "**Épisode** %s";
-        String descriptionMultipleFormat = "**Épisodes** %s %s %s";
-        String description;
-        if (amount == 1) {
-            description = descriptionSingleFormat.formatted(anime.getWatched() + amount);
-        } else {
-            description = descriptionMultipleFormat.formatted(
-                    anime.getWatched() + 1,
-                    amount == 2 ? "et" : "à",
-                    anime.getWatched() + amount
-            );
+        Animes.requireValidProgression(anime, amount);
+        List<AnimeNight> animeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
+        long             minuteWatch = DiscordUtils.getNearest(amount * 20 + 3, 5); // 20m per episode + 3 minutes of op&ed (1m30 each)
+        OffsetDateTime   startTime   = time.toOffsetDateTime();
+        OffsetDateTime   endTime     = startTime.plusMinutes(minuteWatch);
+
+        animeNights.sort(Comparator.comparing(AnimeNight::getStartTime));
+
+        long lastWatched      = anime.getWatched();
+        long effectiveWatched = anime.getWatched();
+        long correction       = 0;
+        for (AnimeNight animeNight : animeNights) {
+            if (animeNight.getAnime().equals(anime)) {
+
+                if (startTime.isAfter(animeNight.getStartTime())) {
+                    lastWatched += animeNight.getAmount();
+                    effectiveWatched += animeNight.getAmount();
+                } else {
+                    // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
+                    lastWatched += animeNight.getAmount();
+                    this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, lastWatched));
+                    correction++;
+                }
+            }
         }
-
-        long minuteWatch = DiscordUtils.getNearest(amount * 20 + 3, 5); // 20m per episode + 3 minutes of op&ed (1m30 each)
-
-        IRestAction<byte[]> image = new RestAction<>() {
-
-            @Override
-            public @NotNull RequestMethod getRequestMethod() {
-
-                return RequestMethod.GET;
-            }
-
-            @Override
-            public @NotNull String getRequestURL() {
-
-                return String.format("https://toshiko.alexpado.fr/%s.png", anime.getId());
-            }
-
-            /**
-             * Convert the response body to the desired type for this request.
-             *
-             * @param response
-             *         The response body received.
-             *
-             * @return The response converted into the requested type.
-             */
-            @Override
-            public byte[] convert(IRestResponse response) {
-
-                return response.getBody();
-            }
-        };
-
-        OffsetDateTime startTime = time.atOffset(ZoneOffset.ofHours(2));
-        OffsetDateTime endTime   = startTime.plusMinutes(minuteWatch);
 
         LOGGER.info("START: {}, END: {}", startTime, endTime);
 
         ScheduledEventAction action = guild.createScheduledEvent(anime.getName(), "Discord", startTime, endTime)
-                                           .setDescription(description);
+                                           .setDescription(AnimeNights.createDescription(amount, effectiveWatched));
 
-        ScheduledEvent scheduledEvent;
+        IRestAction<byte[]> image = new FileDownloader(String.format("https://toshiko.alexpado.fr/%s.png", anime.getId()));
+        ScheduledEvent      scheduledEvent;
         try {
             byte[] imgData = image.complete();
             scheduledEvent = action.setImage(Icon.from(imgData)).complete();
@@ -524,18 +529,21 @@ public class ToshikoService {
         return this.animeNightRepository.save(event);
     }
 
-    public Optional<AnimeNight> changeEventStatus(ScheduledEvent event, Function<AnimeNight, AnimeNight> modifier) {
+    public Optional<AnimeNight> updateEvent(ScheduledEvent event, Consumer<AnimeNight> updater) {
 
-        Optional<AnimeNight> optionalEvent = this.animeNightRepository.findById(event.getIdLong());
+        return this.animeNightRepository.findById(event.getIdLong())
+                                        .map(animeNight -> {
+                                            updater.accept(animeNight);
+                                            return this.animeNightRepository.save(animeNight);
+                                        });
+    }
 
-        if (optionalEvent.isEmpty()) {
-            return optionalEvent;
-        }
+    public Optional<AnimeNight> changeEventStatus(ScheduledEvent event, Consumer<AnimeNight> modifier) {
 
-        AnimeNight night = optionalEvent.get();
-        night.setStatus(event.getStatus());
-        night = this.animeNightRepository.save(night);
-        return Optional.of(modifier.apply(night));
+        return this.updateEvent(event, night -> {
+            night.setStatus(event.getStatus());
+            modifier.accept(night);
+        });
     }
 
     public Optional<AnimeNight> startEvent(ScheduledEvent event) {
@@ -543,7 +551,6 @@ public class ToshikoService {
         return this.changeEventStatus(event, night -> {
             Anime anime = night.getAnime();
             this.setAnimeProgression(anime, anime.getWatched());
-            return night;
         });
     }
 
@@ -552,7 +559,6 @@ public class ToshikoService {
         return this.changeEventStatus(event, night -> {
             Anime anime = night.getAnime();
             this.setAnimeProgression(anime, anime.getWatched() + night.getAmount());
-            return night;
         });
     }
     // </editor-fold>

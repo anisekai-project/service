@@ -4,7 +4,7 @@ import io.sentry.Sentry;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.Watchlist;
 import me.anisekai.toshiko.enums.CronState;
-import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.helpers.JdaStoreService;
 import me.anisekai.toshiko.helpers.embeds.WatchlistEmbed;
 import me.anisekai.toshiko.repositories.WatchlistRepository;
 import me.anisekai.toshiko.services.ToshikoService;
@@ -27,15 +27,15 @@ import java.util.Optional;
 @Service
 public class WatchlistTask {
 
-    private static final Logger              LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
-    private final        JDAStore            store;
-    private final DelayedTask         delayedTask;
+    private static final Logger          LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
+    private final        JdaStoreService store;
+    private final        DelayedTask     delayedTask;
     private final ToshikoService      service;
     private final WatchlistRepository repository;
     @Value("${toshiko.anime.watchlist.channel}")
     private              long                toshikoAnimeWatchlistChannel;
 
-    public WatchlistTask(JDAStore store, DelayedTask delayedTask, ToshikoService service, WatchlistRepository repository) {
+    public WatchlistTask(JdaStoreService store, DelayedTask delayedTask, ToshikoService service, WatchlistRepository repository) {
 
         this.store       = store;
         this.delayedTask = delayedTask;

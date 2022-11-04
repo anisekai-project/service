@@ -4,7 +4,7 @@ import io.sentry.Sentry;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeUpdateType;
 import me.anisekai.toshiko.events.AnimeUpdateEvent;
-import me.anisekai.toshiko.helpers.JDAStore;
+import me.anisekai.toshiko.helpers.JdaStoreService;
 import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
 import me.anisekai.toshiko.services.ToshikoService;
 import net.dv8tion.jda.api.entities.Message;
@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 public class AnnouncementTask {
 
     private static final Logger                          LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
-    private final        JDAStore                        store;
+    private final        JdaStoreService                 store;
     private final        DelayedTask                     delayedTask;
     private final        ToshikoService                  toshikoService;
     private final        BlockingDeque<AnimeUpdateEvent> notificationQueue;
@@ -41,7 +41,7 @@ public class AnnouncementTask {
     @Value("${toshiko.anime.notification.role}")
     private              long                            toshikoAnimeNotificationRole;
 
-    public AnnouncementTask(JDAStore store, DelayedTask delayedTask, ToshikoService toshikoService) {
+    public AnnouncementTask(JdaStoreService store, DelayedTask delayedTask, ToshikoService toshikoService) {
 
         this.store             = store;
         this.delayedTask       = delayedTask;
@@ -120,7 +120,7 @@ public class AnnouncementTask {
         }
     }
 
-    private Consumer<AbstractMessageBuilder<?, ?>> getMessage(Anime anime, AnimeUpdateType type) {
+    private Consumer<MessageRequest<?>> getMessage(Anime anime, AnimeUpdateType type) {
 
         String content;
 
@@ -142,7 +142,7 @@ public class AnnouncementTask {
         return this.getMessage(anime, content);
     }
 
-    private Consumer<AbstractMessageBuilder<?, ?>> getMessage(Anime anime, String content) {
+    private Consumer<MessageRequest<?>> getMessage(Anime anime, String content) {
 
         AnimeEmbed message = new AnimeEmbed(anime);
         message.setContent(content);
