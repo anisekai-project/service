@@ -13,6 +13,7 @@ import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.InteractionBean;
+import me.anisekai.toshiko.helpers.containers.InterestPower;
 import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
 import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
@@ -24,6 +25,8 @@ import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 @InteractionBean
@@ -78,8 +81,10 @@ public class AnimeInteractions {
     )
     public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
 
-        Anime      anime        = this.toshikoService.findAnime(animeId);
-        AnimeEmbed sheetMessage = new AnimeEmbed(anime);
+        Anime anime = this.toshikoService.findAnime(animeId);
+        Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
+
+        AnimeEmbed sheetMessage = new AnimeEmbed(anime, animeVotes.getOrDefault(anime, 0.0));
         sheetMessage.setShowButtons(true);
         return sheetMessage;
     }

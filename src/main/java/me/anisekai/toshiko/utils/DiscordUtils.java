@@ -33,11 +33,11 @@ public final class DiscordUtils {
                     .filter(entry -> entry.getKey().getStatus() == status)
                     .sorted(new AnimeScoreComparator(reverse))
                     .limit(count)
-                    .map(entry -> DiscordUtils.buildAnimeList(entry.getKey()).getFirst())
+                    .map(entry -> DiscordUtils.buildAnimeList(entry).getFirst())
                     .collect(Collectors.joining("\n\n"));
     }
 
-    public static VariablePair<String, String> buildAnimeList(Anime anime) {
+    public static VariablePair<String, String> buildAnimeList(Anime anime, Double score) {
 
         Set<Interest> interested = anime.getInterests();
 
@@ -62,12 +62,18 @@ public final class DiscordUtils {
         StringBuilder entryWithLinkBuilder    = new StringBuilder();
         StringBuilder entryWithoutLinkBuilder = new StringBuilder();
 
-        String linkEntry     = "[%s](%s)";
-        String upVoteEntry   = "▲ %s";
-        String downVoteEntry = "▼ %s";
-        String progressEntry = "%s/%s";
+        String linkEntryScore = "[%s](%s) ─ %.2f";
+        String linkEntry      = "[%s](%s)";
+        String upVoteEntry    = "▲ %s";
+        String downVoteEntry  = "▼ %s";
+        String progressEntry  = "%s/%s";
 
-        entryWithLinkBuilder.append(linkEntry.formatted(anime.getName(), anime.getLink()));
+        if (score > 0) {
+            entryWithLinkBuilder.append(linkEntryScore.formatted(anime.getName(), anime.getLink(), score));
+        } else {
+            entryWithLinkBuilder.append(linkEntry.formatted(anime.getName(), anime.getLink(), score));
+        }
+
         entryWithoutLinkBuilder.append(anime.getName());
 
         if (hasProgress) {
@@ -110,9 +116,15 @@ public final class DiscordUtils {
         return new VariablePair<>(entryWithLinkBuilder.toString(), entryWithoutLinkBuilder.toString());
     }
 
+    public static VariablePair<String, String> buildAnimeList(Map.Entry<Anime, Double> data) {
+
+        return buildAnimeList(data.getKey(), data.getValue());
+    }
+
     public static long getNearest(long value, int mod) {
+
         long fv = value;
-        while(fv % mod > 0) {
+        while (fv % mod > 0) {
             fv++;
         }
         return fv;

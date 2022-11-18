@@ -144,7 +144,7 @@ public class AnnouncementTask {
 
     private Consumer<MessageRequest<?>> getMessage(Anime anime, String content) {
 
-        AnimeEmbed message = new AnimeEmbed(anime);
+        AnimeEmbed message = new AnimeEmbed(anime, 0.0);
         message.setContent(content);
         message.setShowButtons(true);
         return message.getHandler();

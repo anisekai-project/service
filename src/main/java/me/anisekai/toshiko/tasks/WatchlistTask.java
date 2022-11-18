@@ -63,7 +63,7 @@ public class WatchlistTask {
 
             this.delayedTask.queue(String.format("WL:%s", watchlist.getStatus().name()), () -> {
                 boolean           requireMessage  = watchlist.getMessageId() == null;
-                WatchlistEmbed    embed           = new WatchlistEmbed(watchlist);
+                WatchlistEmbed    embed           = new WatchlistEmbed(watchlist, animeVotes);
                 Optional<Message> existingMessage = this.findExistingMessage(watchlist);
 
                 if (requireMessage || existingMessage.isEmpty()) {

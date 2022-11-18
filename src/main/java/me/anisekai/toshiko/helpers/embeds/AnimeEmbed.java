@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.time.format.DateTimeFormatter;
@@ -30,9 +29,11 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
     private final Set<Interest> interests;
     private       boolean       showButtons;
     private       String        content;
+    private       double        score;
 
-    public AnimeEmbed(Anime anime) {
+    public AnimeEmbed(Anime anime, double score) {
 
+        this.score     = score;
         this.anime     = anime;
         this.interests = anime.getInterests();
     }
@@ -80,7 +81,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
         AnimeProvider provider = this.getProvider();
 
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle(provider.getName(), provider.getUrl());
+        builder.setTitle(String.format("%s (%.2f)", provider.getName(), this.score), provider.getUrl());
 
         if (provider.getSynopsis() != null) {
             builder.setDescription(provider.getSynopsis());

@@ -8,21 +8,23 @@ import me.anisekai.toshiko.helpers.containers.VariablePair;
 import me.anisekai.toshiko.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class WatchlistEmbed implements SlashResponse, ButtonResponse {
 
-    private final Watchlist watchlist;
+    private final Watchlist          watchlist;
+    private final Map<Anime, Double> scores;
 
-    public WatchlistEmbed(Watchlist watchlist) {
+    public WatchlistEmbed(Watchlist watchlist, Map<Anime, Double> scores) {
 
         this.watchlist = watchlist;
+        this.scores    = scores;
     }
 
     @Override
@@ -46,7 +48,7 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
 
             for (Anime anime : animes) {
 
-                VariablePair<String, String> result = DiscordUtils.buildAnimeList(anime);
+                VariablePair<String, String> result = DiscordUtils.buildAnimeList(anime, this.scores.getOrDefault(anime, 0.0));
 
                 String entryWithLink    = result.getFirst();
                 String entryWithoutLink = result.getSecond();
