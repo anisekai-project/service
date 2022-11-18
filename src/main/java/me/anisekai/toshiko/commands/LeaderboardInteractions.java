@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -51,22 +52,28 @@ public class LeaderboardInteractions {
                                             display = "Top des mieux votés"
                                     )
                             }
+                    ),
+                    @Option(
+                            name = "limit",
+                            description = "Nombre d'élements",
+                            type = OptionType.INTEGER
                     )
             }
     )
-    public SlashResponse topAnime(@Param("order") String order) {
+    public SlashResponse topAnime(@Param("order") String order, @Param("limit") Long limit) {
 
         Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
+        long count = Optional.ofNullable(limit).orElse(5L);
 
         EmbedBuilder builder = new EmbedBuilder();
         String       simulcast;
         String       download;
         if (order.equalsIgnoreCase("DESC")) {
-            simulcast = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
-            download  = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.DOWNLOADED, 5);
+            simulcast = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, count);
+            download  = DiscordUtils.getTopDescFormatted(animeVotes, AnimeStatus.DOWNLOADED, count);
         } else {
-            simulcast = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, 5);
-            download  = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.DOWNLOADED, 5);
+            simulcast = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.SIMULCAST_AVAILABLE, count);
+            download  = DiscordUtils.getTopAscFormatted(animeVotes, AnimeStatus.DOWNLOADED, count);
         }
 
         builder.addField(AnimeStatus.SIMULCAST_AVAILABLE.getDisplay(), simulcast, false);

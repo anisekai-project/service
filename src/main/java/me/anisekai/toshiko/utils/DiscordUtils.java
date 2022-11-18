@@ -17,17 +17,17 @@ public final class DiscordUtils {
 
     private DiscordUtils() {}
 
-    public static String getTopDescFormatted(Map<Anime, Double> votes, AnimeStatus status, int count) {
+    public static String getTopDescFormatted(Map<Anime, Double> votes, AnimeStatus status, long count) {
 
         return getTopFormatted(votes, status, count, true);
     }
 
-    public static String getTopAscFormatted(Map<Anime, Double> votes, AnimeStatus status, int count) {
+    public static String getTopAscFormatted(Map<Anime, Double> votes, AnimeStatus status, long count) {
 
         return getTopFormatted(votes, status, count, false);
     }
 
-    public static String getTopFormatted(Map<Anime, Double> votes, AnimeStatus status, int count, boolean reverse) {
+    public static String getTopFormatted(Map<Anime, Double> votes, AnimeStatus status, long count, boolean reverse) {
 
         return votes.entrySet().stream()
                     .filter(entry -> entry.getKey().getStatus() == status)
