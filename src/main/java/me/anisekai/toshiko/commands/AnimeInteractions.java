@@ -13,7 +13,6 @@ import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.containers.InterestPower;
 import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
 import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
@@ -24,6 +23,8 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -32,7 +33,8 @@ import java.util.Map;
 @InteractionBean
 public class AnimeInteractions {
 
-    private final ToshikoService toshikoService;
+    private static final Logger         LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
+    private final        ToshikoService toshikoService;
 
     public AnimeInteractions(ToshikoService toshikoService) {
 
@@ -81,7 +83,7 @@ public class AnimeInteractions {
     )
     public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
 
-        Anime anime = this.toshikoService.findAnime(animeId);
+        Anime              anime      = this.toshikoService.findAnime(animeId);
         Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
 
         AnimeEmbed sheetMessage = new AnimeEmbed(anime, animeVotes.getOrDefault(anime, 0.0));
@@ -175,6 +177,9 @@ public class AnimeInteractions {
 
         builder.addField("Anime", interest.getAnime().getName(), false);
         builder.addField("Niveau d'interêt", interest.getLevel().getDisplayText(), false);
+
+        LOGGER.info("> @interest: {} (Is Button ? {})", interaction.getClass()
+                                                                   .getName(), interaction instanceof ButtonInteraction);
 
         return new SimpleResponse(builder, false, interaction instanceof ButtonInteraction);
     }

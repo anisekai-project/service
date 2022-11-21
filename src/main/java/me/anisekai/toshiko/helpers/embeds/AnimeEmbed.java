@@ -81,7 +81,11 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
         AnimeProvider provider = this.getProvider();
 
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle(String.format("%s (%.2f)", provider.getName(), this.score), provider.getUrl());
+        if (this.score > 0) {
+            builder.setTitle(String.format("%s (%.2f)", provider.getName(), this.score), provider.getUrl());
+        } else {
+            builder.setTitle(provider.getName(), provider.getUrl());
+        }
 
         if (provider.getSynopsis() != null) {
             builder.setDescription(provider.getSynopsis());
