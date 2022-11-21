@@ -147,8 +147,7 @@ public class AnimeInteractions {
                             required = true,
                             autoComplete = true
                     )
-            },
-            hideAsButton = true
+            }
     )
     public SlashResponse interestedByAnime(
             Interaction interaction,

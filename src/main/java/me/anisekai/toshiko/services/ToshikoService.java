@@ -257,7 +257,8 @@ public class ToshikoService {
      */
     public void refreshAnimeAnnounce(Anime anime) {
 
-        this.publisher.publishEvent(new AnimeUpdateEvent(this, anime, AnimeUpdateType.UPDATE));
+        Anime reloaded = this.findAnime(anime.getId());
+        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, AnimeUpdateType.UPDATE));
     }
 
     /**
