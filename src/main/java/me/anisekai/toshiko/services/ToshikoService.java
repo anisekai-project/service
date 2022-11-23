@@ -348,8 +348,9 @@ public class ToshikoService {
 
         interest.setLevel(level);
         this.queueUpdate(anime.getStatus());
+        Interest saved = this.interestRepository.save(interest);
         this.refreshAnimeAnnounce(anime);
-        return this.interestRepository.save(interest);
+        return saved;
     }
 
     public InterestPower getInterestPower() {
