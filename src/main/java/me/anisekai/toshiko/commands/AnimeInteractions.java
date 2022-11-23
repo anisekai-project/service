@@ -33,8 +33,7 @@ import java.util.Map;
 @InteractionBean
 public class AnimeInteractions {
 
-    private static final Logger         LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
-    private final        ToshikoService toshikoService;
+    private final ToshikoService toshikoService;
 
     public AnimeInteractions(ToshikoService toshikoService) {
 
@@ -177,9 +176,6 @@ public class AnimeInteractions {
 
         builder.addField("Anime", interest.getAnime().getName(), false);
         builder.addField("Niveau d'interêt", interest.getLevel().getDisplayText(), false);
-
-        LOGGER.info("> @interest: {} (Is Button ? {})", interaction.getClass()
-                                                                   .getName(), interaction instanceof ButtonInteraction);
 
         return new SimpleResponse(builder, false, interaction instanceof ButtonInteraction);
     }
