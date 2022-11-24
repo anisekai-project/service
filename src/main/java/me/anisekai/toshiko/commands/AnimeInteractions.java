@@ -372,6 +372,10 @@ public class AnimeInteractions {
     )
     public SlashResponse importFromFile(DiscordUser user, @Param("json") String rawJson) {
 
+        if (user.isBanned()) {
+            return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
+        }
+
         JSONObject   json       = new JSONObject(rawJson);
         JSONArray    genreArray = json.getJSONArray("genres");
         JSONArray    themeArray = json.getJSONArray("themes");
@@ -406,6 +410,7 @@ public class AnimeInteractions {
             Anime anime = byName.get();
             anime.patch(loaded);
             this.toshikoService.getAnimeRepository().save(anime);
+            this.toshikoService.createAnimeAnnounce(anime);
             return new SimpleResponse("L'anime a été mis à jour avec succès.", false, false);
         } else {
             Anime saved = this.toshikoService.getAnimeRepository().save(loaded);
