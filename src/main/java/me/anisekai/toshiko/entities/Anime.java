@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -85,12 +84,14 @@ public class Anime implements Comparable<Anime> {
     }
 
     public void patch(Anime other) {
-        this.synopsis = other.getSynopsis();
-        this.genres = other.getGenres();
-        this.themes = other.getThemes();
-        this.status = other.getStatus();
-        this.image = other.getImage();
-        this.total = other.getTotal();
+
+        this.synopsis        = other.getSynopsis();
+        this.genres          = other.getGenres();
+        this.themes          = other.getThemes();
+        this.status          = other.getStatus();
+        this.link            = other.getLink();
+        this.image           = other.getImage();
+        this.total           = other.getTotal();
         this.episodeDuration = other.getEpisodeDuration();
     }
 
