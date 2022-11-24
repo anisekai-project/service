@@ -5,6 +5,7 @@ import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
 import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.tasks.entity.TaskEntry;
 import me.anisekai.toshiko.utils.AnimeNights;
+import org.apache.juli.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -49,14 +50,19 @@ public class DelayedTask {
 
     public void queue(String name, Runnable runnable) {
 
-        this.tasks.offer(new TaskEntry(name, runnable));
-        LOGGER.info("Runnable '{}' added; There are {} items in the queue.", name, this.tasks.size());
+        this.queue(name, runnable, (e) -> {
+            LOGGER.error("Runnable '{}' failure.", name, e);
+        });
     }
 
     public void queue(String name, Runnable runnable, Consumer<Exception> failed) {
 
-        this.tasks.offer(new TaskEntry(name, runnable, failed));
-        LOGGER.info("Runnable '{}' added; There are {} items in the queue.", name, this.tasks.size());
+        if (this.tasks.stream().noneMatch(entry -> entry.getName().equalsIgnoreCase(name))) {
+            this.tasks.offer(new TaskEntry(name, runnable, failed));
+            LOGGER.info("Runnable '{}' added; There are {} items in the queue.", name, this.tasks.size());
+        } else {
+            LOGGER.info("Runnable '{}' not added; Already in queue.", name);
+        }
     }
 
     @EventListener(AnimeNightUpdateEvent.class)
