@@ -66,6 +66,7 @@ public final class DiscordUtils {
         StringBuilder entryWithoutLinkBuilder = new StringBuilder();
 
         String linkEntryScore = "[%s](%s) ─ %.2f";
+        String entryScore     = "%s ─ %.2f";
         String linkEntry      = "[%s](%s)";
         String upVoteEntry    = "▲ %s";
         String downVoteEntry  = "▼ %s";
@@ -73,11 +74,11 @@ public final class DiscordUtils {
 
         if (score > 0) {
             entryWithLinkBuilder.append(linkEntryScore.formatted(anime.getName(), anime.getLink(), score));
+            entryWithoutLinkBuilder.append(entryScore.formatted(anime.getName(), score));
         } else {
             entryWithLinkBuilder.append(linkEntry.formatted(anime.getName(), anime.getLink(), score));
+            entryWithoutLinkBuilder.append(anime.getName());
         }
-
-        entryWithoutLinkBuilder.append(anime.getName());
 
         if (hasProgress) {
             if (anime.getTotal() > 0) {
