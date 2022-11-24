@@ -65,7 +65,8 @@ public class AnnouncementTask {
         }
 
         try {
-            Anime             anime = event.getAnime();
+            Anime anime = this.toshikoService.reload(event.getAnime());
+
             Optional<Message> existingMessage;
 
             if (anime.getAnnounceMessage() != null && anime.getAnnounceMessage() == -1) {
@@ -90,12 +91,14 @@ public class AnnouncementTask {
                 TextChannel channel = this.getTextChannel();
 
                 Runnable runnable = () -> {
-                    LOGGER.info("Sending announce for anime {} ({})", anime.getId(), anime.getName());
+                    Anime reloadedAnime = this.toshikoService.reload(anime);
+                    LOGGER.info("Sending announce for anime {} ({})", reloadedAnime.getId(), reloadedAnime.getName());
                     MessageCreateBuilder createBuilder = new MessageCreateBuilder();
-                    this.getMessage(anime, event.getType()).accept(createBuilder);
+                    this.getMessage(reloadedAnime, event.getType()).accept(createBuilder);
                     Message sentMessage = channel.sendMessage(createBuilder.build()).complete();
-                    this.toshikoService.setAnimeAnnouncementMessage(anime, sentMessage);
+                    this.toshikoService.setAnimeAnnouncementMessage(reloadedAnime, sentMessage);
                 };
+
                 this.delayedTask.queue(String.format("ANNOUNCEMENT NOTIFY " + anime.getId()), runnable, (ex) -> {
                     LOGGER.error("Unable to send announcement", ex);
                     Sentry.captureException(ex);
@@ -105,9 +108,10 @@ public class AnnouncementTask {
 
             existingMessage.ifPresent(msg -> {
                 Runnable runnable = () -> {
-                    LOGGER.info("Updating announce for anime {} ({})", anime.getId(), anime.getName());
+                    Anime reloadedAnime = this.toshikoService.reload(anime);
+                    LOGGER.info("Updating announce for anime {} ({})", reloadedAnime.getId(), reloadedAnime.getName());
                     MessageEditBuilder editBuilder = MessageEditBuilder.fromMessage(msg);
-                    this.getMessage(anime, msg.getContentRaw()).accept(editBuilder);
+                    this.getMessage(reloadedAnime, msg.getContentRaw()).accept(editBuilder);
                     msg.editMessage(editBuilder.build()).complete();
                 };
 

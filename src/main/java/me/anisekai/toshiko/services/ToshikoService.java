@@ -66,6 +66,20 @@ public class ToshikoService {
         this.animeNightRepository = animeNightRepository;
     }
 
+    // <editor-fold desc="Reloaders">
+    public Anime reload(Anime anime) {
+
+        return this.animeRepository.findById(anime.getId())
+                                   .orElseThrow(() -> new IllegalStateException("Could not reload anime entity."));
+    }
+
+    public Watchlist reload(Watchlist watchlist) {
+
+        return this.watchlistRepository.findById(watchlist.getStatus())
+                                       .orElseThrow(() -> new IllegalStateException("Could not reload watchlist entity."));
+    }
+    // </editor-fold>
+
     // <editor-fold desc="Repositories">
     public AnimeRepository getAnimeRepository() {
 

@@ -27,11 +27,11 @@ import java.util.Optional;
 @Service
 public class WatchlistTask {
 
-    private static final Logger          LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
-    private final        JdaStoreService store;
-    private final        DelayedTask     delayedTask;
-    private final ToshikoService      service;
-    private final WatchlistRepository repository;
+    private static final Logger              LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
+    private final        JdaStoreService     store;
+    private final        DelayedTask         delayedTask;
+    private final        ToshikoService      service;
+    private final        WatchlistRepository repository;
     @Value("${toshiko.anime.watchlist.channel}")
     private              long                toshikoAnimeWatchlistChannel;
 
@@ -62,23 +62,24 @@ public class WatchlistTask {
             this.repository.save(watchlist);
 
             this.delayedTask.queue(String.format("WL:%s", watchlist.getStatus().name()), () -> {
-                boolean           requireMessage  = watchlist.getMessageId() == null;
-                WatchlistEmbed    embed           = new WatchlistEmbed(watchlist, animeVotes);
-                Optional<Message> existingMessage = this.findExistingMessage(watchlist);
+                Watchlist         reloadedWatchlist = this.service.reload(watchlist);
+                boolean           requireMessage    = reloadedWatchlist.getMessageId() == null;
+                WatchlistEmbed    embed             = new WatchlistEmbed(reloadedWatchlist, animeVotes);
+                Optional<Message> existingMessage   = this.findExistingMessage(reloadedWatchlist);
 
                 if (requireMessage || existingMessage.isEmpty()) {
                     MessageCreateBuilder createBuilder = new MessageCreateBuilder();
                     embed.getHandler().accept(createBuilder);
                     Message message = this.getTextChannel().sendMessage(createBuilder.build()).complete();
-                    watchlist.setState(CronState.DONE);
-                    watchlist.setMessageId(message.getIdLong());
-                    this.repository.save(watchlist);
+                    reloadedWatchlist.setState(CronState.DONE);
+                    reloadedWatchlist.setMessageId(message.getIdLong());
+                    this.repository.save(reloadedWatchlist);
                 } else {
                     MessageEditBuilder editBuilder = new MessageEditBuilder();
                     embed.getHandler().accept(editBuilder);
                     existingMessage.get().editMessage(editBuilder.build()).complete();
-                    watchlist.setState(CronState.DONE);
-                    this.repository.save(watchlist);
+                    reloadedWatchlist.setState(CronState.DONE);
+                    this.repository.save(reloadedWatchlist);
                 }
             }, (ex) -> {
                 LOGGER.error("Unable to send scheduled event message.", ex);
