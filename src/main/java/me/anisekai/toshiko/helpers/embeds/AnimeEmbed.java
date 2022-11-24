@@ -29,7 +29,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
     private final Set<Interest> interests;
     private       boolean       showButtons;
     private       String        content;
-    private       double        score;
+    private final double        score;
 
     public AnimeEmbed(Anime anime, double score) {
 
@@ -66,6 +66,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
                                                      .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
                                                      .map(Interest::getUser)
                                                      .map(DiscordUser::getId)
+                                                     .sorted()
                                                      .map(User::fromId)
                                                      .map(UserSnowflake::getAsMention)
                                                      .toList();
@@ -74,6 +75,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
                                                         .filter(interest -> interest.getLevel() == InterestLevel.NOT_INTERESTED)
                                                         .map(Interest::getUser)
                                                         .map(DiscordUser::getId)
+                                                        .sorted()
                                                         .map(User::fromId)
                                                         .map(UserSnowflake::getAsMention)
                                                         .toList();

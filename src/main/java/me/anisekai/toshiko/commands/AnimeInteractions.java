@@ -23,17 +23,25 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @InteractionBean
 public class AnimeInteractions {
 
-    private final ToshikoService toshikoService;
+    private static final Logger         LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
+    private final        ToshikoService toshikoService;
 
     public AnimeInteractions(ToshikoService toshikoService) {
 
@@ -49,20 +57,25 @@ public class AnimeInteractions {
                             name = "anime",
                             description = Texts.ANIME_NOTIFY_ANNOUNCE__OPTION_ANIME,
                             type = OptionType.INTEGER,
-                            required = true,
                             autoComplete = true
                     )
             }
     )
-    public SlashResponse sendAnimeNotification(DiscordUser discordUser, @Param("anime") long animeId) {
+    public SlashResponse sendAnimeNotification(DiscordUser discordUser, @Param("anime") Long animeId) {
 
         if (!discordUser.isAdmin()) {
             return new SimpleResponse("Tu n'as pas le droit de faire ça.", false, false);
         }
 
-        Anime anime = this.toshikoService.findAnime(animeId);
-        this.toshikoService.createAnimeAnnounce(anime);
-        return new SimpleResponse("La notification sera envoyée sous peu.", false, false);
+        if (animeId != null) {
+            Anime anime = this.toshikoService.findAnime(animeId);
+            this.toshikoService.createAnimeAnnounce(anime);
+            return new SimpleResponse("La notification sera envoyée sous peu.", false, false);
+        } else {
+            List<Anime> all = this.toshikoService.getAnimeRepository().findAllByStatusIn(AnimeStatus.getDisplayable());
+            all.forEach(this.toshikoService::createAnimeAnnounce);
+            return new SimpleResponse(String.format("%s annonces vont être envoyées.", all.size()), false, false);
+        }
     }
     // </editor-fold>
 
@@ -239,23 +252,23 @@ public class AnimeInteractions {
             options = {
                     @Option(
                             name = "target",
-                            description = "Ce qui doit être actualisé",
+                            description = Texts.ANIME_REFRESH__OPTION_TARGET,
                             type = OptionType.STRING,
                             required = true,
                             choices = {
                                     @Choice(
                                             id = "watchlist",
-                                            display = "Watchlist"
+                                            display = Texts.ANIME_REFRESH__OPTION_TARGET__CHOICE_WATCHLIST
                                     ),
                                     @Choice(
                                             id = "announce",
-                                            display = "Annonces"
+                                            display = Texts.ANIME_REFRESH__OPTION_TARGET__CHOICE_ANNOUNCE
                                     )
                             }
                     ),
                     @Option(
                             name = "force",
-                            description = "Si l'actualisation doit être forcée (utile sur la watchlist seulement)",
+                            description = Texts.ANIME_REFRESH__OPTION_FORCE,
                             type = OptionType.BOOLEAN
                     )
             }
@@ -310,12 +323,23 @@ public class AnimeInteractions {
                             name = "episode",
                             description = Texts.ANIME_ADD__OPTION_EPISODE,
                             type = OptionType.INTEGER
+                    ),
+                    @Option(
+                            name = "image",
+                            description = Texts.ANIME_ADD__OPTION_IMAGE,
+                            type = OptionType.STRING
                     )
             }
     )
-    public SlashResponse addAnime(DiscordUser discordUser, User user,
+    public SlashResponse addAnime(
+            DiscordUser discordUser,
+            User user,
             @Param("name") String name,
-            @Param("link") String link, @Param("status") String status, @Param("episode") Long episode) {
+            @Param("link") String link,
+            @Param("status") String status,
+            @Param("episode") Long episode,
+            @Param("image") String image
+    ) {
 
         if (!AnimeProvider.isSupported(link)) {
             return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
@@ -326,9 +350,69 @@ public class AnimeInteractions {
         }
 
         AnimeStatus   animeStatus = AnimeStatus.from(status);
-        AnimeProvider provider    = new OfflineProvider(name, link, animeStatus, episode);
+        AnimeProvider provider    = new OfflineProvider(name, image, link, animeStatus, episode);
         Anime         anime       = this.toshikoService.createAnime(user, provider, animeStatus);
         return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/import ─ Importe un ou plusieurs animes depuis un fichier JSON">
+    @Interact(
+            name = "anime/import",
+            description = Texts.ANIME_IMPORT__DESCRIPTION,
+            options = {
+                    @Option(
+                            name = "json",
+                            required = true,
+                            type = OptionType.STRING,
+                            description = Texts.ANIME_IMPORT__OPTION_JSON
+                    )
+            },
+            defer = true
+    )
+    public SlashResponse importFromFile(DiscordUser user, @Param("json") String rawJson) {
+
+        JSONObject   json       = new JSONObject(rawJson);
+        JSONArray    genreArray = json.getJSONArray("genres");
+        JSONArray    themeArray = json.getJSONArray("themes");
+        String       rawStatus  = json.getString("status");
+        List<String> genres     = new ArrayList<>();
+        List<String> themes     = new ArrayList<>();
+
+        genreArray.forEach(obj -> genres.add(obj.toString()));
+        themeArray.forEach(obj -> themes.add(obj.toString()));
+
+        AnimeStatus status = AnimeStatus.from(rawStatus);
+        long        total  = Long.parseLong(json.getString("episode"));
+        long        time   = Long.parseLong(json.getString("time"));
+
+        Anime loaded = new Anime();
+        loaded.setName(json.getString("title"));
+        loaded.setSynopsis(json.getString("synopsis"));
+        loaded.setGenres(String.join(", ", genres));
+        loaded.setThemes(String.join(", ", themes));
+        loaded.setStatus(status);
+        loaded.setLink(json.getString("link"));
+        loaded.setImage(json.getString("image"));
+        loaded.setWatched(0);
+        loaded.setTotal(total);
+        loaded.setEpisodeDuration(time == 0 ? 24 : time);
+        loaded.setAddedBy(user);
+        loaded.setAddedAt(ZonedDateTime.now().withNano(0));
+
+        Optional<Anime> byName = this.toshikoService.getAnimeRepository().findByName(loaded.getName());
+
+        if (byName.isPresent()) {
+            Anime anime = byName.get();
+            anime.patch(loaded);
+            this.toshikoService.getAnimeRepository().save(anime);
+            return new SimpleResponse("L'anime a été mis à jour avec succès.", false, false);
+        } else {
+            Anime saved = this.toshikoService.getAnimeRepository().save(loaded);
+            this.toshikoService.getInterestRepository().save(new Interest(saved, user, InterestLevel.INTERESTED));
+            this.toshikoService.createAnimeAnnounce(saved);
+            return new SimpleResponse("L'anime a été importé avec succès.", false, false);
+        }
     }
     // </editor-fold>
 }

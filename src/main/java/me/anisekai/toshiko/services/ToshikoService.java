@@ -246,7 +246,7 @@ public class ToshikoService {
     public void createAnimeAnnounce(Anime anime) {
 
         Anime reloaded = this.findAnime(anime.getId());
-        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, AnimeUpdateType.ADDED));
+        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, reloaded.getAnnounceMessage() == null ? AnimeUpdateType.ADDED : AnimeUpdateType.UPDATE));
     }
 
     /**
@@ -489,15 +489,19 @@ public class ToshikoService {
 
         Animes.requireValidProgression(anime, amount);
         List<AnimeNight> animeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
-        long             minuteWatch = DiscordUtils.getNearest(amount * 20 + 3, 5); // 20m per episode + 3 minutes of op&ed (1m30 each)
-        OffsetDateTime   startTime   = time.toOffsetDateTime();
-        OffsetDateTime   endTime     = startTime.plusMinutes(minuteWatch);
+
+
+        long totalOpEdTimeSkip = (amount - 1) * 3; // Only watch one op & ed.
+        long totalDuration     = amount * anime.getEpisodeDuration();
+
+        long           minuteWatch = DiscordUtils.getNearest(totalDuration - totalOpEdTimeSkip, 5);
+        OffsetDateTime startTime   = time.toOffsetDateTime();
+        OffsetDateTime endTime     = startTime.plusMinutes(minuteWatch);
 
         animeNights.sort(Comparator.comparing(AnimeNight::getStartTime));
 
         long lastWatched      = anime.getWatched();
         long effectiveWatched = anime.getWatched();
-        long correction       = 0;
         for (AnimeNight animeNight : animeNights) {
             if (animeNight.getAnime().equals(anime)) {
 
@@ -508,7 +512,6 @@ public class ToshikoService {
                     // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
                     lastWatched += animeNight.getAmount();
                     this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, lastWatched));
-                    correction++;
                 }
             }
         }

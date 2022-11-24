@@ -1,7 +1,6 @@
 package me.anisekai.toshiko.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import org.jetbrains.annotations.NotNull;
@@ -9,11 +8,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class  Anime implements Comparable<Anime> {
+public class Anime implements Comparable<Anime> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,17 +47,23 @@ public class  Anime implements Comparable<Anime> {
     @Column(nullable = false, unique = true)
     private String link;
 
+    @Column
+    private String image;
+
     @Column(nullable = false)
     private long watched = 0;
 
     @Column(nullable = false)
     private long total = 0;
 
+    @Column(nullable = false)
+    private long episodeDuration = 0;
+
     @Column
     private Long announceMessage;
 
     @Column(nullable = false)
-    private LocalDateTime addedAt;
+    private ZonedDateTime addedAt;
 
     public Anime() {}
 
@@ -68,12 +74,24 @@ public class  Anime implements Comparable<Anime> {
 
     public Anime(@NotNull DiscordUser user, @NotNull AnimeProvider provider, @NotNull AnimeStatus status) {
 
-        this.name    = provider.getName();
-        this.status  = status;
-        this.addedBy = user;
-        this.link    = provider.getUrl();
-        this.addedAt = LocalDateTime.now().withNano(0);
-        this.total   = provider.getEpisodeCount().orElse(0L);
+        this.name            = provider.getName();
+        this.status          = status;
+        this.addedBy         = user;
+        this.image           = provider.getImage();
+        this.link            = provider.getUrl();
+        this.addedAt         = ZonedDateTime.now().withNano(0);
+        this.total           = provider.getEpisodeCount().orElse(0L);
+        this.episodeDuration = 24;
+    }
+
+    public void patch(Anime other) {
+        this.synopsis = other.getSynopsis();
+        this.genres = other.getGenres();
+        this.themes = other.getThemes();
+        this.status = other.getStatus();
+        this.image = other.getImage();
+        this.total = other.getTotal();
+        this.episodeDuration = other.getEpisodeDuration();
     }
 
     public Long getId() {
@@ -141,6 +159,21 @@ public class  Anime implements Comparable<Anime> {
         return this.addedBy;
     }
 
+    public void setAddedBy(DiscordUser addedBy) {
+
+        this.addedBy = addedBy;
+    }
+
+    public String getImage() {
+
+        return this.image;
+    }
+
+    public void setImage(String image) {
+
+        this.image = image;
+    }
+
     public @Nullable String getLink() {
 
         return this.link;
@@ -171,6 +204,16 @@ public class  Anime implements Comparable<Anime> {
         this.total = total;
     }
 
+    public long getEpisodeDuration() {
+
+        return this.episodeDuration;
+    }
+
+    public void setEpisodeDuration(long episodeDuration) {
+
+        this.episodeDuration = episodeDuration;
+    }
+
     public @Nullable Long getAnnounceMessage() {
 
         return this.announceMessage;
@@ -181,12 +224,12 @@ public class  Anime implements Comparable<Anime> {
         this.announceMessage = announceMessage;
     }
 
-    public @NotNull LocalDateTime getAddedAt() {
+    public @NotNull ZonedDateTime getAddedAt() {
 
         return this.addedAt;
     }
 
-    public void setAddedAt(@NotNull LocalDateTime addedAt) {
+    public void setAddedAt(@NotNull ZonedDateTime addedAt) {
 
         this.addedAt = addedAt;
     }

@@ -8,6 +8,7 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.comparators.AnimeScoreComparator;
 import me.anisekai.toshiko.helpers.containers.VariablePair;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -44,6 +45,7 @@ public final class DiscordUtils {
         String interestedUserIcon = interested.stream()
                                               .filter(interest -> interest.getLevel() == InterestLevel.INTERESTED)
                                               .map(Interest::getUser)
+                                              .sorted(Comparator.comparing(DiscordUser::getId))
                                               .map(DiscordUser::getEmote)
                                               .filter(Objects::nonNull)
                                               .collect(Collectors.joining());
@@ -51,6 +53,7 @@ public final class DiscordUtils {
         String notInterestedUserIcon = interested.stream()
                                                  .filter(interest -> interest.getLevel() == InterestLevel.NOT_INTERESTED)
                                                  .map(Interest::getUser)
+                                                 .sorted(Comparator.comparing(DiscordUser::getId))
                                                  .map(DiscordUser::getEmote)
                                                  .filter(Objects::nonNull)
                                                  .collect(Collectors.joining());
