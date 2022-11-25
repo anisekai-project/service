@@ -329,7 +329,7 @@ public class ToshikoService {
 
         animeInterest.forEach((anime, interests) -> {
             double points = interests.stream()
-                                     .mapToDouble(interest -> interest.getValue(power))
+                                     .mapToDouble(interest -> interest.getValue(power) * 100)
                                      .sum();
             votes.put(anime, points);
         });
