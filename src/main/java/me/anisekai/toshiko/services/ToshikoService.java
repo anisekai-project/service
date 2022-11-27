@@ -41,7 +41,8 @@ import java.util.function.Consumer;
 @Service
 public class ToshikoService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ToshikoService.class);
+    private static final Logger                      LOGGER          = LoggerFactory.getLogger(ToshikoService.class);
+    private static final List<ScheduledEvent.Status> ACTIVE_STATUSES = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
 
     private final ApplicationEventPublisher publisher;
     private final JdaStoreService           store;
@@ -187,6 +188,7 @@ public class ToshikoService {
 
         if (anime.getWatched() == anime.getTotal() && anime.getTotal() > 0) {
             this.setAnimeStatus(anime, AnimeStatus.WATCHED);
+            this.createAnimeAnnounce(anime);
         } else {
             switch (anime.getStatus()) {
                 case WATCHED, DOWNLOADED -> this.setAnimeStatus(anime, AnimeStatus.WATCHING);
@@ -260,7 +262,7 @@ public class ToshikoService {
     public void createAnimeAnnounce(Anime anime) {
 
         Anime reloaded = this.findAnime(anime.getId());
-        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, reloaded.getAnnounceMessage() == null ? AnimeUpdateType.ADDED : AnimeUpdateType.UPDATE));
+        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, AnimeUpdateType.ADDED));
     }
 
     /**
@@ -272,7 +274,8 @@ public class ToshikoService {
     public void refreshAnimeAnnounce(Anime anime) {
 
         Anime reloaded = this.findAnime(anime.getId());
-        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, AnimeUpdateType.UPDATE));
+        AnimeUpdateType type = reloaded.getStatus() == AnimeStatus.WATCHED ? AnimeUpdateType.REMOVE : AnimeUpdateType.UPDATE;
+        this.publisher.publishEvent(new AnimeUpdateEvent(this, reloaded, type));
     }
 
     /**
@@ -455,13 +458,23 @@ public class ToshikoService {
     // </editor-fold>
 
     // <editor-fold desc="Anime Night">
+    public List<AnimeNight> retrieveAllAnimeNightsBefore(ZonedDateTime time, Anime anime) {
 
-    public boolean canSchedule(ZonedDateTime time, long amount) {
+        List<AnimeNight> nights = this.animeNightRepository.findAllByAnimeAndStatusIn(anime, Collections.singletonList(ScheduledEvent.Status.COMPLETED));
+        return nights.stream()
+                     .filter(night -> night.getEndTime().isBefore(time.toOffsetDateTime()))
+                     .sorted(Comparator.comparing(AnimeNight::getStartTime))
+                     .toList();
+    }
 
-        List<AnimeNight> animeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
-        long             minuteWatch = DiscordUtils.getNearest(amount * 20 + 3, 5); // 20m per episode + 3 minutes of op&ed (1m30 each)
-        OffsetDateTime   startTime   = time.toOffsetDateTime();
-        OffsetDateTime   endTime     = startTime.plusMinutes(minuteWatch);
+    public boolean canSchedule(Anime anime, ZonedDateTime time, long amount) {
+
+        List<AnimeNight> animeNights       = this.animeNightRepository.findAllByStatusIn(ACTIVE_STATUSES);
+        long             totalOpEdTimeSkip = (amount - 1) * 3; // Only watch one op & ed.
+        long             totalDuration     = amount * anime.getEpisodeDuration();
+        long             minuteWatch       = DiscordUtils.getNearest(totalDuration - totalOpEdTimeSkip, 5);
+        OffsetDateTime   startTime         = time.toOffsetDateTime();
+        OffsetDateTime   endTime           = startTime.plusMinutes(minuteWatch);
 
         return animeNights.stream()
                           .noneMatch(night -> AnimeNights.isOverlapping(night, startTime, endTime));
@@ -476,16 +489,14 @@ public class ToshikoService {
             throw new JdaUnavailableException();
         }
 
-        List<AnimeNight> allAnimeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
-        allAnimeNights.sort(Comparator.comparing(AnimeNight::getStartTime));
-
-        Map<Anime, List<AnimeNight>> scheduledByAnime = MapUtils.groupBy(allAnimeNights, AnimeNight::getAnime);
-
-        List<AnimeNight> schedule = scheduledByAnime.getOrDefault(anime, Collections.emptyList());
+        List<AnimeNight> nights = this.animeNightRepository.findAllByAnimeAndStatusIn(anime, ACTIVE_STATUSES)
+                                                           .stream()
+                                                           .sorted(Comparator.comparing(AnimeNight::getStartTime))
+                                                           .toList();
 
         long effectiveWatched = anime.getWatched();
 
-        for (AnimeNight animeNight : schedule) {
+        for (AnimeNight animeNight : nights) {
             // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
             this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, effectiveWatched));
             effectiveWatched += animeNight.getAmount();
@@ -502,8 +513,10 @@ public class ToshikoService {
         }
 
         Animes.requireValidProgression(anime, amount);
-        List<AnimeNight> animeNights = this.animeNightRepository.findAllByStatusIn(Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED));
-
+        List<AnimeNight> nights = this.animeNightRepository.findAllByAnimeAndStatusIn(anime, ACTIVE_STATUSES)
+                                                           .stream()
+                                                           .sorted(Comparator.comparing(AnimeNight::getStartTime))
+                                                           .toList();
 
         long totalOpEdTimeSkip = (amount - 1) * 3; // Only watch one op & ed.
         long totalDuration     = amount * anime.getEpisodeDuration();
@@ -512,25 +525,18 @@ public class ToshikoService {
         OffsetDateTime startTime   = time.toOffsetDateTime();
         OffsetDateTime endTime     = startTime.plusMinutes(minuteWatch);
 
-        animeNights.sort(Comparator.comparing(AnimeNight::getStartTime));
-
         long lastWatched      = anime.getWatched();
         long effectiveWatched = anime.getWatched();
-        for (AnimeNight animeNight : animeNights) {
-            if (animeNight.getAnime().equals(anime)) {
-
-                if (startTime.isAfter(animeNight.getStartTime())) {
-                    lastWatched += animeNight.getAmount();
-                    effectiveWatched += animeNight.getAmount();
-                } else {
-                    // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
-                    lastWatched += animeNight.getAmount();
-                    this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, lastWatched));
-                }
+        for (AnimeNight animeNight : nights) {
+            if (startTime.isAfter(animeNight.getStartTime())) {
+                lastWatched += animeNight.getAmount();
+                effectiveWatched += animeNight.getAmount();
+            } else {
+                // Description update ! - Update the description to match episode numbers (in case of unordered scheduling)
+                lastWatched += animeNight.getAmount();
+                this.publisher.publishEvent(new AnimeNightUpdateEvent(this, guild, animeNight, lastWatched));
             }
         }
-
-        LOGGER.info("START: {}, END: {}", startTime, endTime);
 
         ScheduledEventAction action = guild.createScheduledEvent(anime.getName(), "Discord", startTime, endTime)
                                            .setDescription(AnimeNights.createDescription(amount, effectiveWatched));

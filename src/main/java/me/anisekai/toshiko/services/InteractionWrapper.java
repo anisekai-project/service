@@ -125,7 +125,7 @@ public class InteractionWrapper {
 
                     AutocompleteInteractionTarget completion = new AutocompleteInteractionTargetImpl(slashMeta);
 
-                    completion.addCompletionProvider("anime", (event, name, value) ->
+                    completion.addCompletionProvider("anime", (event, name, completionName, value) ->
                             this.toshikoService
                                     .getAnimeRepository()
                                     .findAll()
@@ -136,14 +136,14 @@ public class InteractionWrapper {
                                     .toList()
                     );
 
-                    completion.addCompletionProvider("interest", (event, name, value) ->
+                    completion.addCompletionProvider("interest", (event, name, completionName, value) ->
                             Stream.of(InterestLevel.values())
                                   .filter(level -> level.getDisplayText().toLowerCase().contains(value.toLowerCase()))
                                   .map(level -> new Command.Choice(level.getDisplayText(), level.name()))
                                   .toList()
                     );
 
-                    completion.addCompletionProvider("status", (event, name, value) ->
+                    completion.addCompletionProvider("status", (event, name, completionName, value) ->
                             Stream.of(AnimeStatus.values())
                                   .filter(status -> status.getDisplay().toLowerCase().contains(value.toLowerCase()))
                                   .map(status -> new Command.Choice(status.getDisplay(), status.name()))
@@ -151,7 +151,7 @@ public class InteractionWrapper {
                     );
 
                     completion.addCompletionProvider("day",
-                            (event, name, value) -> Arrays.stream(DayOfWeek.values())
+                            (event, name, completionName, value) -> Arrays.stream(DayOfWeek.values())
                                                           .map(Texts::get)
                                                           .filter(choice -> choice.getName()
                                                                                   .toLowerCase()

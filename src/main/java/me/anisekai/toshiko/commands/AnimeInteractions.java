@@ -69,11 +69,21 @@ public class AnimeInteractions {
 
         if (animeId != null) {
             Anime anime = this.toshikoService.findAnime(animeId);
-            this.toshikoService.createAnimeAnnounce(anime);
+            if (anime.getAnnounceMessage() == null) {
+                this.toshikoService.createAnimeAnnounce(anime);
+            } else {
+                this.toshikoService.refreshAnimeAnnounce(anime);
+            }
             return new SimpleResponse("La notification sera envoyée sous peu.", false, false);
         } else {
             List<Anime> all = this.toshikoService.getAnimeRepository().findAllByStatusIn(AnimeStatus.getDisplayable());
-            all.forEach(this.toshikoService::createAnimeAnnounce);
+            all.forEach(anime -> {
+                if (anime.getAnnounceMessage() == null) {
+                    this.toshikoService.createAnimeAnnounce(anime);
+                } else {
+                    this.toshikoService.refreshAnimeAnnounce(anime);
+                }
+            });
             return new SimpleResponse(String.format("%s annonces vont être envoyées.", all.size()), false, false);
         }
     }
@@ -410,7 +420,7 @@ public class AnimeInteractions {
             Anime anime = byName.get();
             anime.patch(loaded);
             this.toshikoService.getAnimeRepository().save(anime);
-            this.toshikoService.createAnimeAnnounce(anime);
+            this.toshikoService.refreshAnimeAnnounce(anime);
             return new SimpleResponse("L'anime a été mis à jour avec succès.", false, false);
         } else {
             Anime saved = this.toshikoService.getAnimeRepository().save(loaded);

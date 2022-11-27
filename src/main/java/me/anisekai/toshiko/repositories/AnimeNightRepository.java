@@ -13,6 +13,8 @@ import java.util.List;
 @Repository
 public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {
 
+    List<AnimeNight> findAllByAnimeAndStatusIn(Anime anime, Collection<ScheduledEvent.@NotNull Status> status);
+
     List<AnimeNight> findAllByStatusIn(Collection<ScheduledEvent.@NotNull Status> status);
 
     List<AnimeNight> findAllByAnime(Anime anime);

@@ -82,11 +82,15 @@ public class AnnouncementTask {
                     event.getType().name()
             );
 
-            if (event.getType().shouldNotify()) {
+            if (event.getType().shouldNotify() || event.getType() == AnimeUpdateType.REMOVE) {
                 existingMessage.ifPresent(msg -> {
                     LOGGER.info("Removing existing announce for anime {} ({})", anime.getId(), anime.getName());
                     msg.delete().complete();
                 });
+
+                if (event.getType() == AnimeUpdateType.REMOVE) {
+                    return;
+                }
 
                 TextChannel channel = this.getTextChannel();
 

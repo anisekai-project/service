@@ -5,7 +5,8 @@ public enum AnimeUpdateType {
     ADDED(true),
     RELEASING(true),
     RELEASED(false),
-    UPDATE(false);
+    UPDATE(false),
+    REMOVE(false);
 
     private final boolean notify;
 
