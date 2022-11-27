@@ -5,7 +5,7 @@ import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
 import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.tasks.entity.TaskEntry;
 import me.anisekai.toshiko.utils.AnimeNights;
-import org.apache.juli.logging.Log;
+import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -69,14 +69,31 @@ public class DelayedTask {
     public void onAnimeNightUpdate(AnimeNightUpdateEvent event) {
 
         this.queue("ANIME-NIGHT:UPDATE", () -> {
-            LOGGER.info("Updating scheduled event {}", event.getAnimeNight().getId());
-            event.getGuild()
-                 .retrieveScheduledEventById(event.getAnimeNight().getId())
-                 .complete()
-                 .getManager()
-                 .setDescription(AnimeNights.createDescription(event))
-                 .complete();
-            LOGGER.info("Scheduled event updated !");
+            // Sanity check of reschedule
+            long amount = event.getStartingFrom() + event.getAnimeNight().getAmount();
+            long total  = event.getAnimeNight().getAnime().getTotal();
+
+            if (amount > total) {
+                // Yep, overflow, let's cancel this event.
+                LOGGER.info("Watch overflow for scheduled event {}", event.getAnimeNight().getId());
+                event.getGuild()
+                     .retrieveScheduledEventById(event.getAnimeNight().getId())
+                     .complete()
+                     .getManager()
+                     .setStatus(ScheduledEvent.Status.CANCELED)
+                     .complete();
+                LOGGER.info("Scheduled event cancelled !");
+            } else {
+                // Safe to reschedule.
+                LOGGER.info("Updating scheduled event {}", event.getAnimeNight().getId());
+                event.getGuild()
+                     .retrieveScheduledEventById(event.getAnimeNight().getId())
+                     .complete()
+                     .getManager()
+                     .setDescription(AnimeNights.createDescription(event))
+                     .complete();
+                LOGGER.info("Scheduled event updated !");
+            }
         });
     }
 
