@@ -8,14 +8,12 @@ public class AnimeNightUpdateEvent extends ApplicationEvent {
 
     private final Guild      guild;
     private final AnimeNight animeNight;
-    private final long       startingFrom;
 
-    public AnimeNightUpdateEvent(Object source, Guild guild, AnimeNight animeNight, long lastWatched) {
+    public AnimeNightUpdateEvent(Object source, Guild guild, AnimeNight animeNight) {
 
         super(source);
         this.guild        = guild;
         this.animeNight   = animeNight;
-        this.startingFrom = lastWatched;
     }
 
     public Guild getGuild() {
@@ -26,10 +24,5 @@ public class AnimeNightUpdateEvent extends ApplicationEvent {
     public AnimeNight getAnimeNight() {
 
         return this.animeNight;
-    }
-
-    public long getStartingFrom() {
-
-        return this.startingFrom;
     }
 }

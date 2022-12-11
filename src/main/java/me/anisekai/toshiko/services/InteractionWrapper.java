@@ -15,6 +15,7 @@ import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.annotations.InteractAt;
+import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InteractionType;
@@ -132,7 +133,7 @@ public class InteractionWrapper {
                                     .stream()
                                     .filter(anime -> anime.getName().toLowerCase().contains(value.toLowerCase()))
                                     .sorted()
-                                    .map(anime -> new Command.Choice(anime.getName(), anime.getId()))
+                                    .map(Anime::asChoice)
                                     .toList()
                     );
 
@@ -152,11 +153,11 @@ public class InteractionWrapper {
 
                     completion.addCompletionProvider("day",
                             (event, name, completionName, value) -> Arrays.stream(DayOfWeek.values())
-                                                          .map(Texts::get)
-                                                          .filter(choice -> choice.getName()
-                                                                                  .toLowerCase()
-                                                                                  .contains(value.toLowerCase()))
-                                                          .toList()
+                                                                          .map(Texts::get)
+                                                                          .filter(choice -> choice.getName()
+                                                                                                  .toLowerCase()
+                                                                                                  .contains(value.toLowerCase()))
+                                                                          .toList()
                     );
 
                     this.extension.getAutocompleteContainer().register(completion);

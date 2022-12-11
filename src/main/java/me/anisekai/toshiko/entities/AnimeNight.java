@@ -1,28 +1,41 @@
 package me.anisekai.toshiko.entities;
 
+import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.interfaces.AnimeNightMeta;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
+import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @Entity
-public class AnimeNight {
+public class AnimeNight implements AnimeNightMeta, SlashResponse {
 
     @Id
-    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
+    @Column
+    private Long eventId;
+
+    @ManyToOne(optional = false)
     private Anime anime;
 
     @Column(nullable = false)
     private long amount;
 
     @Column(nullable = false)
-    @NotNull
+    private long firstEpisode;
+
+    @Column(nullable = false)
+    private long lastEpisode;
+
+    @Column
     @Enumerated(EnumType.STRING)
     private ScheduledEvent.Status status;
 
@@ -31,36 +44,43 @@ public class AnimeNight {
 
     @Column(nullable = false)
     @NotNull
-    private OffsetDateTime startTime;
+    private OffsetDateTime startDateTime;
 
     @Column(nullable = false)
     @NotNull
-    private OffsetDateTime endTime;
+    private OffsetDateTime endDateTime;
 
     public AnimeNight() {}
 
     /**
      * Create a new {@link AnimeNight}.
      *
-     * @param anime
-     *         The {@link Anime} to associate to this {@link AnimeNight}.
-     * @param amount
-     *         The amount of episode that will be watched during the {@link AnimeNight}.
+     * @param meta
+     *         An instance of {@link AnimeNightMeta} containing information about episode to watch.
      */
-    public AnimeNight(ScheduledEvent scheduledEvent, @NotNull Anime anime, long amount) {
+    public AnimeNight(AnimeNightMeta meta) {
 
-        this.id        = scheduledEvent.getIdLong();
-        this.anime     = anime;
-        this.amount    = amount;
-        this.status    = scheduledEvent.getStatus();
-        this.imageUrl  = scheduledEvent.getImageUrl();
-        this.startTime = scheduledEvent.getStartTime();
-        this.endTime   = Objects.requireNonNull(scheduledEvent.getEndTime());
+        this.anime         = meta.getAnime();
+        this.amount        = meta.getAmount();
+        this.firstEpisode  = meta.getFirstEpisode();
+        this.lastEpisode   = meta.getLastEpisode();
+        this.startDateTime = meta.getStartDateTime();
+        this.endDateTime   = meta.getEndDateTime();
     }
 
     public long getId() {
 
         return this.id;
+    }
+
+    public Long getEventId() {
+
+        return this.eventId;
+    }
+
+    public void setEventId(Long eventId) {
+
+        this.eventId = eventId;
     }
 
     public Anime getAnime() {
@@ -83,6 +103,33 @@ public class AnimeNight {
         this.amount = amount;
     }
 
+    public long getFirstEpisode() {
+
+        return this.firstEpisode;
+    }
+
+    public void setFirstEpisode(long firstEpisode) {
+
+        this.firstEpisode = firstEpisode;
+
+        if (this.getAnime().getTotal() > 0) {
+            this.lastEpisode = Math.min(this.firstEpisode + this.amount - 1, this.anime.getTotal());
+            this.amount      = this.lastEpisode - this.firstEpisode + 1;
+        } else {
+            this.lastEpisode = this.firstEpisode + (this.amount - 1);
+        }
+    }
+
+    public long getLastEpisode() {
+
+        return this.lastEpisode;
+    }
+
+    public void setLastEpisode(long lastEpisode) {
+
+        this.lastEpisode = lastEpisode;
+    }
+
     public ScheduledEvent.@NotNull Status getStatus() {
 
         return this.status;
@@ -103,24 +150,32 @@ public class AnimeNight {
         this.imageUrl = imageUrl;
     }
 
-    public @NotNull OffsetDateTime getStartTime() {
+    @Override
+    public @NotNull OffsetDateTime getStartDateTime() {
 
-        return this.startTime;
+        return this.startDateTime;
     }
 
-    public void setStartTime(@NotNull OffsetDateTime startTime) {
+    @Override
+    public void setStartDateTime(@NotNull OffsetDateTime startDateTime) {
 
-        this.startTime = startTime;
+        this.startDateTime = startDateTime;
+        long openingEndingDuration = (this.getAmount() - 1) * 3; // OP/ED usually 1m30 each
+        long totalWatchTime        = this.getAmount() * this.getAnime().getTotal();
+
+        this.endDateTime = this.startDateTime.plusMinutes(totalWatchTime - openingEndingDuration);
     }
 
-    public @NotNull OffsetDateTime getEndTime() {
+    @Override
+    public @NotNull OffsetDateTime getEndDateTime() {
 
-        return this.endTime;
+        return this.endDateTime;
     }
 
-    public void setEndTime(@NotNull OffsetDateTime endTime) {
+    @Override
+    public void setEndDateTime(@NotNull OffsetDateTime endDateTime) {
 
-        this.endTime = endTime;
+        this.endDateTime = endDateTime;
     }
 
     @Override
@@ -134,7 +189,7 @@ public class AnimeNight {
         if (o instanceof AnimeNight other) {
             return other.getId() == this.getId();
         } else if (o instanceof ScheduledEvent other) {
-            return other.getIdLong() == this.getId();
+            return Objects.equals(this.getEventId(), other.getIdLong());
         }
         return false;
     }
@@ -143,5 +198,24 @@ public class AnimeNight {
     public int hashCode() {
 
         return Objects.hash(this.getId());
+    }
+
+    @Override
+    public Consumer<MessageRequest<?>> getHandler() {
+
+        return (mr) -> {
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.setTitle(this.getAnime().getName(), this.getAnime().getLink());
+            builder.setDescription("La scéance a bien été programmée.");
+            builder.addField("Épisode(s)", this.asEventDescription(), true);
+
+            mr.setEmbeds(builder.build());
+        };
+    }
+
+    @Override
+    public boolean isEphemeral() {
+
+        return false;
     }
 }

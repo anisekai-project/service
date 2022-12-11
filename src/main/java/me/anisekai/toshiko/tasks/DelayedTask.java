@@ -4,7 +4,6 @@ import io.sentry.Sentry;
 import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
 import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.tasks.entity.TaskEntry;
-import me.anisekai.toshiko.utils.AnimeNights;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,11 @@ public class DelayedTask {
         }
     }
 
+    public boolean has(String name) {
+
+        return this.tasks.stream().anyMatch(entry -> entry.getName().equalsIgnoreCase(name));
+    }
+
     public void queue(String name, Runnable runnable) {
 
         this.queue(name, runnable, (e) -> {
@@ -68,16 +72,21 @@ public class DelayedTask {
     @EventListener(AnimeNightUpdateEvent.class)
     public void onAnimeNightUpdate(AnimeNightUpdateEvent event) {
 
-        this.queue("ANIME-NIGHT:UPDATE", () -> {
+        this.queue(String.format("ANIME-NIGHT:UPDATE:%s", event.getAnimeNight().getEventId()), () -> {
             // Sanity check of reschedule
-            long amount = event.getStartingFrom() + event.getAnimeNight().getAmount();
+            long first = event.getAnimeNight().getFirstEpisode();
+            long last = event.getAnimeNight().getLastEpisode();
             long total  = event.getAnimeNight().getAnime().getTotal();
 
-            if (amount > total) {
+            if (event.getAnimeNight().getEventId() == null) {
+                return;
+            }
+
+            if (first > total || last > total) {
                 // Yep, overflow, let's cancel this event.
-                LOGGER.info("Watch overflow for scheduled event {}", event.getAnimeNight().getId());
+                LOGGER.info("Watch overflow for scheduled event {}", event.getAnimeNight().getEventId());
                 event.getGuild()
-                     .retrieveScheduledEventById(event.getAnimeNight().getId())
+                     .retrieveScheduledEventById(event.getAnimeNight().getEventId())
                      .complete()
                      .getManager()
                      .setStatus(ScheduledEvent.Status.CANCELED)
@@ -85,12 +94,12 @@ public class DelayedTask {
                 LOGGER.info("Scheduled event cancelled !");
             } else {
                 // Safe to reschedule.
-                LOGGER.info("Updating scheduled event {}", event.getAnimeNight().getId());
+                LOGGER.info("Updating scheduled event {}", event.getAnimeNight().getEventId());
                 event.getGuild()
-                     .retrieveScheduledEventById(event.getAnimeNight().getId())
+                     .retrieveScheduledEventById(event.getAnimeNight().getEventId())
                      .complete()
                      .getManager()
-                     .setDescription(AnimeNights.createDescription(event))
+                     .setDescription(event.getAnimeNight().asEventDescription())
                      .complete();
                 LOGGER.info("Scheduled event updated !");
             }

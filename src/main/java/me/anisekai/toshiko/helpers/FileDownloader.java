@@ -2,10 +2,34 @@ package me.anisekai.toshiko.helpers;
 
 import fr.alexpado.lib.rest.RestAction;
 import fr.alexpado.lib.rest.enums.RequestMethod;
+import fr.alexpado.lib.rest.interfaces.IRestAction;
 import fr.alexpado.lib.rest.interfaces.IRestResponse;
+import me.anisekai.toshiko.entities.Anime;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class FileDownloader extends RestAction<byte[]> {
+
+    private static final Map<Anime, byte[]> FILE_CACHE = new HashMap<>();
+
+    public static byte[] downloadAnimeCard(Anime anime) throws Exception {
+
+        if (FILE_CACHE.containsKey(anime)) {
+            return FILE_CACHE.get(anime);
+        }
+
+        IRestAction<byte[]> image = new FileDownloader(String.format("https://toshiko.alexpado.fr/%s.png", anime.getId()));
+        byte[]              data  = image.complete();
+        FILE_CACHE.put(anime, data);
+        return data;
+    }
+
+    public static void cleanCache() {
+
+        FILE_CACHE.clear();
+    }
 
     private final String url;
 

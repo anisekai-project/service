@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {
@@ -17,5 +18,7 @@ public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {
 
     List<AnimeNight> findAllByStatusIn(Collection<ScheduledEvent.@NotNull Status> status);
 
-    List<AnimeNight> findAllByAnime(Anime anime);
+    List<AnimeNight> findAllByEventIdIsNullAndStatusIsNull();
+
+    Optional<AnimeNight> findByEventId(Long eventId);
 }

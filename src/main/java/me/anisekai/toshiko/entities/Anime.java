@@ -3,6 +3,7 @@ package me.anisekai.toshiko.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -264,6 +265,13 @@ public class Anime implements Comparable<Anime> {
         }
 
         return comp;
+    }
+
+    public Command.Choice asChoice() {
+        if (this.getName().length() > 100) {
+            return new Command.Choice(String.format("%s...", this.getName().substring(0, 90)), this.getId());
+        }
+        return new Command.Choice(this.getName(), this.getId());
     }
 
 }
