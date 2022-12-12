@@ -1,9 +1,13 @@
 package me.anisekai.toshiko;
 
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.apache.logging.log4j.util.Strings;
 
 import java.time.DayOfWeek;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public final class Texts {
@@ -60,5 +64,29 @@ public final class Texts {
         String value    = rawValue.substring(0, 1).toUpperCase() + rawValue.substring(1);
 
         return new Command.Choice(value, day.getValue());
+    }
+
+    public static String unslugify(String str) {
+
+        List<String> romanNumbers = Arrays.asList("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X");
+
+        String[]     split = str.split("-");
+        List<String> parts = new ArrayList<>();
+
+        for (String s : split) {
+
+            if (romanNumbers.contains(s.toUpperCase())) {
+                parts.add(s.toUpperCase());
+            } else {
+                parts.add(s.substring(0, 1).toUpperCase() + s.substring(1));
+            }
+        }
+
+        return Strings.join(parts, ' ');
+    }
+
+    public static String unslugifyExt(String str) {
+
+        return unslugify(str.substring(0, str.lastIndexOf('.')));
     }
 }
