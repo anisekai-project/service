@@ -550,7 +550,7 @@ public class ToshikoService {
             this.setAnimeProgression(night.getAnime(), night.getLastEpisode());
         });
 
-        this.animeNightRepository.deleteById(event.getIdLong());
+        this.animeNightRepository.deleteByEventId(event.getIdLong());
     }
 
     public void startEvent(ScheduledEvent event) {

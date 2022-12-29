@@ -21,4 +21,7 @@ public interface AnimeNightRepository extends JpaRepository<AnimeNight, Long> {
     List<AnimeNight> findAllByEventIdIsNullAndStatusIsNull();
 
     Optional<AnimeNight> findByEventId(Long eventId);
+
+    void deleteByEventId(Long eventId);
+
 }

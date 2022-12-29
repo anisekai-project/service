@@ -111,13 +111,7 @@ public class AnimeNight implements AnimeNightMeta, SlashResponse {
     public void setFirstEpisode(long firstEpisode) {
 
         this.firstEpisode = firstEpisode;
-
-        if (this.getAnime().getTotal() > 0) {
-            this.lastEpisode = Math.min(this.firstEpisode + this.amount - 1, this.anime.getTotal());
-            this.amount      = this.lastEpisode - this.firstEpisode + 1;
-        } else {
-            this.lastEpisode = this.firstEpisode + (this.amount - 1);
-        }
+        this.lastEpisode = firstEpisode + (this.getAmount() - 1);
     }
 
     public long getLastEpisode() {

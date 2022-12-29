@@ -25,6 +25,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 @Component
 @InteractionBean
@@ -309,6 +311,33 @@ public class ScheduledInteractions {
                     });
 
         return new SimpleResponse("L'actualisation est en cours.", false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ schedule/cleanup">
+    @Interact(
+            name = "schedule/cleanup",
+            description = "Supprime les éléments superflus en base de données."
+    )
+    public SlashResponse cleanup(DiscordUser user, Guild guild) {
+
+        if (!user.isAdmin()) {
+            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
+        }
+
+        List<ScheduledEvent> events = guild.getScheduledEvents();
+
+        Predicate<AnimeNight> hasNotDiscordEvent = (night) -> events.stream()
+                                                                    .noneMatch(ev -> Objects.equals(night.getEventId(), ev.getIdLong()));
+
+        List<AnimeNight> nights = this.service.getAnimeNightRepository()
+                                              .findAll()
+                                              .stream()
+                                              .filter(hasNotDiscordEvent)
+                                              .toList();
+
+        this.service.getAnimeNightRepository().deleteAll(nights);
+        return new SimpleResponse(String.format("**%s** évènements ont été nettoyés.", nights.size()), false, false);
     }
     // </editor-fold>
 

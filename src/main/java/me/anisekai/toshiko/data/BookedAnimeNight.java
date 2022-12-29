@@ -24,7 +24,6 @@ public class BookedAnimeNight implements AnimeNightMeta {
     }
 
 
-
     public static BookedAnimeNight with(Anime anime, DayOfWeek day, OffsetTime time, long amount) {
 
         OffsetDateTime startDateTime = ZonedDateTime.now()
@@ -67,12 +66,14 @@ public class BookedAnimeNight implements AnimeNightMeta {
 
         this.anime        = anime;
         this.amount       = amount;
-        this.setFirstEpisode(firstEpisode);
-        this.setStartDateTime(startTime);
+        this.firstEpisode = firstEpisode;
+        this.lastEpisode  = firstEpisode + (amount - 1);
 
         if (this.anime.getTotal() > 0 && this.lastEpisode > this.anime.getTotal()) {
             throw new InvalidAnimeProgressException();
         }
+
+        this.setStartDateTime(startTime);
     }
 
     @Override
@@ -97,13 +98,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public void setFirstEpisode(long firstEpisode) {
 
         this.firstEpisode = firstEpisode;
-
-        if (this.getAnime().getTotal() > 0) {
-            this.lastEpisode = Math.min(this.firstEpisode + this.amount - 1, this.anime.getTotal());
-            this.amount      = this.lastEpisode - this.firstEpisode + 1;
-        } else {
-            this.lastEpisode = this.firstEpisode + (this.amount - 1);
-        }
+        this.lastEpisode = firstEpisode + (this.getAmount() - 1);
     }
 
     @Override
@@ -116,7 +111,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public void setLastEpisode(long lastEpisode) {
 
         this.lastEpisode = lastEpisode;
-        this.amount      = this.getLastEpisode() - this.getFirstEpisode();
+        this.firstEpisode = lastEpisode - this.getAmount();
     }
 
     @Override
@@ -129,7 +124,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public void setAmount(long amount) {
 
         this.amount      = amount;
-        this.lastEpisode = this.getFirstEpisode() + this.getAmount();
+        this.lastEpisode = this.getFirstEpisode() + (this.getAmount() - 1);
     }
 
     public OffsetDateTime getStartDateTime() {

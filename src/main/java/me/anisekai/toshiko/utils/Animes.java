@@ -1,7 +1,9 @@
 package me.anisekai.toshiko.utils;
 
 import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.exceptions.animes.InvalidAnimeProgressException;
+import net.dv8tion.jda.api.entities.Guild;
 
 public final class Animes {
 
@@ -22,5 +24,6 @@ public final class Animes {
             throw new InvalidAnimeProgressException();
         }
     }
+
 
 }

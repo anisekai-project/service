@@ -98,19 +98,25 @@ public class AnimeNightScheduler {
         );
 
         Optional<T> latestSpot = this.findLatestBefore(reservedSpots, meta.getAnime(), meta.getStartDateTime());
+        boolean syncResult;
 
         if (latestSpot.isPresent()) {
             LOGGER.debug("ANS [findLatestBefore] -> Set watch data based on a previous Meta...");
             T       spot       = latestSpot.get();
-            boolean syncResult = meta.getFirstEpisode() != spot.getLastEpisode() + 1;
+            syncResult = meta.getFirstEpisode() != spot.getLastEpisode() + 1;
             meta.setFirstEpisode(spot.getLastEpisode() + 1);
-            return syncResult;
         } else {
             LOGGER.debug("ANS [findLatestBefore] -> Set watch data based on Anime state...");
-            boolean syncResult = meta.getFirstEpisode() != meta.getAnime().getWatched() + 1;
+            syncResult = meta.getFirstEpisode() != meta.getAnime().getWatched() + 1;
             meta.setFirstEpisode(meta.getAnime().getWatched() + 1);
-            return syncResult;
         }
+
+        if (meta.getFirstEpisode() + (meta.getAmount() - 1) != meta.getLastEpisode()) {
+            meta.setFirstEpisode(meta.getFirstEpisode());
+            return true;
+        }
+
+        return syncResult;
     }
 
     public <T extends AnimeNightMeta> AnimeNightMeta getNextSpot(Collection<T> reservedSpots, AnimeNightMeta available) {
