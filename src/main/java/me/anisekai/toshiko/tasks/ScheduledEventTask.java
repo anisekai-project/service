@@ -1,6 +1,7 @@
 package me.anisekai.toshiko.tasks;
 
 import io.sentry.Sentry;
+import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.helpers.FileDownloader;
 import me.anisekai.toshiko.services.ToshikoService;
@@ -59,7 +60,7 @@ public class ScheduledEventTask {
 
     private void schedule(Guild guild, AnimeNight night) {
 
-        String         name        = night.getAnime().getName();
+        String         name        = Texts.truncate(night.getAnime().getName(), ScheduledEvent.MAX_NAME_LENGTH);
         OffsetDateTime start       = night.getStartDateTime();
         OffsetDateTime end         = night.getEndDateTime();
         String         description = night.asEventDescription();
