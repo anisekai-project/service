@@ -1,13 +1,13 @@
 package me.anisekai.toshiko.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;

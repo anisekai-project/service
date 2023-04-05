@@ -1,6 +1,7 @@
 package me.anisekai.toshiko.entities;
 
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import jakarta.persistence.*;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
@@ -8,7 +9,6 @@ import net.dv8tion.jda.api.utils.messages.MessageRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.function.Consumer;

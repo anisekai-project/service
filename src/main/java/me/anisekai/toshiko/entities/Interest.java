@@ -1,10 +1,10 @@
 package me.anisekai.toshiko.entities;
 
+import jakarta.persistence.*;
 import me.anisekai.toshiko.entities.keys.InterestKey;
 import me.anisekai.toshiko.enums.InterestLevel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.*;
 import java.util.Map;
 
 @Entity

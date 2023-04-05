@@ -1,10 +1,10 @@
 package me.anisekai.toshiko.entities;
 
+import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.*;
 import java.util.Objects;
 
 @Table(
