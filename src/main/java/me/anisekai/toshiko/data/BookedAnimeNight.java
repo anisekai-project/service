@@ -11,18 +11,6 @@ import java.time.ZonedDateTime;
 
 public class BookedAnimeNight implements AnimeNightMeta {
 
-    public static BookedAnimeNight with(Anime anime, OffsetTime time, long amount) {
-
-        OffsetDateTime startDateTime = ZonedDateTime.now()
-                                                    .withHour(time.getHour())
-                                                    .withMinute(time.getMinute())
-                                                    .withSecond(0)
-                                                    .withNano(0)
-                                                    .toOffsetDateTime();
-
-        return with(anime, startDateTime, amount);
-    }
-
 
     public static BookedAnimeNight with(Anime anime, DayOfWeek day, OffsetTime time, long amount) {
 
@@ -56,6 +44,16 @@ public class BookedAnimeNight implements AnimeNightMeta {
     private long           amount;
     private OffsetDateTime startDateTime;
     private OffsetDateTime endDateTime;
+
+    public BookedAnimeNight(Anime anime, long firstEpisode, long lastEpisode, long amount, OffsetDateTime startDateTime, OffsetDateTime endDateTime) {
+
+        this.anime         = anime;
+        this.firstEpisode  = firstEpisode;
+        this.lastEpisode   = lastEpisode;
+        this.amount        = amount;
+        this.startDateTime = startDateTime;
+        this.endDateTime   = endDateTime;
+    }
 
     public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount) {
 
@@ -149,8 +147,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
 
     public void setEndDateTime(OffsetDateTime endDateTime) {
 
-        // Cannot be defined manually.
-        throw new IllegalStateException("Can't modify endTime manually. This is a computed property.");
+        // Ignore this, it doesn't matter much in this class
     }
 
 }

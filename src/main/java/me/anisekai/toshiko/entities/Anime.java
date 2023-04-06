@@ -23,8 +23,7 @@ public class Anime implements Comparable<Anime> {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Lob
-    @Column(length = 32_768)
+    @Column(length = 32_768, columnDefinition = "LONGTEXT")
     private String synopsis;
 
     @Column

@@ -43,21 +43,26 @@ public interface AnimeNightMeta {
         }
     }
 
-    default boolean isColliding(AnimeNightMeta meta) {
+    default boolean isColliding(OffsetDateTime startTime, OffsetDateTime endTime) {
 
-        boolean isSameStart = this.getStartDateTime().isEqual(meta.getStartDateTime());
-        boolean isSameEnd   = this.getEndDateTime().isEqual(meta.getEndDateTime());
+        boolean isSameStart = this.getStartDateTime().isEqual(startTime);
+        boolean isSameEnd   = this.getEndDateTime().isEqual(endTime);
 
-        boolean isStartDuring = this.getStartDateTime().isAfter(meta.getStartDateTime()) &&
-                                this.getStartDateTime().isBefore(meta.getEndDateTime());
+        boolean isStartDuring = this.getStartDateTime().isAfter(startTime) &&
+                                this.getStartDateTime().isBefore(endTime);
 
-        boolean isEndDuring = this.getEndDateTime().isAfter(meta.getStartDateTime()) &&
-                              this.getEndDateTime().isBefore(meta.getEndDateTime());
+        boolean isEndDuring = this.getEndDateTime().isAfter(startTime) &&
+                              this.getEndDateTime().isBefore(endTime);
 
-        boolean isOnTop = this.getStartDateTime().isBefore(meta.getStartDateTime()) &&
-                          this.getEndDateTime().isAfter(meta.getEndDateTime());
+        boolean isOnTop = this.getStartDateTime().isBefore(startTime) &&
+                          this.getEndDateTime().isAfter(endTime);
 
         return isSameStart || isSameEnd || isStartDuring || isEndDuring || isOnTop;
+    }
+
+    default boolean isColliding(AnimeNightMeta meta) {
+
+        return this.isColliding(meta.getStartDateTime(), meta.getEndDateTime());
     }
 
 }

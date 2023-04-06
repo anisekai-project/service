@@ -72,6 +72,10 @@ public class DelayedTask {
     @EventListener(AnimeNightUpdateEvent.class)
     public void onAnimeNightUpdate(AnimeNightUpdateEvent event) {
 
+        if (event.getAnimeNight().getEventId() == null) {
+            return;
+        }
+
         this.queue(String.format("ANIME-NIGHT:UPDATE:%s", event.getAnimeNight().getEventId()), () -> {
             // Sanity check of reschedule
             long first = event.getAnimeNight().getFirstEpisode();

@@ -1,6 +1,5 @@
 package me.anisekai.toshiko.services;
 
-import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.AnimeUpdateType;
@@ -11,15 +10,13 @@ import me.anisekai.toshiko.events.AnimeUpdateEvent;
 import me.anisekai.toshiko.exceptions.JdaUnavailableException;
 import me.anisekai.toshiko.exceptions.animes.AnimeAlreadyRegisteredException;
 import me.anisekai.toshiko.exceptions.animes.AnimeNotFoundException;
-import me.anisekai.toshiko.exceptions.animes.InvalidAnimeProgressException;
 import me.anisekai.toshiko.exceptions.interests.InterestLevelUnchangedException;
+import me.anisekai.toshiko.exceptions.nights.OverlappingScheduleException;
 import me.anisekai.toshiko.exceptions.users.EmojiAlreadyUsedException;
 import me.anisekai.toshiko.exceptions.users.InvalidEmojiException;
 import me.anisekai.toshiko.helpers.AnimeNightScheduler;
-import me.anisekai.toshiko.helpers.FileDownloader;
 import me.anisekai.toshiko.helpers.JdaStoreService;
 import me.anisekai.toshiko.helpers.containers.InterestPower;
-import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 import me.anisekai.toshiko.interfaces.AnimeProvider;
 import me.anisekai.toshiko.repositories.*;
 import me.anisekai.toshiko.utils.MapUtils;
@@ -34,11 +31,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 public class ToshikoService {
@@ -480,64 +475,90 @@ public class ToshikoService {
     // </editor-fold>
 
     // <editor-fold desc="Anime Night">
+    public AnimeNightScheduler<AnimeNight> createScheduler() {
+
+        return new AnimeNightScheduler<>(this.animeNightRepository.findAllByStatusIn(AnimeNight.WATCHABLE));
+    }
+
     public Optional<AnimeNight> findAnimeNight(ScheduledEvent event) {
 
         return this.animeNightRepository.findByEventId(event.getIdLong());
     }
 
-    public AnimeNight schedule(Anime anime, DayOfWeek day, OffsetTime startTime, long amount) {
+    public AnimeNight schedule(Anime anime, ZonedDateTime time, long amount) {
 
-        AnimeNightScheduler scheduler = new AnimeNightScheduler(this);
-        AnimeNightMeta      meta      = BookedAnimeNight.with(anime, day, startTime, amount);
-        return scheduler.schedule(this.getBotGuild(), meta);
-    }
+        AnimeNightScheduler<AnimeNight> scheduler          = this.createScheduler();
+        Optional<AnimeNight>            optionalAnimeNight = scheduler.scheduleAt(anime, amount, time, booking -> this.animeNightRepository.save(new AnimeNight(booking)));
 
-    public AnimeNight schedule(Anime anime, OffsetDateTime time, long amount) {
-
-        AnimeNightScheduler scheduler = new AnimeNightScheduler(this);
-        AnimeNightMeta      meta      = BookedAnimeNight.with(anime, time, amount);
-        return scheduler.schedule(this.getBotGuild(), meta);
-    }
-
-    public List<AnimeNight> schedule(Map<DayOfWeek, Anime> groupData) {
-
-        AnimeNightScheduler  scheduler = new AnimeNightScheduler(this);
-        List<AnimeNightMeta> dailySpot = scheduler.findDailySpot(groupData);
-        return dailySpot.stream().map(spot -> scheduler.schedule(this.getBotGuild(), spot)).toList();
-    }
-
-    public List<AnimeNight> groupSchedule(Anime anime, OffsetTime time, long amount) {
-
-        if (anime.getTotal() <= 0) {
-            throw new InvalidAnimeProgressException();
+        if (optionalAnimeNight.isPresent()) {
+            AnimeNightUpdateEvent event = new AnimeNightUpdateEvent(this, this.getBotGuild(), optionalAnimeNight.get());
+            this.getPublisher().publishEvent(event);
+            return optionalAnimeNight.get();
         }
 
-        Guild guild = this.getBotGuild();
+        throw new OverlappingScheduleException(anime);
+    }
 
-        OffsetDateTime startDateTime = ZonedDateTime.now()
-                                                    .withHour(time.getHour())
-                                                    .withMinute(time.getMinute())
-                                                    .withSecond(0)
-                                                    .withNano(0)
-                                                    .toOffsetDateTime();
+    public List<AnimeNight> scheduleAll(Anime anime, ZonedDateTime scheduleAt, long amount, Function<ZonedDateTime, ZonedDateTime> timeIncrement) {
 
-        List<AnimeNight>    nights    = this.animeNightRepository.findAllByAnimeAndStatusIn(anime, AnimeNightScheduler.STATUSES);
-        AnimeNightScheduler scheduler = new AnimeNightScheduler(this);
+        AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
 
-        List<AnimeNight> scheduled = scheduler.getNextSpots(nights, anime, time, amount, Integer.MAX_VALUE).stream()
-                                              .map(spot -> scheduler.schedule(guild, spot))
-                                              .toList();
+        // Normalize date
+        ZonedDateTime scheduleFrom = scheduleAt.withSecond(0).withNano(0);
 
-        FileDownloader.cleanCache();
-        return scheduled;
+        List<AnimeNight> nights = new ArrayList<>();
+        scheduler.scheduleAllStartingAt(anime, amount, scheduleFrom, booking -> {
+            AnimeNight night = this.animeNightRepository.save(new AnimeNight(booking));
+            nights.add(night);
+            return night;
+        }, timeIncrement);
+
+        nights.stream()
+              .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
+              .forEach(this.getPublisher()::publishEvent);
+
+        return nights;
+    }
+
+    public int calibrate() {
+
+        AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
+
+        Set<AnimeNight> updated = new HashSet<>();
+        scheduler.calibrate(this.animeRepository.findAllByStatusIn(AnimeStatus.getWatchable()), updated::add);
+
+        this.animeNightRepository.saveAll(updated).stream()
+                                 .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
+                                 .forEach(this.getPublisher()::publishEvent);
+
+        return updated.size();
+    }
+
+    public int calibrate(Anime anime) {
+
+        AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
+
+        Set<AnimeNight> updated = new HashSet<>();
+        scheduler.calibrate(anime, updated::add);
+
+        this.animeNightRepository.saveAll(updated).stream()
+                                 .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
+                                 .forEach(this.getPublisher()::publishEvent);
+
+        return updated.size();
     }
 
     public void cancelEvent(ScheduledEvent event) {
 
         this.findAnimeNight(event).ifPresent(night -> {
             this.animeNightRepository.deleteById(night.getId());
-            AnimeNightScheduler scheduler = new AnimeNightScheduler(this);
-            scheduler.calibrate(night.getAnime()).forEach(calibrated -> {
+            AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
+
+            Set<AnimeNight> updated = new HashSet<>();
+            scheduler.calibrate(night.getAnime(), updated::add);
+
+            this.animeNightRepository.saveAll(updated);
+            updated.forEach(calibrated -> {
                 this.publisher.publishEvent(new AnimeNightUpdateEvent(this, event.getGuild(), calibrated));
             });
         });
@@ -548,9 +569,9 @@ public class ToshikoService {
 
         this.findAnimeNight(event).ifPresent(night -> {
             this.setAnimeProgression(night.getAnime(), night.getLastEpisode());
+            night.setStatus(ScheduledEvent.Status.COMPLETED);
+            this.animeNightRepository.save(night);
         });
-
-        this.animeNightRepository.deleteByEventId(event.getIdLong());
     }
 
     public void startEvent(ScheduledEvent event) {

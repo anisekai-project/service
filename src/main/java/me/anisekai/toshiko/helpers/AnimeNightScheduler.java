@@ -2,238 +2,217 @@ package me.anisekai.toshiko.helpers;
 
 import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.entities.AnimeNight;
-import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
-import me.anisekai.toshiko.exceptions.animes.InvalidAnimeProgressException;
-import me.anisekai.toshiko.exceptions.nights.OverlappingScheduleException;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
-import me.anisekai.toshiko.services.ToshikoService;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.DayOfWeek;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class AnimeNightScheduler {
+public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
     private static final Logger                      LOGGER   = LoggerFactory.getLogger(AnimeNightScheduler.class);
     public final static  List<ScheduledEvent.Status> STATUSES = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
 
-    private final ToshikoService service;
+    private final Set<T> nights;
 
-    public AnimeNightScheduler(ToshikoService service) {
+    public AnimeNightScheduler(Collection<T> sourceData) {
 
-        this.service = service;
+        this.nights = new HashSet<>(sourceData);
     }
 
-    public List<AnimeNightMeta> findDailySpot(Map<DayOfWeek, Anime> groupData) {
+    public Optional<T> findLatestFor(Anime anime, OffsetDateTime before) {
 
-        List<AnimeNight> nights = this.service.getAnimeNightRepository().findAllByStatusIn(STATUSES);
-        return this.findDailySpot(nights, groupData);
+        return this.nights.stream()
+                          .filter(night -> night.getAnime().equals(anime))
+                          .filter(night -> night.getStartDateTime().isBefore(before))
+                          .max(Comparator.comparing(AnimeNightMeta::getStartDateTime));
     }
 
-    public <T extends AnimeNightMeta> List<AnimeNightMeta> findDailySpot(Collection<T> reservedSpots, Map<DayOfWeek, Anime> groupData) {
+    public Optional<T> findFirstFor(Anime anime, OffsetDateTime after) {
 
-        List<AnimeNightMeta>       spots            = new ArrayList<>();
-        Collection<AnimeNightMeta> newReservedSpots = new ArrayList<>(reservedSpots);
+        return this.nights.stream()
+                          .filter(night -> night.getAnime().equals(anime))
+                          .filter(night -> night.getStartDateTime().isAfter(after))
+                          .min(Comparator.comparing(AnimeNightMeta::getStartDateTime));
+    }
 
-        ZonedDateTime now       = ZonedDateTime.now();
-        ZonedDateTime scheduled = now.withHour(22).withMinute(30).withSecond(0).withNano(0);
+    public Optional<T> scheduleAt(Anime anime, long amount, ZonedDateTime at, Function<BookedAnimeNight, T> scheduler) {
 
-        if (scheduled.isBefore(now)) {
-            scheduled = scheduled.plusDays(1);
+        long duration = anime.getEpisodeDuration() * amount - (3 * (amount - 1));
+
+        OffsetDateTime startingAt = at.toOffsetDateTime();
+        OffsetDateTime endingAt   = startingAt.plusMinutes(duration);
+
+        // Check for collision
+        if (this.nights.stream().anyMatch(night -> night.isColliding(startingAt, endingAt))) {
+            return Optional.empty();
         }
 
-        while (!groupData.isEmpty()) {
+        // No collision !
+        Optional<? extends AnimeNightMeta> optionalLatest = this.findLatestFor(anime, startingAt);
 
-            DayOfWeek day = scheduled.getDayOfWeek();
+        long firstEpisode, lastEpisode;
 
-            if (!groupData.containsKey(day)) {
-                scheduled = scheduled.plusDays(1);
+        // Do we have a previous event ?
+        if (optionalLatest.isPresent()) {
+            AnimeNightMeta meta = optionalLatest.get();
+            firstEpisode = meta.getLastEpisode() + 1;
+            lastEpisode  = meta.getLastEpisode() + amount;
+        } else {
+            firstEpisode = anime.getWatched() + 1;
+            lastEpisode  = anime.getWatched() + amount;
+        }
+
+        BookedAnimeNight night    = new BookedAnimeNight(anime, firstEpisode, lastEpisode, amount, startingAt, endingAt);
+        T                instance = scheduler.apply(night);
+        this.nights.add(instance);
+
+        return Optional.of(instance);
+    }
+
+    public Optional<T> scheduleNow(Anime anime, long amount, OffsetTime at, Function<BookedAnimeNight, T> scheduler) {
+
+        ZonedDateTime scheduleTime = ZonedDateTime.now()
+                                                  .withHour(at.getHour())
+                                                  .withMinute(at.getMinute())
+                                                  .withSecond(0);
+
+        if (scheduleTime.isBefore(ZonedDateTime.now())) {
+            scheduleTime = scheduleTime.plusDays(1);
+        }
+
+        return this.scheduleAt(anime, amount, scheduleTime, scheduler);
+    }
+
+    public void scheduleAllStartingAt(Anime anime, long amount, ZonedDateTime startingAt, Function<BookedAnimeNight, T> scheduler, Function<ZonedDateTime, ZonedDateTime> incrementalTime) {
+
+        if (anime.getTotal() < 1) {
+            throw new IllegalStateException("You can't schedule every episode of this anime: The total number of episode is unknown.");
+        }
+
+        ZonedDateTime now           = ZonedDateTime.now();
+        ZonedDateTime securityLimit = now.plusYears(2);
+        ZonedDateTime scheduleAt    = startingAt;
+
+        if (scheduleAt.isBefore(now)) {
+            throw new IllegalStateException("Are you fucking kidding me ? Don't schedule thing in the past you moron");
+        }
+
+        Optional<T> optionalLatest = this.findLatestFor(anime, scheduleAt.toOffsetDateTime());
+        long left = anime.getTotal() - optionalLatest.map(AnimeNightMeta::getLastEpisode)
+                                                     .orElseGet(anime::getWatched);
+
+        while (left > 0) {
+            long nextAmount = Math.min(amount, left);
+
+            Optional<T> optionallyScheduled = this.scheduleAt(anime, nextAmount, scheduleAt, scheduler);
+
+            if (optionallyScheduled.isPresent()) {
+                left -= nextAmount;
                 continue;
             }
 
-            Anime          anime          = groupData.get(day);
-            OffsetDateTime offsetSchedule = scheduled.toOffsetDateTime();
+            scheduleAt = incrementalTime.apply(scheduleAt);
 
-            AnimeNightMeta meta = this.findLatestBefore(newReservedSpots, anime, scheduled.toOffsetDateTime())
-                                      .map(spot -> BookedAnimeNight.after(spot, offsetSchedule, 1))
-                                      .orElseGet(() -> BookedAnimeNight.with(anime, offsetSchedule, 1));
-
-
-            if (this.canSchedule(newReservedSpots, meta)) {
-                newReservedSpots.add(meta);
-                spots.add(meta);
-
-                if (meta.getLastEpisode() == anime.getTotal()) {
-                    groupData.remove(day);
-                }
+            if (scheduleAt.isAfter(securityLimit)) {
+                throw new IllegalStateException("Could not completely schedule the anime within a 2 years time period. Either you have a lot to watch, or you fucked up the code.");
             }
+        }
+    }
 
-            scheduled = scheduled.plusDays(1);
+    public void scheduleAll(Anime anime, long amount, OffsetTime at, Function<BookedAnimeNight, T> scheduler) {
+
+        ZonedDateTime now        = ZonedDateTime.now();
+        ZonedDateTime scheduleAt = now.withHour(at.getHour()).withMinute(at.getMinute()).withSecond(0).withNano(0);
+
+        if (scheduleAt.isBefore(now)) {
+            scheduleAt = scheduleAt.plusDays(1);
         }
 
-        return spots;
+        this.scheduleAllStartingAt(anime, amount, scheduleAt, scheduler, zdt -> zdt.plusDays(1));
     }
 
-    public <T extends AnimeNightMeta> Optional<T> findLatestBefore(Collection<T> spots, Anime anime, OffsetDateTime date) {
+    public void scheduleAllWeekly(Anime anime, long amount, OffsetTime at, DayOfWeek day, Function<BookedAnimeNight, T> scheduler) {
 
-        LOGGER.debug("ANS [findLatestBefore] -> Last Meta Before '{}' (Anime={})", date, anime.getId());
-        return spots.stream()
-                    .filter(spot -> spot.getAnime().equals(anime))
-                    .filter(spot -> spot.getStartDateTime().isBefore(date))
-                    .max(Comparator.comparing(AnimeNightMeta::getStartDateTime));
-    }
+        ZonedDateTime now        = ZonedDateTime.now();
+        ZonedDateTime scheduleAt = now.withHour(at.getHour()).withMinute(at.getMinute()).withSecond(0).withNano(0);
 
-    public <T extends AnimeNightMeta> boolean fillWatchData(Collection<T> reservedSpots, AnimeNightMeta meta) {
-
-        LOGGER.debug("ANS [fillWatchData] -> Set Watch Data for (Anime={},Start={})",
-                meta.getAnime().getId(),
-                meta.getStartDateTime()
-        );
-
-        Optional<T> latestSpot = this.findLatestBefore(reservedSpots, meta.getAnime(), meta.getStartDateTime());
-        boolean syncResult;
-
-        if (latestSpot.isPresent()) {
-            LOGGER.debug("ANS [findLatestBefore] -> Set watch data based on a previous Meta...");
-            T       spot       = latestSpot.get();
-            syncResult = meta.getFirstEpisode() != spot.getLastEpisode() + 1;
-            meta.setFirstEpisode(spot.getLastEpisode() + 1);
-        } else {
-            LOGGER.debug("ANS [findLatestBefore] -> Set watch data based on Anime state...");
-            syncResult = meta.getFirstEpisode() != meta.getAnime().getWatched() + 1;
-            meta.setFirstEpisode(meta.getAnime().getWatched() + 1);
+        // Why there is no `setDayOfWeek` ? smh
+        while (scheduleAt.getDayOfWeek() != day) {
+            scheduleAt = scheduleAt.plusDays(1);
         }
 
-        if (meta.getFirstEpisode() + (meta.getAmount() - 1) != meta.getLastEpisode()) {
-            meta.setFirstEpisode(meta.getFirstEpisode());
-            return true;
+        // This could happen only if the loop above did not execute once.
+        if (scheduleAt.isBefore(now)) {
+            scheduleAt = scheduleAt.plusDays(7);
         }
 
-        return syncResult;
+        this.scheduleAllStartingAt(anime, amount, scheduleAt, scheduler, zdt -> zdt.plusDays(7));
     }
 
-    public <T extends AnimeNightMeta> AnimeNightMeta getNextSpot(Collection<T> reservedSpots, AnimeNightMeta available) {
+    public void calibrate(Anime anime, Consumer<T> onUpdate) {
 
-        LOGGER.debug(
-                "ANS [getNextSpot] -> Find Next Available Spot for (Anime={},Start={})",
-                available.getAnime().getId(),
-                available.getStartDateTime()
-        );
+        this.calibrate(Collections.singleton(anime), onUpdate);
+    }
 
-        while (reservedSpots.stream().anyMatch(available::isColliding)) {
-            available.setStartDateTime(available.getStartDateTime().plusDays(1));
+    public void calibrate(Iterable<Anime> animes, Consumer<T> onUpdate) {
+
+        for (Anime anime : animes) {
+            // Even if the ZonID is wrong there, it's almost impossible that it is before "now"... right ?
+            // ... What are you doing with this time travel machine ? Put it away, I beg you.
+            OffsetDateTime time = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).toOffsetDateTime();
+
+            Optional<T> optionalFirst = this.findFirstFor(anime, time);
+            long        watched       = anime.getWatched();
+
+            while (optionalFirst.isPresent()) {
+                T instance = optionalFirst.get();
+
+                long correctFirstEpisode = watched + 1;
+                long correctLastEpisode  = watched + instance.getAmount();
+                long correctAmount       = instance.getAmount();
+
+                if (correctLastEpisode > anime.getTotal()) {
+                    // Erm... *ahem* why not following the fucking schedule, huh ?
+                    correctLastEpisode = anime.getTotal();
+                    correctAmount      = correctLastEpisode - correctFirstEpisode + 1;
+                }
+
+                boolean hasBeenUpdated = false;
+
+                if (instance.getFirstEpisode() != correctFirstEpisode) {
+                    long delta = correctFirstEpisode - instance.getFirstEpisode();
+                    instance.setFirstEpisode(instance.getFirstEpisode() + delta);
+                    hasBeenUpdated = true;
+                }
+
+                if (instance.getLastEpisode() != correctLastEpisode) {
+                    long delta = correctLastEpisode - instance.getLastEpisode();
+                    instance.setLastEpisode(instance.getLastEpisode() + delta);
+                    hasBeenUpdated = true;
+                }
+
+                if (instance.getAmount() != correctAmount) {
+                    // We wouldn't be there if you followed the schedule... Yeah, I already said that line 178...
+                    instance.setLastEpisode(instance.getFirstEpisode() + correctAmount - 1);
+                    long duration = anime.getEpisodeDuration() * correctAmount - (3 * (correctAmount - 1));
+                    instance.setEndDateTime(instance.getStartDateTime().plusMinutes(duration));
+                    hasBeenUpdated = true;
+                }
+
+                if (hasBeenUpdated) {
+                    // Notify the caller that people are dumb fucks that can't decide when to watch something.
+                    onUpdate.accept(instance);
+                }
+
+                watched       = instance.getLastEpisode();
+                time          = instance.getEndDateTime();
+                optionalFirst = this.findFirstFor(anime, time);
+            }
         }
-
-        LOGGER.debug(
-                "ANS [getNextSpot] -> Spot Found: (Anime={},Start={})",
-                available.getAnime().getId(),
-                available.getStartDateTime()
-        );
-
-        this.fillWatchData(reservedSpots, available);
-        return available;
     }
-
-    public Collection<AnimeNightMeta> getNextSpots(Collection<? extends AnimeNightMeta> spots, Anime anime, OffsetTime startTime, long amountPerSpot, int maxGenerateAmount) {
-
-        if (anime.getTotal() <= 0) {
-            throw new InvalidAnimeProgressException();
-        }
-
-        LOGGER.debug(
-                "ANS [getNextSpots] -> Finding multiple available slots for (Anime={},Start={},Amount={})",
-                anime.getId(),
-                startTime,
-                amountPerSpot
-        );
-
-        Collection<AnimeNightMeta> availableSpots = new ArrayList<>();
-        Collection<AnimeNightMeta> reservedSpots  = new ArrayList<>(spots);
-        boolean                    canStillCreate = anime.getWatched() < anime.getTotal();
-
-        while (canStillCreate && availableSpots.size() < maxGenerateAmount) {
-            AnimeNightMeta availableSpot = this.getNextSpot(reservedSpots, BookedAnimeNight.with(anime, startTime, amountPerSpot));
-            canStillCreate = availableSpot.getLastEpisode() < anime.getTotal();
-
-            LOGGER.debug(
-                    "ANS [getNextSpots] -> Found spot (Anime={},Start={})",
-                    availableSpot.getAnime().getId(),
-                    availableSpot.getStartDateTime()
-            );
-
-            reservedSpots.add(availableSpot);
-            availableSpots.add(availableSpot);
-        }
-
-        LOGGER.debug("ANS [getNextSpots] -> Reserved {} spots", availableSpots.size());
-        return availableSpots;
-    }
-
-    public boolean canSchedule(Collection<? extends AnimeNightMeta> spots, AnimeNightMeta meta) {
-
-        return spots.stream().noneMatch(scheduled -> scheduled.isColliding(meta));
-    }
-
-    public boolean canSchedule(AnimeNightMeta meta) {
-
-        LOGGER.debug(
-                "ANS [getNextSpots] -> Checking if can schedule (Anime={},Start={})",
-                meta.getAnime().getId(),
-                meta.getStartDateTime()
-        );
-
-        return this.canSchedule(this.service.getAnimeNightRepository().findAllByStatusIn(STATUSES), meta);
-    }
-
-    public List<AnimeNight> calibrate() {
-
-        List<AnimeNight> nights = this.service.getAnimeNightRepository().findAllByStatusIn(STATUSES);
-
-        List<AnimeNight> editedNights = nights.stream().filter(night -> this.fillWatchData(nights, night)).toList();
-        return this.service.getAnimeNightRepository().saveAll(editedNights);
-    }
-
-    public List<AnimeNight> calibrate(Anime anime) {
-
-        LOGGER.debug("ANS [calibrate] -> Calibrating schedule for (Anime={})", anime.getId());
-        List<AnimeNight> nights = this.service.getAnimeNightRepository().findAllByAnimeAndStatusIn(anime, STATUSES);
-
-        List<AnimeNight> editedNights = nights.stream().filter(night -> this.fillWatchData(nights, night)).toList();
-        return this.service.getAnimeNightRepository().saveAll(editedNights);
-    }
-
-    public AnimeNight schedule(Guild guild, AnimeNightMeta meta) {
-
-        LOGGER.info(
-                "ANS [schedule] -> Trying to schedule (Anime={}, Start={}, End={}, FirstEp={}, LastEp={})",
-                meta.getAnime().getId(),
-                meta.getStartDateTime(),
-                meta.getEndDateTime(),
-                meta.getFirstEpisode(),
-                meta.getLastEpisode()
-        );
-
-        if (!this.canSchedule(meta)) {
-            LOGGER.warn("ANS [schedule] -> Can't schedule this. Overlap detected.");
-            throw new OverlappingScheduleException(meta.getAnime());
-        }
-
-        LOGGER.info("ANS [schedule] -> Saving into database...");
-        AnimeNight event = this.service.getAnimeNightRepository().save(new AnimeNight(meta));
-
-        this.calibrate(meta.getAnime()).stream()
-            .map(night -> new AnimeNightUpdateEvent(this, guild, night))
-            .forEach(this.service.getPublisher()::publishEvent);
-
-        LOGGER.info("ANS [schedule] -> Finished.");
-        return event;
-    }
-
 }

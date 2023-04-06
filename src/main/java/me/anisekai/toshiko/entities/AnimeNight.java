@@ -10,11 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 @Entity
 public class AnimeNight implements AnimeNightMeta, SlashResponse {
+
+    public static final List<ScheduledEvent.Status> WATCHABLE = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -111,7 +115,7 @@ public class AnimeNight implements AnimeNightMeta, SlashResponse {
     public void setFirstEpisode(long firstEpisode) {
 
         this.firstEpisode = firstEpisode;
-        this.lastEpisode = firstEpisode + (this.getAmount() - 1);
+        this.lastEpisode  = firstEpisode + (this.getAmount() - 1);
     }
 
     public long getLastEpisode() {
