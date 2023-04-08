@@ -482,6 +482,13 @@ public class ToshikoService {
         return new AnimeNightScheduler<>(this.animeNightRepository.findAllByStatusIn(AnimeNight.WATCHABLE));
     }
 
+    public void refreshSchedule() {
+
+        this.animeNightRepository.findAllByStatusIn(AnimeNight.WATCHABLE).stream()
+                                 .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
+                                 .forEach(this.getPublisher()::publishEvent);
+    }
+
     public Optional<AnimeNight> findAnimeNight(ScheduledEvent event) {
 
         return this.animeNightRepository.findByEventId(event.getIdLong());

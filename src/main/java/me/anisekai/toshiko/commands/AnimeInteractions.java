@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -273,6 +272,10 @@ public class AnimeInteractions {
                                     @Choice(
                                             id = "announce",
                                             display = Texts.ANIME_REFRESH__OPTION_TARGET__CHOICE_ANNOUNCE
+                                    ),
+                                    @Choice(
+                                            id = "schedule",
+                                            display = "(TBD)"
                                     )
                             }
                     ),
@@ -298,6 +301,10 @@ public class AnimeInteractions {
                                .forEach(this.toshikoService::refreshAnimeAnnounce);
 
             return new SimpleResponse("Les annonces seront actualisées sous peu.", false, false);
+        } else if (target.equals("schedule")) {
+
+            this.toshikoService.refreshSchedule();
+            return new SimpleResponse("Les évènements seront actualisés sous peu.", false, false);
         } else {
             return new SimpleResponse("Hmmm, quelque chose s'est mal passé.", false, false);
         }
