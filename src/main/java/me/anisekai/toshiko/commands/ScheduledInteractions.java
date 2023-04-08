@@ -240,4 +240,34 @@ public class ScheduledInteractions {
         return new SimpleResponse(String.format("**%s** évènements ont été mis à jour.", updateCount), false, false);
     }
     // </editor-fold>
+
+    // <editor-fold desc="@ schedule/delay">
+    @Interact(
+            name = "schedule/delay",
+            description = "Delay the schedule",
+            defer = true,
+            options = {
+                    @Option(
+                            name = "delay",
+                            description = "The amount of time (in minutes) that the event should be delayed",
+                            required = true,
+                            type = OptionType.INTEGER
+                    )
+            }
+    )
+    public SlashResponse delaySchedule(DiscordUser user, @Param("delay") long delay) {
+
+        if (!user.isAdmin()) {
+            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
+        }
+
+        int delayedAmount = this.service.delay(delay);
+
+        if (delayedAmount == -1) {
+            return new SimpleResponse("Impossible de décaler les évènements.", false, false);
+        }
+
+        return new SimpleResponse(String.format("**%s** évènements ont été décalés.", delayedAmount), false, false);
+    }
+    // </editor-fold>
 }

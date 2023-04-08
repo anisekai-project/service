@@ -45,6 +45,16 @@ public class BookedAnimeNight implements AnimeNightMeta {
     private OffsetDateTime startDateTime;
     private OffsetDateTime endDateTime;
 
+    public BookedAnimeNight(AnimeNightMeta meta) {
+
+        this.anime         = meta.getAnime();
+        this.firstEpisode  = meta.getFirstEpisode();
+        this.lastEpisode   = meta.getLastEpisode();
+        this.amount        = meta.getAmount();
+        this.startDateTime = meta.getStartDateTime();
+        this.endDateTime   = meta.getEndDateTime();
+    }
+
     public BookedAnimeNight(Anime anime, long firstEpisode, long lastEpisode, long amount, OffsetDateTime startDateTime, OffsetDateTime endDateTime) {
 
         this.anime         = anime;
@@ -96,7 +106,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public void setFirstEpisode(long firstEpisode) {
 
         this.firstEpisode = firstEpisode;
-        this.lastEpisode = firstEpisode + (this.getAmount() - 1);
+        this.lastEpisode  = firstEpisode + (this.getAmount() - 1);
     }
 
     @Override
@@ -108,7 +118,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
     @Override
     public void setLastEpisode(long lastEpisode) {
 
-        this.lastEpisode = lastEpisode;
+        this.lastEpisode  = lastEpisode;
         this.firstEpisode = lastEpisode - this.getAmount();
     }
 

@@ -31,8 +31,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Service
@@ -540,6 +542,25 @@ public class ToshikoService {
 
         Set<AnimeNight> updated = new HashSet<>();
         scheduler.calibrate(anime, updated::add);
+
+        this.animeNightRepository.saveAll(updated).stream()
+                                 .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
+                                 .forEach(this.getPublisher()::publishEvent);
+
+        return updated.size();
+    }
+
+    public int delay(long minutes) {
+
+        AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
+
+        // time limit
+        OffsetDateTime limit = ZonedDateTime.now().plusHours(6).toOffsetDateTime();
+
+        Set<AnimeNight> updated = new HashSet<>();
+        if (!scheduler.delay(minutes, TimeUnit.MINUTES, time -> time.isBefore(limit), updated::add)) {
+            return -1;
+        }
 
         this.animeNightRepository.saveAll(updated).stream()
                                  .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
