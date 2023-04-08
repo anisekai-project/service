@@ -79,8 +79,8 @@ public class DelayedTask {
         this.queue(String.format("ANIME-NIGHT:UPDATE:%s", event.getAnimeNight().getEventId()), () -> {
             // Sanity check of reschedule
             long first = event.getAnimeNight().getFirstEpisode();
-            long last = event.getAnimeNight().getLastEpisode();
-            long total  = event.getAnimeNight().getAnime().getTotal();
+            long last  = event.getAnimeNight().getLastEpisode();
+            long total = event.getAnimeNight().getAnime().getTotal();
 
             if (event.getAnimeNight().getEventId() == null) {
                 return;
@@ -104,6 +104,8 @@ public class DelayedTask {
                      .complete()
                      .getManager()
                      .setDescription(event.getAnimeNight().asEventDescription())
+                     .setStartTime(event.getAnimeNight().getStartDateTime())
+                     .setEndTime(event.getAnimeNight().getEndDateTime())
                      .complete();
                 LOGGER.info("Scheduled event updated !");
             }
