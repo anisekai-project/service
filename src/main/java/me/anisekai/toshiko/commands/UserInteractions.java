@@ -24,7 +24,7 @@ public class UserInteractions {
         this.toshikoService = toshikoService;
     }
 
-    // <editor-fold desc="@ user/icon/set ─ Change your icon">
+    // <editor-fold desc="@ user/icon/set">
     @Interact(
             name = "user/icon/set",
             description = Texts.USER_ICON__DESCRIPTION,

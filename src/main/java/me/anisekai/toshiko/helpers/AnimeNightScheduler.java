@@ -7,10 +7,15 @@ import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
@@ -24,6 +29,17 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
         this.nights = new HashSet<>(sourceData);
     }
 
+    /**
+     * Find an optional {@link T} for the provided anime having its {@link OffsetDateTime} closest, but not greater than
+     * the provided {@link OffsetDateTime}.
+     *
+     * @param anime
+     *         The {@link Anime} used to filter {@link T}
+     * @param before
+     *         The {@link OffsetDateTime} that {@link T} should not exceed.
+     *
+     * @return An instance of {@link T}, if any matched.
+     */
     public Optional<T> findLatestFor(Anime anime, OffsetDateTime before) {
 
         return this.nights.stream()
@@ -32,6 +48,17 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
                           .max(Comparator.comparing(AnimeNightMeta::getStartDateTime));
     }
 
+    /**
+     * Find an optional {@link T} for the provided anime having its {@link OffsetDateTime} closest, but not less than
+     * the provided {@link OffsetDateTime}.
+     *
+     * @param anime
+     *         The {@link Anime} used to filter {@link T}
+     * @param after
+     *         The {@link OffsetDateTime} that {@link T} should not be under.
+     *
+     * @return An instance of {@link T}, if any matched.
+     */
     public Optional<T> findFirstFor(Anime anime, OffsetDateTime after) {
 
         return this.nights.stream()
@@ -40,6 +67,21 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
                           .min(Comparator.comparing(AnimeNightMeta::getStartDateTime));
     }
 
+    /**
+     * Schedule a new event with the provided data.
+     *
+     * @param anime
+     *         The {@link Anime} for which the event will be scheduled.
+     * @param amount
+     *         The amount of episode that should be scheduled.
+     * @param at
+     *         The {@link ZonedDateTime} at which the event should be scheduled.
+     * @param scheduler
+     *         {@link Function} converting a {@link BookedAnimeNight} holding the pre-scheduling data to the event
+     *         entity {@link T}.
+     *
+     * @return The scheduled event {@link T}, if scheduled successfully.
+     */
     public Optional<T> scheduleAt(Anime anime, long amount, ZonedDateTime at, Function<BookedAnimeNight, T> scheduler) {
 
         long duration = anime.getEpisodeDuration() * amount - (3 * (amount - 1));
@@ -74,20 +116,23 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
         return Optional.of(instance);
     }
 
-    public Optional<T> scheduleNow(Anime anime, long amount, OffsetTime at, Function<BookedAnimeNight, T> scheduler) {
-
-        ZonedDateTime scheduleTime = ZonedDateTime.now()
-                                                  .withHour(at.getHour())
-                                                  .withMinute(at.getMinute())
-                                                  .withSecond(0);
-
-        if (scheduleTime.isBefore(ZonedDateTime.now())) {
-            scheduleTime = scheduleTime.plusDays(1);
-        }
-
-        return this.scheduleAt(anime, amount, scheduleTime, scheduler);
-    }
-
+    /**
+     * Schedule multiple event using the provided data until there is nothing to schedule anymore for the provided
+     * {@link Anime}.
+     *
+     * @param anime
+     *         The {@link Anime} for which the event will be scheduled.
+     * @param amount
+     *         The amount of episode that should be scheduled.
+     * @param startingAt
+     *         The {@link ZonedDateTime} at which the group scheduling will start.
+     * @param scheduler
+     *         {@link Function} converting a {@link BookedAnimeNight} holding the pre-scheduling data to the event
+     *         entity {@link T}.
+     * @param incrementalTime
+     *         {@link Function} used to determine how time should be skipped between two scheduled events. This can be
+     *         used to create weekly event for example.
+     */
     public void scheduleAllStartingAt(Anime anime, long amount, ZonedDateTime startingAt, Function<BookedAnimeNight, T> scheduler, Function<ZonedDateTime, ZonedDateTime> incrementalTime) {
 
         if (anime.getTotal() < 1) {
@@ -124,41 +169,33 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
         }
     }
 
-    public void scheduleAll(Anime anime, long amount, OffsetTime at, Function<BookedAnimeNight, T> scheduler) {
-
-        ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(at.getHour()).withMinute(at.getMinute()).withSecond(0).withNano(0);
-
-        if (scheduleAt.isBefore(now)) {
-            scheduleAt = scheduleAt.plusDays(1);
-        }
-
-        this.scheduleAllStartingAt(anime, amount, scheduleAt, scheduler, zdt -> zdt.plusDays(1));
-    }
-
-    public void scheduleAllWeekly(Anime anime, long amount, OffsetTime at, DayOfWeek day, Function<BookedAnimeNight, T> scheduler) {
-
-        ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(at.getHour()).withMinute(at.getMinute()).withSecond(0).withNano(0);
-
-        // Why there is no `setDayOfWeek` ? smh
-        while (scheduleAt.getDayOfWeek() != day) {
-            scheduleAt = scheduleAt.plusDays(1);
-        }
-
-        // This could happen only if the loop above did not execute once.
-        if (scheduleAt.isBefore(now)) {
-            scheduleAt = scheduleAt.plusDays(7);
-        }
-
-        this.scheduleAllStartingAt(anime, amount, scheduleAt, scheduler, zdt -> zdt.plusDays(7));
-    }
-
+    /**
+     * Calibrate the schedule. Calibrating the schedule will allow updating the episode of the scheduled event and
+     * correct any kind of time delay due to the episode update if necessary.
+     * <p>
+     * This is a simple syntax sugar for {@link #calibrate(Iterable, Consumer)}.
+     *
+     * @param anime
+     *         The {@link Anime} for which the calibrating should be done.
+     * @param onUpdate
+     *         {@link Consumer} called when the entity has been calibrated.
+     *
+     * @see #calibrate(Iterable, Consumer)
+     */
     public void calibrate(Anime anime, Consumer<T> onUpdate) {
 
         this.calibrate(Collections.singleton(anime), onUpdate);
     }
 
+    /**
+     * Calibrate the schedule. Calibrating the schedule will allow updating the episode of the scheduled event and
+     * correct any kind of time delay due to the episode update if necessary.
+     *
+     * @param animes
+     *         The {@link Anime} collection for which the calibrating should be done.
+     * @param onUpdate
+     *         {@link Consumer} called when the entity has been calibrated.
+     */
     public void calibrate(Iterable<Anime> animes, Consumer<T> onUpdate) {
 
         for (Anime anime : animes) {
@@ -214,5 +251,41 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
                 optionalFirst = this.findFirstFor(anime, time);
             }
         }
+    }
+
+    public boolean delay(long value, TimeUnit unit, Predicate<OffsetDateTime> predicate, Consumer<T> onUpdate) {
+
+        // Retrieve delayable entities.
+        List<T> delayable = this.nights.stream()
+                                       .filter(event -> predicate.test(event.getStartDateTime()))
+                                       .sorted(Comparator.comparing(AnimeNightMeta::getStartDateTime).reversed())
+                                       .toList();
+
+        // Dry run - We first check if we can delay safely.
+        for (T event : delayable) {
+            // Make a copy
+            BookedAnimeNight night = new BookedAnimeNight(event);
+
+            // Apply delay
+            night.setStartDateTime(night.getStartDateTime().plus(value, unit.toChronoUnit()));
+
+            // Check if schedulable (ignoring the delayable events)...
+            boolean collide = this.nights.stream()
+                                         .filter(item -> !delayable.contains(item))
+                                         .anyMatch(item -> item.isColliding(night));
+
+            if (collide) {
+                return false;
+            }
+        }
+
+        // Hey, we can delay the schedule !
+        for (T event : delayable) {
+            // Apply delay
+            event.setStartDateTime(event.getStartDateTime().plus(value, unit.toChronoUnit()));
+            onUpdate.accept(event);
+        }
+        // Delay success !
+        return true;
     }
 }

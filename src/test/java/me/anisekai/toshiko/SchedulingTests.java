@@ -3,6 +3,7 @@ package me.anisekai.toshiko;
 import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.helpers.AnimeNightScheduler;
+import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 import me.anisekai.toshiko.utils.FakeService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @DisplayName("Scheduling")
 @Tag("slow-test")
@@ -300,5 +302,91 @@ public class SchedulingTests {
         }
     }
 
+    @Test
+    @DisplayName("Scheduling: Ensure scheduling delay")
+    public void testScheduleDelay() {
+
+        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+
+        ZonedDateTime  now        = ZonedDateTime.now();
+        OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
+        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+
+        Set<BookedAnimeNight> events = new HashSet<>();
+        scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
+            events.add(booking);
+            return booking;
+        }, date -> date.plusDays(1));
+
+        Assertions.assertEquals(4, events.size(), "Wrong amount of scheduled event");
+
+        Set<BookedAnimeNight> delayed     = new HashSet<>();
+        boolean               delayResult = scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
+
+        Assertions.assertTrue(delayResult, "The delaying was not successful.");
+        Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 10));
+    }
+
+    @Test
+    @DisplayName("Scheduling: Ensure scheduling delay (negative)")
+    public void testScheduleNegative() {
+
+        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+
+        ZonedDateTime  now        = ZonedDateTime.now();
+        OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
+        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+
+        Set<BookedAnimeNight> events = new HashSet<>();
+        scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
+            events.add(booking);
+            return booking;
+        }, date -> date.plusDays(1));
+
+        Assertions.assertEquals(4, events.size(), "Wrong amount of scheduled event");
+
+        Set<BookedAnimeNight> delayed     = new HashSet<>();
+        boolean               delayResult = scheduler.delay(-10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
+
+        Assertions.assertTrue(delayResult, "The delaying was not successful.");
+        // TODO: Check the date, but with day change and all meh
+        Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 50));
+    }
+
+    @Test
+    @DisplayName("Scheduling: Ensure scheduling delay not overlapping")
+    public void testScheduleNoDelay() {
+
+        Anime fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        Anime fakeAnimeTwo = FakeService.FAKE_ANIME_TWO.get();
+
+        AnimeNightScheduler<BookedAnimeNight> scheduler = new AnimeNightScheduler<>(Collections.emptyList());
+
+        ZonedDateTime  now        = ZonedDateTime.now();
+        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        OffsetDateTime delayLimit = scheduleAt.plusMinutes(5).toOffsetDateTime();
+
+        Set<AnimeNightMeta> events = new HashSet<>();
+
+        scheduler.scheduleAt(fakeAnimeOne, 1, scheduleAt, item -> {
+            events.add(item);
+            return item;
+        });
+
+        scheduler.scheduleAt(fakeAnimeTwo, 1, scheduleAt.plusMinutes(30), item -> {
+            events.add(item);
+            return item;
+        });
+
+        Assertions.assertEquals(2, events.size(), "Wrong amount of scheduled event");
+
+        Set<BookedAnimeNight> delayed = new HashSet<>();
+        boolean delayResult = scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
+
+        Assertions.assertFalse(delayResult, "The delay was executed");
+        Assertions.assertEquals(0, delayed.size(), "The event has been delayed.");
+    }
 
 }

@@ -5,6 +5,7 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.helpers.InteractionBean;
@@ -35,27 +36,27 @@ public class LeaderboardInteractions {
     // <editor-fold desc="@ top/anime">
     @Interact(
             name = "top/anime",
-            description = "Affiche un classement (top 5) sur les votes d'animes",
+            description = Texts.TOP_ANIME__DESCRIPTION,
             options = {
                     @Option(
                             name = "order",
-                            description = "Ordre de tri",
+                            description = Texts.TOP_ANIME__OPTION_ORDER,
                             type = OptionType.STRING,
                             required = true,
                             choices = {
                                     @Choice(
                                             id = "ASC",
-                                            display = "Top des moins votés"
+                                            display = Texts.TOP_ANIME__OPTION_ORDER__CHOICE_ASC
                                     ),
                                     @Choice(
                                             id = "DESC",
-                                            display = "Top des mieux votés"
+                                            display = Texts.TOP_ANIME__OPTION_ORDER__CHOICE_DESC
                                     )
                             }
                     ),
                     @Option(
                             name = "limit",
-                            description = "Nombre d'élements",
+                            description = Texts.TOP_ANIME__OPTION_LIMIT,
                             type = OptionType.INTEGER
                     )
             }
@@ -87,7 +88,7 @@ public class LeaderboardInteractions {
     // <editor-fold desc="@ top/user">
     @Interact(
             name = "top/user",
-            description = "Affiche un classement de puissance de vote"
+            description = Texts.TOP_USER__DESCRIPTION
     )
     public SlashResponse topUser() {
 

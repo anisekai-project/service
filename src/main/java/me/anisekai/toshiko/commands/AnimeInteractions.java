@@ -1,10 +1,8 @@
 package me.anisekai.toshiko.commands;
 
-import fr.alexpado.jda.interactions.annotations.Choice;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
-import fr.alexpado.jda.interactions.enums.SlashTarget;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.Anime;
@@ -15,8 +13,6 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.helpers.InteractionBean;
 import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
 import me.anisekai.toshiko.helpers.responses.SimpleResponse;
-import me.anisekai.toshiko.interfaces.AnimeProvider;
-import me.anisekai.toshiko.providers.OfflineProvider;
 import me.anisekai.toshiko.services.ToshikoService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
@@ -29,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,11 +127,6 @@ public class AnimeInteractions {
                             type = OptionType.STRING,
                             required = true,
                             autoComplete = true
-                    ),
-                    @Option(
-                            name = "episode",
-                            description = Texts.ANIME_STATUS__OPTION_WATCHED,
-                            type = OptionType.INTEGER
                     )
             }
     )
@@ -255,118 +245,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/refresh">
-    @Interact(
-            name = "anime/refresh",
-            description = Texts.ANIME_REFRESH__DESCRIPTION,
-            options = {
-                    @Option(
-                            name = "target",
-                            description = Texts.ANIME_REFRESH__OPTION_TARGET,
-                            type = OptionType.STRING,
-                            required = true,
-                            choices = {
-                                    @Choice(
-                                            id = "watchlist",
-                                            display = Texts.ANIME_REFRESH__OPTION_TARGET__CHOICE_WATCHLIST
-                                    ),
-                                    @Choice(
-                                            id = "announce",
-                                            display = Texts.ANIME_REFRESH__OPTION_TARGET__CHOICE_ANNOUNCE
-                                    )
-                            }
-                    ),
-                    @Option(
-                            name = "force",
-                            description = Texts.ANIME_REFRESH__OPTION_FORCE,
-                            type = OptionType.BOOLEAN
-                    )
-            }
-    )
-    public SlashResponse refreshWatchlist(DiscordUser user, @Param("target") String target, @Param("force") Boolean force) {
-
-        if (!user.isAdmin()) {
-            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
-        }
-
-        if (target.equals("watchlist")) {
-            this.toshikoService.queueUpdateAll(force);
-            return new SimpleResponse("Les listes seront actualisées sous peu.", false, false);
-        } else if (target.equals("announce")) {
-            this.toshikoService.getAnimeRepository().findAll().stream()
-                               .filter(anime -> anime.getAnnounceMessage() != null)
-                               .forEach(this.toshikoService::refreshAnimeAnnounce);
-
-            return new SimpleResponse("Les annonces seront actualisées sous peu.", false, false);
-        } else {
-            return new SimpleResponse("Hmmm, quelque chose s'est mal passé.", false, false);
-        }
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="@ anime/add">
-    @Interact(
-            name = "anime/add",
-            description = Texts.ANIME_ADD__DESCRIPTION,
-            target = SlashTarget.GUILD,
-            options = {
-                    @Option(
-                            name = "name",
-                            description = Texts.ANIME_ADD__OPTION_NAME,
-                            required = true,
-                            type = OptionType.STRING
-                    ),
-                    @Option(
-                            name = "link",
-                            description = Texts.ANIME_ADD__OPTION_LINK,
-                            required = true,
-                            type = OptionType.STRING
-                    ),
-                    @Option(
-                            name = "status",
-                            description = Texts.ANIME_ADD__OPTION_STATUS,
-                            required = true,
-                            type = OptionType.STRING,
-                            autoComplete = true
-                    ),
-                    @Option(
-                            name = "episode",
-                            description = Texts.ANIME_ADD__OPTION_EPISODE,
-                            type = OptionType.INTEGER
-                    ),
-                    @Option(
-                            name = "image",
-                            description = Texts.ANIME_ADD__OPTION_IMAGE,
-                            type = OptionType.STRING
-                    )
-            }
-    )
-    public SlashResponse addAnime(
-            DiscordUser discordUser,
-            User user,
-            @Param("name") String name,
-            @Param("link") String link,
-            @Param("status") String status,
-            @Param("episode") Long episode,
-            @Param("image") String image
-    ) {
-
-        if (!AnimeProvider.isSupported(link)) {
-            return new SimpleResponse("Désolé, mais ce n'est pas un lien Nautiljon...", false, true);
-        }
-
-        if (discordUser.isBanned()) {
-            return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
-        }
-
-        AnimeStatus   animeStatus = AnimeStatus.from(status);
-        AnimeProvider provider    = new OfflineProvider(name, image, link, animeStatus, episode);
-        Anime         anime       = this.toshikoService.createAnime(user, provider, animeStatus);
-        return new SimpleResponse("L'anime %s a bien été ajouté !".formatted(anime.getName()), false, false);
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="@ anime/import ─ Importe un ou plusieurs animes depuis un fichier JSON">
+    // <editor-fold desc="@ anime/import">
     @Interact(
             name = "anime/import",
             description = Texts.ANIME_IMPORT__DESCRIPTION,
@@ -380,7 +259,7 @@ public class AnimeInteractions {
             },
             defer = true
     )
-    public SlashResponse importFromFile(DiscordUser user, @Param("json") String rawJson) {
+    public SlashResponse importFromJson(DiscordUser user, @Param("json") String rawJson) {
 
         if (user.isBanned()) {
             return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
