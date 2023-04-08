@@ -4,6 +4,7 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.entities.DiscordUser;
@@ -73,31 +74,31 @@ public class ScheduledInteractions {
     // <editor-fold desc="@ schedule/daily">
     @Interact(
             name = "schedule/daily",
-            description = "Schedule an anime in a daily fashion",
+            description = Texts.SCHEDULE_DAILY__DESCRIPTION,
             defer = true,
             options = {
                     @Option(
                             name = "anime",
-                            description = "The anime to schedule",
+                            description = Texts.SCHEDULE_DAILY__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             autoComplete = true,
                             required = true
                     ),
                     @Option(
                             name = "at",
-                            description = "At which hour the anime should be scheduled everyday. (HH:mm)",
+                            description = Texts.SCHEDULE_DAILY__OPTION_AT,
                             type = OptionType.STRING,
                             required = true
                     ),
                     @Option(
                             name = "amount",
-                            description = "The amount of episode to watch daily.",
+                            description = Texts.SCHEDULE_DAILY__OPTION_AMOUNT,
                             type = OptionType.INTEGER,
                             required = true
                     ),
                     @Option(
                             name = "starting",
-                            description = "When the daily scheduling should start (dd/MM/yyyy)",
+                            description = Texts.SCHEDULE_DAILY__OPTION_STARTING,
                             type = OptionType.STRING
                     )
             }
@@ -117,31 +118,31 @@ public class ScheduledInteractions {
     // <editor-fold desc="@ schedule/weekly">
     @Interact(
             name = "schedule/weekly",
-            description = "Schedule an anime in a weekly fashion",
+            description = Texts.SCHEDULE_WEEKLY__DESCRIPTION,
             defer = true,
             options = {
                     @Option(
                             name = "anime",
-                            description = "The anime to schedule",
+                            description = Texts.SCHEDULE_WEEKLY__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             autoComplete = true,
                             required = true
                     ),
                     @Option(
                             name = "at",
-                            description = "At which hour the anime should be scheduled everyday. (HH:mm)",
+                            description = Texts.SCHEDULE_WEEKLY__OPTION_AT,
                             type = OptionType.STRING,
                             required = true
                     ),
                     @Option(
                             name = "amount",
-                            description = "The amount of episode to watch daily.",
+                            description = Texts.SCHEDULE_WEEKLY__OPTION_AMOUNT,
                             type = OptionType.INTEGER,
                             required = true
                     ),
                     @Option(
                             name = "starting",
-                            description = "When the daily scheduling should start (dd/MM/yyyy)",
+                            description = Texts.SCHEDULE_WEEKLY__OPTION_STARTING,
                             type = OptionType.STRING
                     )
             }
@@ -161,31 +162,31 @@ public class ScheduledInteractions {
     // <editor-fold desc="@ schedule/anime">
     @Interact(
             name = "schedule/anime",
-            description = "Programme une soirée animé.",
+            description = Texts.SCHEDULE_ANIME__DESCRIPTION,
             defer = true,
             options = {
                     @Option(
                             name = "anime",
-                            description = "L'anime a regarder",
+                            description = Texts.SCHEDULE_ANIME__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             autoComplete = true,
                             required = true
                     ),
                     @Option(
-                            name = "time",
-                            description = "Heure de visionnage",
+                            name = "at",
+                            description = Texts.SCHEDULE_ANIME__OPTION_AT,
                             type = OptionType.STRING,
                             required = true
                     ),
                     @Option(
                             name = "amount",
-                            description = "Nombre d'épisode pour la scéance",
+                            description = Texts.SCHEDULE_ANIME__OPTION_AMOUNT,
                             type = OptionType.INTEGER,
                             required = true
                     ),
                     @Option(
-                            name = "day",
-                            description = "Jour de visionnage",
+                            name = "date",
+                            description = Texts.SCHEDULE_ANIME__OPTION_DATE,
                             type = OptionType.STRING
                     )
             }
@@ -193,8 +194,8 @@ public class ScheduledInteractions {
     public SlashResponse scheduleAnimeNight(
             DiscordUser user,
             @Param("anime") long animeId,
-            @Param("time") String time,
-            @Param("day") String day,
+            @Param("at") String time,
+            @Param("date") String day,
             @Param("amount") long amount
     ) {
 
@@ -227,7 +228,7 @@ public class ScheduledInteractions {
     // <editor-fold desc="@ schedule/calibrate">
     @Interact(
             name = "schedule/calibrate",
-            description = "Recalibre tous les évènements programmés",
+            description = Texts.SCHEDULE_CALIBRATE__DESCRIPTION,
             defer = true
     )
     public SlashResponse calibrateSchedule(DiscordUser user) {
@@ -244,12 +245,12 @@ public class ScheduledInteractions {
     // <editor-fold desc="@ schedule/delay">
     @Interact(
             name = "schedule/delay",
-            description = "Delay the schedule",
+            description = Texts.SCHEDULE_DELAY__DESCRIPTION,
             defer = true,
             options = {
                     @Option(
                             name = "delay",
-                            description = "The amount of time (in minutes) that the event should be delayed",
+                            description = Texts.SCHEDULE_DELAY__OPTION_DELAY,
                             required = true,
                             type = OptionType.INTEGER
                     )
