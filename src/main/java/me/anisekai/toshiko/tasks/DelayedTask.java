@@ -2,7 +2,6 @@ package me.anisekai.toshiko.tasks;
 
 import io.sentry.Sentry;
 import me.anisekai.toshiko.events.AnimeNightUpdateEvent;
-import me.anisekai.toshiko.services.ToshikoService;
 import me.anisekai.toshiko.tasks.entity.TaskEntry;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
@@ -21,12 +20,10 @@ public class DelayedTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(DelayedTask.class);
 
     private final BlockingDeque<TaskEntry> tasks;
-    private final ToshikoService           service;
 
-    public DelayedTask(ToshikoService service) {
+    public DelayedTask() {
 
-        this.service = service;
-        this.tasks   = new LinkedBlockingDeque<>();
+        this.tasks = new LinkedBlockingDeque<>();
     }
 
     @Scheduled(cron = "0/6 * * * * *")
