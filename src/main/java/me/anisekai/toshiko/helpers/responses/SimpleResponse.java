@@ -3,16 +3,18 @@ package me.anisekai.toshiko.helpers.responses;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.utils.messages.AbstractMessageBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 public class SimpleResponse implements SlashResponse, ButtonResponse {
 
-    private final EmbedBuilder builder;
-    private final boolean      edit;
-    private final boolean      ephemeral;
+    private final Collection<EmbedBuilder> builders;
+    private final boolean                  edit;
+    private final boolean                  ephemeral;
 
     public SimpleResponse(String message, boolean edit, boolean ephemeral) {
 
@@ -21,7 +23,14 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
 
     public SimpleResponse(EmbedBuilder builder, boolean edit, boolean ephemeral) {
 
-        this.builder   = builder;
+        this.builders  = Collections.singletonList(builder);
+        this.edit      = edit;
+        this.ephemeral = ephemeral;
+    }
+
+    public SimpleResponse(Collection<EmbedBuilder> builders, boolean edit, boolean ephemeral) {
+
+        this.builders  = builders;
         this.edit      = edit;
         this.ephemeral = ephemeral;
     }
@@ -35,7 +44,7 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
     @Override
     public Consumer<MessageRequest<?>> getHandler() {
 
-        return (amb) -> amb.setEmbeds(this.builder.build());
+        return (amb) -> amb.setEmbeds(this.builders.stream().map(EmbedBuilder::build).toList());
     }
 
     @Override
