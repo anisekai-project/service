@@ -14,11 +14,8 @@ public final class GeneralFrenchMessage {
 
         builder.appendDescription("Voici quelques règles à respecter. Rien de bien méchant.");
 
-        builder.addBlankField(false);
         builder.addField(getRuleOne());
-        builder.addBlankField(false);
         builder.addField(getRuleTwo());
-        builder.addBlankField(false);
         builder.addField(getRuleThree());
 
         return builder;
@@ -28,7 +25,7 @@ public final class GeneralFrenchMessage {
 
         return new MessageEmbed.Field(
                 "1. Bon sens et courtoisie",
-                "On ne demande pas grand chose, nous sommes civilisés (je pense)",
+                "> On ne demande pas grand chose, nous sommes civilisés (je pense)",
                 false
         );
     }
@@ -37,7 +34,7 @@ public final class GeneralFrenchMessage {
 
         return new MessageEmbed.Field(
                 "2. Ambiance bon enfant",
-                "Les blagues salaces, moquerie et autres chamailleries seront tolérés tant que tout le monde y consent et que cela ne devienne pas du harcèlement, auquel cas nous seront dans l'obligation d'agir.",
+                "> Les blagues salaces, moquerie et autres chamailleries seront tolérés tant que tout le monde y consent et que cela ne devienne pas du harcèlement, auquel cas nous seront dans l'obligation d'agir.",
                 false
         );
     }
@@ -46,7 +43,7 @@ public final class GeneralFrenchMessage {
 
         return new MessageEmbed.Field(
                 "3. Pas de pub",
-                "Sauf autorisation spéciale, cela sera sanctionné. Cependant, si cela à un rapport avec un sujet actuellement abordé, l'autorisation sera tacite.",
+                "> Sauf autorisation spéciale, cela sera sanctionné. Cependant, si cela à un rapport avec un sujet actuellement abordé, l'autorisation sera tacite.",
                 false
         );
     }

@@ -60,12 +60,10 @@ public class MessageInteractions {
     public SlashResponse showRules(@Param("num") Long num, MessageChannel channel) {
 
         if (num == null) {
-            this.delayedTask.queue("RULES", () -> {
-                channel.sendMessage(MessageCreateData.fromEmbeds(
-                        GeneralFrenchMessage.getRulesEmbed().build(),
-                        GeneralEnglishMessage.getRulesEmbed().build()
-                )).complete();
-            });
+            this.delayedTask.queue("RULES", () -> channel.sendMessage(MessageCreateData.fromEmbeds(
+                    GeneralFrenchMessage.getRulesEmbed().build(),
+                    GeneralEnglishMessage.getRulesEmbed().build()
+            )).complete());
             return new SimpleResponse("Les messages vont être envoyés.", false, true);
         }
 

@@ -19,7 +19,7 @@ public final class AnimeNightMessages {
                                 
                 **Le but du bot:** Permettre l'organisation d'une liste d'anime à regarder / en cours de visionnage pour organiser nos soirées animes !
                                 
-                Lorsqu'un anime est ajouté, sa fiche est postée dans le salon <#960633496173412402> avec 3 boutons te permettant d'indiquer ton niveau d'intérêt pour ce dernier.""",
+                Lorsqu'un anime est ajouté, sa fiche est postée dans le salon <#960633496173412402> avec 3 boutons vous permettant d'indiquer votre niveau d'intérêt pour ce dernier.""",
                 false
         );
 

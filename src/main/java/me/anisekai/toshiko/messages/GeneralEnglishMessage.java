@@ -14,11 +14,8 @@ public final class GeneralEnglishMessage {
 
         builder.appendDescription("Here's some rules to follow. Nothing fancy.");
 
-        builder.addBlankField(false);
         builder.addField(getRuleOne());
-        builder.addBlankField(false);
         builder.addField(getRuleTwo());
-        builder.addBlankField(false);
         builder.addField(getRuleThree());
 
         return builder;
@@ -28,7 +25,7 @@ public final class GeneralEnglishMessage {
 
         return new MessageEmbed.Field(
                 "1. Common Sense and courtesy",
-                " We're not asking much, we are civilised (I think)",
+                "> We're not asking much, we are civilised (I think)",
                 false
         );
     }
@@ -37,7 +34,7 @@ public final class GeneralEnglishMessage {
 
         return new MessageEmbed.Field(
                 "2. Friendly Atmosphere",
-                "Dirty jokes, teasing and other bickering will be tolerated as long as everybody agree with it and it doesn't end up in harassment in which case we will be obliged to intervene.",
+                "> Dirty jokes, teasing and other bickering will be tolerated as long as everybody agree with it and it doesn't end up in harassment in which case we will be obliged to intervene.",
                 false
         );
     }
@@ -46,7 +43,7 @@ public final class GeneralEnglishMessage {
 
         return new MessageEmbed.Field(
                 "3. No advertisement",
-                "Without any authorization, action will be taken. However, if it is related to an ongoing discussion, the authorization will be tacit.",
+                "> Without any authorization, action will be taken. However, if it is related to an ongoing discussion, the authorization will be tacit.",
                 false
         );
     }
