@@ -94,37 +94,4 @@ public class RaspberryController {
         this.torrentCache.set(torrents);
         return torrents;
     }
-
-    @GetMapping(value = "/anidb", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<AnimeDirectory> getAnimeDatabase() {
-
-        List<AnimeDirectory> directories = new ArrayList<>();
-
-        if (this.fsRoot == null) {
-            LOGGER.warn("FS ROOT not defined. Returning empty array.");
-            return directories;
-        }
-
-        File fsRootDir = new File(this.fsRoot);
-
-        if (!fsRootDir.exists()) {
-            LOGGER.warn("FS ROOT not found. Returning empty array. (FS ROOT = {})", this.fsRoot);
-            return directories;
-        }
-
-        for (File anime : Objects.requireNonNull(fsRootDir.listFiles())) {
-            if (anime.isDirectory()) {
-                directories.add(new AnimeDirectory(anime));
-            }
-        }
-
-        directories.sort(Comparator.comparing(AnimeDirectory::getDisplayName));
-        directories.forEach(anime -> {
-            anime.getEpisodes().sort(Comparator.comparing(EpisodeFile::getDisplayName));
-            anime.getGroups().sort(Comparator.comparing(GroupDirectory::getDisplayName));
-            anime.getGroups().forEach(group -> group.getEpisodes().sort(Comparator.comparing(EpisodeFile::getDisplayName)));
-        });
-
-        return directories;
-    }
 }
