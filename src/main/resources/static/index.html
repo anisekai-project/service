@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Toshiko AniDB</title>
+
+    <link rel="stylesheet" href="assets/plyr/plyr.css" />
+    <link rel="stylesheet" href="assets/styles/style.css">
+</head>
+<body>
+
+<nav>
+    <div class="web-icon">
+        <img src="assets/images/toshiko.png" alt="Toshiko" />
+    </div>
+
+    <div class="search">
+        <label for="search-input" hidden>Search</label>
+        <input id="search-input" placeholder="Rechercher..." />
+    </div>
+</nav>
+
+<div class="note">
+    Les fichiers étant hébergés sur un disque pouvant passer en veille, les temps de chargement peuvent parfois être
+    long (10-15s) lorsque vous téléchargez un fichier ou regardez un épisode le temps que le disque sorte du mode
+    veille.
+</div>
+
+<div class="note warn">
+    Si vous repérez un épisode sans sous-titres, merci de contacter <span class="discord">Akio Nakao#0001</span> sur
+    Discord.
+</div>
+
+
+<div id="tree-view"></div>
+
+<div class="no-results" data-if="empty">
+    Aucun résultat
+</div>
+
+<div id="modal" class="hidden">
+    <div class="backdrop"></div>
+    <div class="player">
+        <video id="video-player" controls></video>
+        <a id="download" download>Télécharger le fichier</a>
+    </div>
+</div>
+
+
+<template id="collapse">
+    <details data-bind="instance">
+        <summary data-bind="name"></summary>
+        <div class="content" data-bind="children"></div>
+    </details>
+</template>
+
+<template id="file">
+    <div class="file" data-bind="instance">
+        <span data-bind="name"></span>
+    </div>
+</template>
+
+</body>
+<script src="assets/plyr/plyr.min.js"></script>
+<script type="module" src="assets/scripts/script.js"></script>
+</html>
