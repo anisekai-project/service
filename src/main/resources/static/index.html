@@ -27,23 +27,37 @@
 </div>
 
 <div class="note warn">
-    La plupart des épisodes proposés n'ont pas encore leur sous-titre disponible en streaming.
+    Si vous repérez un épisode sans sous-titres, merci de contacter <span class="discord">Akio Nakao#0001</span> sur
+    Discord.
 </div>
 
 
 <div id="tree-view"></div>
 
+<div class="no-results" data-if="empty">
+    Aucun résultat
+</div>
+
 <div id="modal" class="hidden">
     <div class="backdrop"></div>
     <div class="player">
         <video id="video-player" controls></video>
-        <a id="download" data-mode="download">Télécharger le fichier</a>
+        <a id="download" download>Télécharger le fichier</a>
     </div>
 </div>
 
 
-<template id="anime">
+<template id="collapse">
+    <details data-bind="instance">
+        <summary data-bind="name"></summary>
+        <div class="content" data-bind="children"></div>
+    </details>
+</template>
 
+<template id="file">
+    <div class="file" data-bind="instance">
+        <span data-bind="name"></span>
+    </div>
 </template>
 
 </body>

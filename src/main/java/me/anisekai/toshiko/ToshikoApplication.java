@@ -1,5 +1,6 @@
 package me.anisekai.toshiko;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -8,10 +9,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class ToshikoApplication {
 
+    @Value("${discord.bot.enabled:true}")
+    private boolean botEnabled;
 
     ToshikoApplication(ToshikoBot bot) {
 
-        bot.login();
+        if (this.botEnabled) bot.login();
     }
 
     public static void main(String[] args) {

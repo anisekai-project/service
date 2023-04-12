@@ -1,105 +1,121 @@
 package me.anisekai.toshiko.services;
 
-import me.anisekai.toshiko.Texts;
+import me.anisekai.toshiko.helpers.fs.AnimeFs;
+import me.anisekai.toshiko.helpers.fs.EpisodeFs;
+import me.anisekai.toshiko.helpers.fs.GroupFs;
 import me.anisekai.toshiko.utils.FileSystemUtils;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class StorageService {
 
+    public static final String HTTP_ANIME_ROOT = "https://toshiko.alexpado.fr/animes";
+    public static final String HTTP_SUBS_ROOT  = "https://toshiko.alexpado.fr/subtitles";
+
     private static final Logger       LOGGER         = LoggerFactory.getLogger(StorageService.class);
     private static       List<String> SUBTITLES_EXTS = Arrays.asList(".srt", ".ass", ".ssa", ".vtt");
 
-    @Value("${toshiko.fs.root}")
-    private String filesystemRootPath;
+    @Value("${toshiko.fs.animes}")
+    private String fileSystemAnimePath;
 
-    private JSONArray database;
+    @Value("${toshiko.fs.subtitles}")
+    private String fileSystemSubtitlePath;
+
+    private Set<AnimeFs> database;
+    private JSONArray    databaseCache;
 
     public StorageService() {
 
-        this.database = new JSONArray();
+        this.database      = new TreeSet<>(Comparator.comparing(AnimeFs::getName));
+        this.databaseCache = new JSONArray();
     }
 
-    public JSONArray getDatabase() {
+    public Set<AnimeFs> getDatabase() {
 
         return this.database;
     }
 
+    public JSONArray getDatabaseCache() {
+
+        return this.databaseCache;
+    }
+
+    private boolean shouldIgnoreFile(File file) {
+
+        return SUBTITLES_EXTS.stream().anyMatch(file.getName()::endsWith);
+    }
+
     public void cache() {
         // Build the cache.
-        JSONArray database = new JSONArray();
 
-        for (File anime : FileSystemUtils.files(this.filesystemRootPath)) {
+        Set<AnimeFs> cache = new TreeSet<>(Comparator.comparing(AnimeFs::getName));
+
+        for (File anime : FileSystemUtils.files(this.fileSystemAnimePath)) {
 
             if (anime.isFile()) {
                 continue;
             }
 
-            JSONObject animeJson = new JSONObject();
-            animeJson.put("name", Texts.unslugify(anime.getName()));
+            LOGGER.debug("Scanning folder {}", anime.getName());
+            AnimeFs animeFs = new AnimeFs(anime);
 
-            JSONArray groupArr = new JSONArray();
+            for (File animeContent : FileSystemUtils.files(anime)) {
 
-            for (File group : FileSystemUtils.files(anime)) {
-
-                JSONObject groupJson = new JSONObject();
-
-                if (group.isFile()) {
-
-                    if (SUBTITLES_EXTS.stream().anyMatch(group.getName()::endsWith)) {
-                        LOGGER.info("Ignore subtitle file @ {}", group.getAbsolutePath());
+                if (animeContent.isFile()) {
+                    if (this.shouldIgnoreFile(animeContent)) {
+                        LOGGER.debug("  Ignoring file {}", animeContent.getName());
                         continue;
                     }
 
-                    int    extensionIndex = group.getName().lastIndexOf(".");
-                    String groupName      = group.getName().substring(0, extensionIndex);
-                    groupJson.put("name", Texts.unslugify(groupName));
-                    groupJson.put("uri", String.format("https://toshiko.alexpado.fr/animes/%s/%s", anime.getName(), group.getName()));
-                } else {
-                    groupJson.put("name", Texts.unslugify(group.getName()));
-                    JSONArray episodeArr = new JSONArray();
-                    for (File episode : FileSystemUtils.files(group)) {
+                    LOGGER.debug("  Handling file {}", animeContent.getName());
+                    EpisodeFs file = new EpisodeFs(animeContent);
+                    animeFs.add(file);
 
-                        if (episode.isDirectory() || SUBTITLES_EXTS.stream().anyMatch(episode.getName()::endsWith)) {
-                            continue;
-                        }
-
-                        JSONObject episodeJson = new JSONObject();
-
-                        int extensionIndex = episode.getName().lastIndexOf(".");
-
-                        if (extensionIndex == -1) {
-                            LOGGER.warn("Could not determine file extension for {}", episode.getAbsolutePath());
-                            continue;
-                        }
-                        String episodeName = episode.getName().substring(0, extensionIndex);
-
-                        episodeJson.put("name", episodeName);
-                        episodeJson.put("uri", String.format("https://toshiko.alexpado.fr/animes/%s/%s/%s", anime.getName(), group.getName(), episode.getName()));
-                        episodeArr.put(episodeJson);
-                    }
-                    groupJson.put("episodes", episodeArr);
+                    continue;
                 }
 
-                groupArr.put(groupJson);
+                LOGGER.debug("  Scanning folder {}", anime.getName());
+                GroupFs groupFs = new GroupFs(animeContent);
+                animeFs.add(groupFs);
+
+                for (File groupContent : FileSystemUtils.files(animeContent)) {
+                    if (groupContent.isFile()) {
+                        if (this.shouldIgnoreFile(groupContent)) {
+                            LOGGER.debug("    Ignoring file {}", groupContent.getName());
+                            continue;
+                        }
+
+                        LOGGER.debug("    Handling file {}", groupContent.getName());
+                        EpisodeFs file = new EpisodeFs(groupContent);
+                        groupFs.add(file);
+                        continue;
+                    }
+
+                    LOGGER.debug("    Ignoring folder {}", groupContent.getName());
+                }
             }
 
-            animeJson.put("groups", groupArr);
-            database.put(animeJson);
+            cache.add(animeFs);
         }
 
-        // Commit cache
-        this.database = database;
-    }
+        LOGGER.debug("Finalizing...");
+        cache.forEach(a -> a.finalize(this.fileSystemAnimePath, this.fileSystemSubtitlePath));
+        LOGGER.debug("Finalized.");
 
+        // Apply cache
+        this.database = cache;
+
+        LOGGER.info("Jsonify...");
+        this.databaseCache.clear();
+        this.database.stream().map(AnimeFs::toJson).forEach(this.databaseCache::put);
+        LOGGER.info("OK. Cached {} items", this.database.size());
+    }
 
 }

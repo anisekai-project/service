@@ -57,49 +57,6 @@ nav .search #search-input:focus {
     outline: 2px solid #333333;
 }
 
-
-#tree-view {
-    padding: 0 1em 1em 1em;
-}
-
-#tree-view div p, div a {
-    padding-left:    0.5em;
-    line-height:     40px;
-    text-decoration: none;
-    display:         block;
-
-    border-left:     3px solid transparent;
-    color:           #B7B7B7;
-
-    transition:      all 0.25s ease-in-out;
-}
-
-#tree-view div a {
-    border-left:      3px solid rgba(0, 255, 127, 0.1);
-    background-color: rgba(0, 255, 127, 0.05);
-}
-
-#tree-view div a:hover {
-    border-left:      3px solid rgba(0, 255, 127, 1);
-    background-color: rgba(0, 255, 127, 0.1);
-    color:            white;
-}
-
-#tree-view div div {
-    margin-left: 0.5em;
-}
-
-.collapse > .container {
-    display: none;
-}
-
-#tree-view div > p:hover {
-    cursor:           pointer;
-    border-left:      3px solid white;
-    background-color: rgba(255, 255, 255, 0.05);
-    color:            white;
-}
-
 #modal {
     position:         fixed;
     top:              0;
@@ -166,11 +123,6 @@ nav .search #search-input:focus {
     line-height: 1em;
 }
 
-#download {
-    background-color: #2B7EE5;
-    color:            white;
-}
-
 .note {
     background-color: rgba(255, 60, 60, 0.1);
     border:           1px solid rgba(255, 60, 60, 0.8);
@@ -190,4 +142,82 @@ nav .search #search-input:focus {
     padding:    1em;
     text-align: center;
     font-style: italic;
+}
+
+#tree-view {
+    padding: 0 1em;
+}
+
+#tree-view details, #tree-view .file {
+    line-height: 2em;
+}
+
+#tree-view summary, #tree-view .file {
+    border-left:      3px solid transparent;
+    padding-left:     1em;
+    background-color: transparent;
+    margin:           0 0 0.25em 0;
+
+    transition:       border-color 0.15s ease-in, background-color 0.15s ease-in;
+}
+
+#tree-view summary {
+    cursor:     pointer;
+    list-style: none;
+}
+
+#tree-view details > summary {
+    border-color:     rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+#tree-view details > summary:hover {
+    color:            white;
+    border-color:     white;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#tree-view details > .content {
+    margin-left: 1em;
+}
+
+#tree-view .file {
+    display:          flex;
+    border-color:     rgba(0, 255, 255, 0.2);
+    background-color: rgba(0, 255, 255, 0.02);
+
+    cursor:           pointer;
+}
+
+#tree-view .file:hover {
+    border-color:     rgba(0, 255, 255, 1);
+    background-color: rgba(0, 255, 255, 0.05);
+}
+
+#tree-view .file span {
+    flex-grow: 1;
+}
+
+#download {
+    color:            white;
+    font-weight:      bold;
+    text-decoration:  none;
+    margin-top:       1em;
+    padding:          0.25em 1em;
+    display:          inline-block;
+    background-color: #00B2FF;
+}
+
+.hidden {
+    display: none;
+}
+
+.no-results {
+    text-align: center;
+    font-style: italic;
+}
+
+.discord {
+    font-family: monospace;
+    color: #00B2FF;
 }

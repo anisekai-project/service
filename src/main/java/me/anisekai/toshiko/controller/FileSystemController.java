@@ -1,6 +1,8 @@
 package me.anisekai.toshiko.controller;
 
+import me.anisekai.toshiko.helpers.fs.AnimeFs;
 import me.anisekai.toshiko.services.StorageService;
+import org.json.JSONArray;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,6 @@ public class FileSystemController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public String read() {
 
-        return this.service.getDatabase().toString(2);
+        return this.service.getDatabaseCache().toString(2);
     }
 }
