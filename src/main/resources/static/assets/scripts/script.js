@@ -116,7 +116,7 @@ class File {
 const doFilter = (filter) => {
     console.log('doFilter()', {filter});
 
-    let shown = 0;
+    let shown  = 0;
     let hidden = 0;
 
     data.forEach(anime => {
@@ -131,7 +131,10 @@ const doFilter = (filter) => {
         }
     });
 
-    console.log('doFilter()', {shown, hidden})
+    console.log('doFilter()', {
+        shown,
+        hidden,
+    });
 
     if (shown === 0) {
         noResult.classList.remove('hidden');
@@ -139,6 +142,22 @@ const doFilter = (filter) => {
         noResult.classList.add('hidden');
     }
 };
+
+const castShadow = (r) => {
+    const color = '#2c2c2c'; /* white outline */
+    const n = Math.ceil(2 * Math.PI * r); /* number of shadows */
+    let str = '';
+    for (let i = 0; i < n; i++) { /* append shadows in n evenly distributed directions */
+        const theta = 2 * Math.PI * i / n;
+        str += (r * Math.cos(theta)) + 'px ' + (r * Math.sin(theta)) + 'px 0 ' + color + (i === n - 1 ? '' : ',');
+    }
+
+    const captions = document.querySelector('.plyr__captions');
+    if (captions) {
+        captions.style.textShadow = str;
+    }
+};
+
 
 (() => {
 
@@ -151,8 +170,11 @@ const doFilter = (filter) => {
     const observer   = new ResizeObserver(entries => {
         const element   = entries[0];
         const sizeRatio = 38 / 1920; // Arbitrary.
+        const shadowRatio = 3 / 1920;
         const fontSize  = element.contentRect.width * sizeRatio;
+        const shadowSize = element.contentRect.width * shadowRatio;
         modal.style.setProperty('--fsize', `${fontSize}px`);
+        castShadow(shadowSize);
     });
 
     observer.observe(plyrPlayer);
