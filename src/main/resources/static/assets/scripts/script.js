@@ -13,6 +13,7 @@
             language: 'fr',
         },
         global:             true,
+        iconUrl:            'assets/plyr/plyr.svg',
     });
 
     const response = await fetch('/api/v1/fs');
@@ -70,7 +71,7 @@
                 };
 
                 //plyr.captions.enabled = true;
-                download.href         = ev.target.href;
+                download.href = ev.target.href;
 
                 modal.classList.remove('hidden');
             });
@@ -105,7 +106,7 @@
 })();
 
 function build(data) {
-    const container = document.getElementById('tree-view');
+    const container     = document.getElementById('tree-view');
     container.innerHTML = '';
 
     if (data.length === 0) {
@@ -204,7 +205,7 @@ function createEpisodeElement({
     episodeEl.classList.add('episode');
     nameEl.innerText = name;
     nameEl.href      = uri;
-    nameEl.setAttribute('data-mode', 'watch')
+    nameEl.setAttribute('data-mode', 'watch');
     episodeEl.appendChild(nameEl);
 
     return episodeEl;
