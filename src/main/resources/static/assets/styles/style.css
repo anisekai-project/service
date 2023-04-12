@@ -1,0 +1,193 @@
+* {
+    margin:  0;
+    padding: 0;
+}
+
+html {
+    font-family:      'Segoe UI', sans-serif;
+    background-color: #111111;
+    color:            #B7B7B7;
+}
+
+nav {
+    position:   relative;
+    z-index:    1;
+    height:     70px;
+    overflow:   hidden;
+    background: black;
+    display:    flex;
+    padding:    0 1em;
+}
+
+nav .web-icon {
+    display: flex;
+    height:  70px;
+    width:   70px;
+}
+
+nav .web-icon img {
+    max-width:     50px;
+    max-height:    50px;
+
+    border-radius: 60px;
+    margin:        auto;
+}
+
+nav .search {
+    display:   flex;
+    flex-grow: 1;
+    padding:   0 1em;
+}
+
+nav .search #search-input {
+    margin:        auto 0;
+    height:        36px;
+    padding:       0 1em;
+    flex-grow:     1;
+
+    background:    #111111;
+    color:         white;
+    border:        none;
+    box-shadow:    none;
+
+    border-radius: 36px;
+}
+
+nav .search #search-input:focus {
+    outline: 2px solid #333333;
+}
+
+
+#tree-view {
+    padding: 0 1em 1em 1em;
+}
+
+#tree-view div p, div a {
+    padding-left:    0.5em;
+    line-height:     40px;
+    text-decoration: none;
+    display:         block;
+
+    border-left:     3px solid transparent;
+    color:           #B7B7B7;
+
+    transition:      all 0.25s ease-in-out;
+}
+
+#tree-view div a {
+    border-left:      3px solid rgba(0, 255, 127, 0.1);
+    background-color: rgba(0, 255, 127, 0.05);
+}
+
+#tree-view div a:hover {
+    border-left:      3px solid rgba(0, 255, 127, 1);
+    background-color: rgba(0, 255, 127, 0.1);
+    color:            white;
+}
+
+#tree-view div div {
+    margin-left: 0.5em;
+}
+
+.collapse > .container {
+    display: none;
+}
+
+#tree-view div > p:hover {
+    cursor:           pointer;
+    border-left:      3px solid white;
+    background-color: rgba(255, 255, 255, 0.05);
+    color:            white;
+}
+
+#modal {
+    position:         fixed;
+    top:              0;
+    left:             0;
+    right:            0;
+    bottom:           0;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter:  blur(5px);
+    display:          flex;
+    padding:          1em;
+    z-index:          2;
+}
+
+#modal.hidden {
+    display: none;
+}
+
+#modal .backdrop {
+    position: absolute;
+    top:      0;
+    left:     0;
+    right:    0;
+    bottom:   0;
+    z-index:  1;
+}
+
+#modal .player {
+    position:   relative;
+    margin:     auto;
+    z-index:    2;
+    text-align: center;
+
+    max-width:  min(90vw, 1280px);
+}
+
+.video-container {
+    position: relative;
+}
+
+#modal video {
+    max-height: 100vh;
+    max-width:  100vw;
+}
+
+#modal {
+    --fsize: 16px;
+    padding: 1em;
+}
+
+#modal .plyr__captions {
+    margin-bottom: 4%;
+}
+
+#modal .plyr__caption {
+
+    background:  none;
+    color:       white;
+    text-shadow: -1px 1px 2px #000000,
+                 1px 1px 2px #000000,
+                 1px -1px 0 #000000,
+                 -1px -1px 0 #000000;
+
+    font-size:   var(--fsize);
+    line-height: 1em;
+}
+
+#download {
+    background-color: #2B7EE5;
+    color:            white;
+}
+
+.note {
+    background-color: rgba(255, 60, 60, 0.1);
+    border:           1px solid rgba(255, 60, 60, 0.8);
+    color:            red;
+    padding:          1em;
+    margin:           1em;
+    text-align:       center;
+}
+
+.note.warn {
+    background-color: rgba(255, 160, 60, 0.1);
+    border:           1px solid rgba(255, 160, 60, 0.8);
+    color:            orange;
+}
+
+.empty {
+    padding:    1em;
+    text-align: center;
+    font-style: italic;
+}

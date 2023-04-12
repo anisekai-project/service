@@ -10,12 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class StorageService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StorageService.class);
+    private static final Logger       LOGGER         = LoggerFactory.getLogger(StorageService.class);
+    private static       List<String> SUBTITLES_EXTS = Arrays.asList(".srt", ".ass", ".ssa", ".vtt");
 
     @Value("${toshiko.fs.root}")
     private String filesystemRootPath;
@@ -53,7 +55,7 @@ public class StorageService {
 
                 if (group.isFile()) {
 
-                    if (group.getName().endsWith(".ass")) {
+                    if (SUBTITLES_EXTS.stream().anyMatch(group.getName()::endsWith)) {
                         LOGGER.info("Ignore subtitle file @ {}", group.getAbsolutePath());
                         continue;
                     }
@@ -67,7 +69,7 @@ public class StorageService {
                     JSONArray episodeArr = new JSONArray();
                     for (File episode : FileSystemUtils.files(group)) {
 
-                        if (episode.isDirectory() || episode.getName().endsWith(".ass")) {
+                        if (episode.isDirectory() || SUBTITLES_EXTS.stream().anyMatch(episode.getName()::endsWith)) {
                             continue;
                         }
 

@@ -44,7 +44,7 @@ public class ToshikoBot extends ListenerAdapter {
             JDABuilder builder = JDABuilder.create(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS));
             builder.addEventListeners(this, this.store, this.scheduledEventListener);
             builder.setToken(this.token);
-            builder.build();
+            //builder.build();
         } catch (Exception e) {
             LOGGER.warn("Unable to connect to Discord. The token provided is probably invalid.", e);
 
