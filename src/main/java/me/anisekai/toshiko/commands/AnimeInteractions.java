@@ -172,7 +172,7 @@ public class AnimeInteractions {
     ) {
 
         if (discordUser.getEmote() == null) {
-            return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/user icon set`)", false, true);
+            return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/profile`)", false, true);
         }
 
         InterestLevel level    = InterestLevel.from(interestName);
@@ -184,7 +184,7 @@ public class AnimeInteractions {
 
         if (!discordUser.isActive()) {
             builder.appendDescription("\n");
-            builder.appendDescription("Mais suite à une décision *administrative*, tes votes ne sont plus comptabilisés.");
+            builder.appendDescription("Cependant comme tu n'es pas considéré(e) comme une personne active, ton vote n'aura aucune influence sur le classement.");
         }
 
         builder.addField("Anime", interest.getAnime().getName(), false);
@@ -260,10 +260,6 @@ public class AnimeInteractions {
             defer = true
     )
     public SlashResponse importFromJson(DiscordUser user, @Param("json") String rawJson) {
-
-        if (!user.isActive()) {
-            return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
-        }
 
         JSONObject   json       = new JSONObject(rawJson);
         JSONArray    genreArray = json.getJSONArray("genres");
