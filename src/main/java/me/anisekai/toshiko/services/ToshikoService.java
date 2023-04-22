@@ -596,7 +596,7 @@ public class ToshikoService {
     public void closeEvent(ScheduledEvent event) {
 
         this.findAnimeNight(event).ifPresent(night -> {
-            this.setAnimeProgression(night.getAnime(), night.getLastEpisode());
+            this.setAnimeProgression(night.getAnime(), night.getAnime().getWatched() + night.getAmount());
             night.setStatus(ScheduledEvent.Status.COMPLETED);
             this.animeNightRepository.save(night);
         });
