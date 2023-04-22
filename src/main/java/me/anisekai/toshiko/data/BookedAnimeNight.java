@@ -11,13 +11,13 @@ import java.time.ZonedDateTime;
 
 public class BookedAnimeNight implements AnimeNightMeta {
 
-
     private Anime          anime;
     private long           firstEpisode;
     private long           lastEpisode;
     private long           amount;
     private OffsetDateTime startDateTime;
     private OffsetDateTime endDateTime;
+
     public BookedAnimeNight(AnimeNightMeta meta) {
 
         this.anime         = meta.getAnime();
@@ -27,6 +27,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
         this.startDateTime = meta.getStartDateTime();
         this.endDateTime   = meta.getEndDateTime();
     }
+
     public BookedAnimeNight(Anime anime, long firstEpisode, long lastEpisode, long amount, OffsetDateTime startDateTime, OffsetDateTime endDateTime) {
 
         this.anime         = anime;
@@ -36,6 +37,7 @@ public class BookedAnimeNight implements AnimeNightMeta {
         this.startDateTime = startDateTime;
         this.endDateTime   = endDateTime;
     }
+
     public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount) {
 
         this(anime, startTime, amount, anime.getWatched() + 1);
