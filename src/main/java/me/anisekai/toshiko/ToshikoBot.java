@@ -22,8 +22,8 @@ public class ToshikoBot extends ListenerAdapter {
 
     private static final Logger                 LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
     private final        ScheduledEventListener scheduledEventListener;
-    private final InteractionWrapper wrapper;
-    private final JdaStoreService    store;
+    private final        InteractionWrapper     wrapper;
+    private final        JdaStoreService        store;
 
     @Value("${discord.bot.token}")
     private String token;

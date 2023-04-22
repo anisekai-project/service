@@ -12,6 +12,49 @@ import java.time.ZonedDateTime;
 public class BookedAnimeNight implements AnimeNightMeta {
 
 
+    private Anime          anime;
+    private long           firstEpisode;
+    private long           lastEpisode;
+    private long           amount;
+    private OffsetDateTime startDateTime;
+    private OffsetDateTime endDateTime;
+    public BookedAnimeNight(AnimeNightMeta meta) {
+
+        this.anime         = meta.getAnime();
+        this.firstEpisode  = meta.getFirstEpisode();
+        this.lastEpisode   = meta.getLastEpisode();
+        this.amount        = meta.getAmount();
+        this.startDateTime = meta.getStartDateTime();
+        this.endDateTime   = meta.getEndDateTime();
+    }
+    public BookedAnimeNight(Anime anime, long firstEpisode, long lastEpisode, long amount, OffsetDateTime startDateTime, OffsetDateTime endDateTime) {
+
+        this.anime         = anime;
+        this.firstEpisode  = firstEpisode;
+        this.lastEpisode   = lastEpisode;
+        this.amount        = amount;
+        this.startDateTime = startDateTime;
+        this.endDateTime   = endDateTime;
+    }
+    public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount) {
+
+        this(anime, startTime, amount, anime.getWatched() + 1);
+    }
+
+    public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount, long firstEpisode) {
+
+        this.anime        = anime;
+        this.amount       = amount;
+        this.firstEpisode = firstEpisode;
+        this.lastEpisode  = firstEpisode + (amount - 1);
+
+        if (this.anime.getTotal() > 0 && this.lastEpisode > this.anime.getTotal()) {
+            throw new InvalidAnimeProgressException();
+        }
+
+        this.setStartDateTime(startTime);
+    }
+
     public static BookedAnimeNight with(Anime anime, DayOfWeek day, OffsetTime time, long amount) {
 
         OffsetDateTime startDateTime = ZonedDateTime.now()
@@ -36,52 +79,6 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public static BookedAnimeNight after(AnimeNightMeta meta, OffsetDateTime startTime, long amount) {
 
         return new BookedAnimeNight(meta.getAnime(), startTime, amount, meta.getLastEpisode() + 1);
-    }
-
-    private Anime          anime;
-    private long           firstEpisode;
-    private long           lastEpisode;
-    private long           amount;
-    private OffsetDateTime startDateTime;
-    private OffsetDateTime endDateTime;
-
-    public BookedAnimeNight(AnimeNightMeta meta) {
-
-        this.anime         = meta.getAnime();
-        this.firstEpisode  = meta.getFirstEpisode();
-        this.lastEpisode   = meta.getLastEpisode();
-        this.amount        = meta.getAmount();
-        this.startDateTime = meta.getStartDateTime();
-        this.endDateTime   = meta.getEndDateTime();
-    }
-
-    public BookedAnimeNight(Anime anime, long firstEpisode, long lastEpisode, long amount, OffsetDateTime startDateTime, OffsetDateTime endDateTime) {
-
-        this.anime         = anime;
-        this.firstEpisode  = firstEpisode;
-        this.lastEpisode   = lastEpisode;
-        this.amount        = amount;
-        this.startDateTime = startDateTime;
-        this.endDateTime   = endDateTime;
-    }
-
-    public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount) {
-
-        this(anime, startTime, amount, anime.getWatched() + 1);
-    }
-
-    public BookedAnimeNight(Anime anime, OffsetDateTime startTime, long amount, long firstEpisode) {
-
-        this.anime        = anime;
-        this.amount       = amount;
-        this.firstEpisode = firstEpisode;
-        this.lastEpisode  = firstEpisode + (amount - 1);
-
-        if (this.anime.getTotal() > 0 && this.lastEpisode > this.anime.getTotal()) {
-            throw new InvalidAnimeProgressException();
-        }
-
-        this.setStartDateTime(startTime);
     }
 
     @Override

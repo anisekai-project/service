@@ -4,7 +4,6 @@ import me.anisekai.toshiko.Texts;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,8 +16,8 @@ public class AnimeDirectory {
 
     public AnimeDirectory(File directory) {
 
-        this.name = directory.getName();
-        this.displayName  = Texts.unslugify(directory.getName());
+        this.name        = directory.getName();
+        this.displayName = Texts.unslugify(directory.getName());
 
         this.groups   = new ArrayList<>();
         this.episodes = new ArrayList<>();

@@ -12,8 +12,8 @@ public class AnimeNightUpdateEvent extends ApplicationEvent {
     public AnimeNightUpdateEvent(Object source, Guild guild, AnimeNight animeNight) {
 
         super(source);
-        this.guild        = guild;
-        this.animeNight   = animeNight;
+        this.guild      = guild;
+        this.animeNight = animeNight;
     }
 
     public Guild getGuild() {

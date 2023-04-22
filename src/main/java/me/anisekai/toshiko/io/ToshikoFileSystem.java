@@ -28,17 +28,15 @@ public class ToshikoFileSystem {
 
     private final DiskService        diskService;
     private final FileManagerService fileManagerService;
+    private final Collection<DiskFile>    diskFileLocking = new HashSet<>();
+    private final BlockingDeque<DiskFile> automationQueue = new LinkedBlockingDeque<>();
+    private boolean hasFileWaiting = false;
 
     public ToshikoFileSystem(DiskService diskService, FileManagerService fileManagerService) {
 
         this.diskService        = diskService;
         this.fileManagerService = fileManagerService;
     }
-
-    private final Collection<DiskFile>    diskFileLocking = new HashSet<>();
-    private final BlockingDeque<DiskFile> automationQueue = new LinkedBlockingDeque<>();
-
-    private boolean hasFileWaiting = false;
 
     private File getOutput(DiskFile diskFile, String destinationDirectory) {
 

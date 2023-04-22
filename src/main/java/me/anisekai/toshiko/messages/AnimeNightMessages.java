@@ -33,7 +33,7 @@ public final class AnimeNightMessages {
 
         builder.setDescription("""
                                Les niveaux d'intérêt s'apparentent à des votes, pour lesquels vous accumulerez de la *puissance de vote*.
-                               
+                                                              
                                A l'exception des votes neutre, chaque vote vous apportera un peu de *puissance de vote*, qui n'est autre que le pourcentage que représente vos votes sur la globalité du serveur !
                                                               
                                **Exemple:** Seulement deux personnes possèdent des votes sur 3 animes différents.
@@ -84,7 +84,7 @@ public final class AnimeNightMessages {
                                Si vous souhaitez connaitre les prochaines séances (qui ne sont pas dans les évènements serveur), vous pouvez jeter un coup d'oeil aux listes présente dans le salon <#749324195267215571> (principalement **\\👀 En cours de visionnage** et **\\🕘 Visionnage en simulcast**)
                                                               
                                Le déroulement d'une séance visionnage est simple: <@149279150648066048> démarrera un partage d'écran pour diffuser le ou les épisodes de la séance.
-                               
+                                                              
                                Il est toléré de discuter pendant l'anime, mais il ne faut pas abuser non plus pour ne pas gâcher l'expérience de visionnage.""");
         return builder;
     }
@@ -98,11 +98,11 @@ public final class AnimeNightMessages {
                                Nous ne sommes pas trop exigeant là dessus, si vous ne pouvez pas être présent à une séance ou alors si vous savez que vous aurez du retard, prévenez à l'avance et on pourra réorganiser la séance pour plus tard !
                                                               
                                Si vous êtes absent pour une durée prolongée (ex: vacances), il est possible de nous avertir et dès lors, nous remanierons totalement les prochaines séances. Généralement il s'agit simplement de nous indiquer quels animes ne vous intéresse pas trop.
-                               
+                                                              
                                Nous reprogrammerons les séances pour faire passer en priorité les animes qui ne vous intéresse pas ou bien que vous voulez bien qu'on regarde sans vous avant de reprendre le cours normal des séances à votre retour.
                                                               
                                A l'inverse, des absences/retard à répétition vous feront perdre le statut **actif**: On ne vous attendra plus, et vos votes ne compterons plus.
-                               
+                                                              
                                *Nous n'aimons pas en arriver là, mais on a une liste d'anime à vider, nous ne pouvons pas repousser indéfiniment...*""");
         return builder;
     }
@@ -142,7 +142,7 @@ public final class AnimeNightMessages {
                                Premièrement, il est bon de savoir combien de personnes participant aux séances de visionnage ont déjà vu l'anime que vous souhaitez ajouter. Si la majorité l'ont déjà vu, est-il vraiment nécessaire de l'ajouter ?
                                                               
                                Le bot utilise les informations de Nautiljon pour remplir une fiche d'anime. Cependant, Nautiljon n'a pas apprécié qu'un bot 'vole' leur jolie fiche et c'est donc désormais impossible d'automatiser l'opération.
-                               
+                                                              
                                Nous utilisons donc désormais une extension navigateur (Chrome/Edge) permettant d'extraire les informations utile de la fiche pour ensuite importer l'anime via une commande.
                                                               
                                Si vous voulez obtenir cette extension et les explications d'import, merci de contacter <@149279150648066048>.""");
@@ -163,7 +163,7 @@ public final class AnimeNightMessages {
                                `/anime about`, `/top user`, `/top anime`, `/anime interest` et `/user icon set`.
                                                              
                                Chaque commande vient avec sa description et ses paramètres (qui ont eux aussi leur description, et même des fois de l'auto-complétion, incroyable technologie je vous assure), ce qui aide énormément à la compréhension.
-                               
+                                                              
                                Si pour autant il y a quelque chose qui vous échappe, contactez <@149279150648066048> ou même <@233305307235745792>.
                                                              
                                **Pour la commande `/user icon set`**

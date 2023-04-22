@@ -26,6 +26,7 @@ public class JdaStoreService extends ListenerAdapter {
     }
 
     public JDA requireInstance() {
+
         return this.getInstance().orElseThrow(JdaUnavailableException::new);
     }
 }

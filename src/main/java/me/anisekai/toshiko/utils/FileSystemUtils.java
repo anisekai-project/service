@@ -1,9 +1,6 @@
 package me.anisekai.toshiko.utils;
 
-import org.json.JSONObject;
-
-import java.io.*;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.*;
 
 public final class FileSystemUtils {

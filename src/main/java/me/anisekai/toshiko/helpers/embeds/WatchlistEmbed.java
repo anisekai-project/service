@@ -53,8 +53,12 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
                                              .collect(Collectors.joining("\n")));
             } else {
                 String full  = animes.stream().map(WatchlistAnimePart::getFullFormat).collect(Collectors.joining("\n"));
-                String small = animes.stream().map(WatchlistAnimePart::getSmallFormat).collect(Collectors.joining("\n"));
-                String macro = animes.stream().map(WatchlistAnimePart::getMacroFormat).collect(Collectors.joining("\n"));
+                String small = animes.stream()
+                                     .map(WatchlistAnimePart::getSmallFormat)
+                                     .collect(Collectors.joining("\n"));
+                String macro = animes.stream()
+                                     .map(WatchlistAnimePart::getMacroFormat)
+                                     .collect(Collectors.joining("\n"));
 
                 String output = Stream.of(full, small, macro)
                                       .filter(opt -> opt.length() < MessageEmbed.DESCRIPTION_MAX_LENGTH)

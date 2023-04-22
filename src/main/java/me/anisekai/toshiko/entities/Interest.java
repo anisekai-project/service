@@ -58,6 +58,7 @@ public class Interest {
     }
 
     public double getValue(Map<DiscordUser, Double> powerMap) {
+
         return powerMap.getOrDefault(this.getUser(), 0.0) * this.getLevel().getPowerModifier();
     }
 }

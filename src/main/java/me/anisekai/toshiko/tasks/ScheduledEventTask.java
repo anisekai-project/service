@@ -33,7 +33,8 @@ public class ScheduledEventTask {
     public void run() {
 
         Guild            guild              = this.service.getBotGuild();
-        List<AnimeNight> allByEventIdIsNull = this.service.getAnimeNightRepository().findAllByEventIdIsNullAndStatusIsNull();
+        List<AnimeNight> allByEventIdIsNull = this.service.getAnimeNightRepository()
+                                                          .findAllByEventIdIsNullAndStatusIsNull();
         allByEventIdIsNull.sort(Comparator.comparing(AnimeNight::getStartDateTime));
 
         if (allByEventIdIsNull.isEmpty()) {

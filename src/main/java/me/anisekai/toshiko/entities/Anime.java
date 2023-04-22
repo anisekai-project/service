@@ -267,6 +267,7 @@ public class Anime implements Comparable<Anime> {
     }
 
     public Command.Choice asChoice() {
+
         if (this.getName().length() > 100) {
             return new Command.Choice(String.format("%s...", this.getName().substring(0, 90)), this.getId());
         }

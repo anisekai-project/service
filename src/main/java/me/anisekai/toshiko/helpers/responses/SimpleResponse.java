@@ -3,7 +3,6 @@ package me.anisekai.toshiko.helpers.responses;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.util.Collection;

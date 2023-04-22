@@ -27,9 +27,9 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
     private final Anime         anime;
     private final Set<Interest> interests;
+    private final double        score;
     private       boolean       showButtons;
     private       String        content;
-    private final double        score;
 
     public AnimeEmbed(Anime anime, double score) {
 

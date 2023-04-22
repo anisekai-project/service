@@ -90,6 +90,7 @@ public class DiskFile {
     }
 
     public boolean isReady() {
+
         if (!this.file.canWrite()) {
             return false;
         }

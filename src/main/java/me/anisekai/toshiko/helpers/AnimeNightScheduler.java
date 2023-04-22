@@ -19,9 +19,8 @@ import java.util.function.Predicate;
 
 public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
-    private static final Logger                      LOGGER   = LoggerFactory.getLogger(AnimeNightScheduler.class);
     public final static  List<ScheduledEvent.Status> STATUSES = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
-
+    private static final Logger                      LOGGER   = LoggerFactory.getLogger(AnimeNightScheduler.class);
     private final Set<T> nights;
 
     public AnimeNightScheduler(Collection<T> sourceData) {

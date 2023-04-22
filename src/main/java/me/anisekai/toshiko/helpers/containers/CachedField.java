@@ -3,7 +3,6 @@ package me.anisekai.toshiko.helpers.containers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public class CachedField<T> {
 

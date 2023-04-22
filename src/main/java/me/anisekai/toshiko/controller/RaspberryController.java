@@ -1,8 +1,5 @@
 package me.anisekai.toshiko.controller;
 
-import me.anisekai.toshiko.data.AnimeDirectory;
-import me.anisekai.toshiko.data.EpisodeFile;
-import me.anisekai.toshiko.data.GroupDirectory;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.enums.AnimeStatus;
@@ -24,8 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @RestController

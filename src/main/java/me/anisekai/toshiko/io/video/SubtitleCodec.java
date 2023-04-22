@@ -24,16 +24,6 @@ public enum SubtitleCodec {
         this.extension = extension;
     }
 
-    public String getCodecId() {
-
-        return this.codecId;
-    }
-
-    public String getExtension() {
-
-        return this.extension;
-    }
-
     public static SubtitleCodec fromCodec(String codec) {
 
         for (SubtitleCodec value : SubtitleCodec.values()) {
@@ -58,5 +48,15 @@ public enum SubtitleCodec {
     public static boolean isSubtitle(File file) {
 
         return isSubtitle(new DiskFile(file).getExtension());
+    }
+
+    public String getCodecId() {
+
+        return this.codecId;
+    }
+
+    public String getExtension() {
+
+        return this.extension;
     }
 }

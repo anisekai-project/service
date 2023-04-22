@@ -64,7 +64,7 @@ public class LeaderboardInteractions {
     public SlashResponse topAnime(@Param("order") String order, @Param("limit") Long limit) {
 
         Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
-        long count = Optional.ofNullable(limit).orElse(5L);
+        long               count      = Optional.ofNullable(limit).orElse(5L);
 
         EmbedBuilder builder = new EmbedBuilder();
         String       simulcast;

@@ -23,7 +23,6 @@ public final class FailSafeUtils {
     }
 
 
-
     public static Double parseDouble(String str) {
 
         try {

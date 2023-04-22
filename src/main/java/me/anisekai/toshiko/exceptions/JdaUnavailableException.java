@@ -10,7 +10,8 @@ public class JdaUnavailableException extends RuntimeException implements Discord
     @Override
     public EmbedBuilder asEmbed() {
 
-        return new EmbedBuilder().setDescription("*Une erreur s'est produite lors de la connexion à Discord.*").setColor(Color.RED);
+        return new EmbedBuilder().setDescription("*Une erreur s'est produite lors de la connexion à Discord.*")
+                                 .setColor(Color.RED);
     }
 
     @Override

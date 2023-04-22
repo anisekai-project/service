@@ -81,7 +81,7 @@ public class OfflineProvider implements AnimeProvider {
     public Optional<Long> getEpisodeCount() {
 
         return Optional.ofNullable(this.episode)
-                .map(ep -> ep <= 0 ? null : ep);
+                       .map(ep -> ep <= 0 ? null : ep);
     }
 
     @Override

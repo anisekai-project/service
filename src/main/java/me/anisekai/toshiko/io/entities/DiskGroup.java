@@ -12,8 +12,8 @@ import java.util.UUID;
 
 public class DiskGroup {
 
-    private final UUID           uuid;
-    private final File           path;
+    private final UUID             uuid;
+    private final File             path;
     private final String           name;
     private final Set<DiskEpisode> files;
 

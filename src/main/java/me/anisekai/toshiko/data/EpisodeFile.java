@@ -18,9 +18,11 @@ public class EpisodeFile {
     }
 
     public EpisodeFile(File episode, GroupDirectory group) {
+
         this.name        = episode.getName();
         this.displayName = Texts.unslugifyExt(episode.getName());
-        this.uri         = String.format("https://toshiko.alexpado.fr/animes/%s/%s/%s", group.getAnime().getName(), group.getName(), episode.getName());
+        this.uri         = String.format("https://toshiko.alexpado.fr/animes/%s/%s/%s", group.getAnime()
+                                                                                             .getName(), group.getName(), episode.getName());
     }
 
     public String getName() {

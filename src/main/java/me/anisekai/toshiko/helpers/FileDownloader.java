@@ -13,6 +13,12 @@ import java.util.Map;
 public class FileDownloader extends RestAction<byte[]> {
 
     private static final Map<Anime, byte[]> FILE_CACHE = new HashMap<>();
+    private final String url;
+
+    public FileDownloader(String url) {
+
+        this.url = url;
+    }
 
     public static byte[] downloadAnimeCard(Anime anime) throws Exception {
 
@@ -29,13 +35,6 @@ public class FileDownloader extends RestAction<byte[]> {
     public static void cleanCache() {
 
         FILE_CACHE.clear();
-    }
-
-    private final String url;
-
-    public FileDownloader(String url) {
-
-        this.url = url;
     }
 
     @Override

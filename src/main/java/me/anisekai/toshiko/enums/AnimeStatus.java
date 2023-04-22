@@ -92,6 +92,7 @@ public enum AnimeStatus {
     }
 
     public Map<String, Object> asMap() {
+
         return new HashMap<>() {{
             this.put("name", AnimeStatus.this.name());
             this.put("icon", AnimeStatus.this.icon);

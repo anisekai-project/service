@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public class DiskEpisode {
 
-    private final UUID            uuid;
-    private final File            path;
-    private final String          name;
-    private       String            uri;
+    private final UUID              uuid;
+    private final File              path;
+    private final String            name;
     private final Set<DiskSubtitle> subtitles;
+    private       String            uri;
 
     public DiskEpisode(File file) {
 
