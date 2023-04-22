@@ -1,18 +1,18 @@
-package me.anisekai.toshiko.helpers.fs;
+package me.anisekai.toshiko.io.entities;
 
-import me.anisekai.toshiko.services.StorageService;
+import me.anisekai.toshiko.io.DiskService;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.UUID;
 
-public class SubtitleFs {
+public class DiskSubtitle {
 
     private final UUID   uuid;
     private final File   path;
     private       String uri;
 
-    public SubtitleFs(File path) {
+    public DiskSubtitle(File path) {
 
         this.uuid = UUID.randomUUID();
         this.path = path;
@@ -30,7 +30,7 @@ public class SubtitleFs {
 
     public void finalize(CharSequence subtitleFsRoot) {
 
-        this.uri = this.path.getAbsolutePath().replace(subtitleFsRoot, StorageService.HTTP_SUBS_ROOT)
+        this.uri = this.path.getAbsolutePath().replace(subtitleFsRoot, DiskService.HTTP_SUBS_ROOT)
                             .replace("\\", "/");
     }
 

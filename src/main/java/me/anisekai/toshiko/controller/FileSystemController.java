@@ -1,8 +1,6 @@
 package me.anisekai.toshiko.controller;
 
-import me.anisekai.toshiko.helpers.fs.AnimeFs;
-import me.anisekai.toshiko.services.StorageService;
-import org.json.JSONArray;
+import me.anisekai.toshiko.io.DiskService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FileSystemController {
 
-    private final StorageService service;
+    private final DiskService service;
 
-    public FileSystemController(StorageService service) {
+    public FileSystemController(DiskService service) {
 
         this.service = service;
     }

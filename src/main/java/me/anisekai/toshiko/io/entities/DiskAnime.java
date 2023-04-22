@@ -1,4 +1,4 @@
-package me.anisekai.toshiko.helpers.fs;
+package me.anisekai.toshiko.io.entities;
 
 import me.anisekai.toshiko.Texts;
 import org.json.JSONArray;
@@ -10,21 +10,21 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-public class AnimeFs {
+public class DiskAnime {
 
-    private final UUID           uuid;
-    private final File           path;
-    private final String         name;
-    private final Set<GroupFs>   groups;
-    private final Set<EpisodeFs> files;
+    private final UUID             uuid;
+    private final File             path;
+    private final String           name;
+    private final Set<DiskGroup>   groups;
+    private final Set<DiskEpisode> files;
 
-    public AnimeFs(File file) {
+    public DiskAnime(File file) {
 
         this.uuid   = UUID.randomUUID();
         this.path   = file;
         this.name   = Texts.unslugify(file.getName());
-        this.groups = new TreeSet<>(Comparator.comparing(GroupFs::getName));
-        this.files  = new TreeSet<>(Comparator.comparing(EpisodeFs::getName));
+        this.groups = new TreeSet<>(Comparator.comparing(DiskGroup::getName));
+        this.files  = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
     }
 
     public File getPath() {
@@ -37,14 +37,14 @@ public class AnimeFs {
         return this.name;
     }
 
-    public void add(GroupFs groupFs) {
+    public void add(DiskGroup diskGroup) {
 
-        this.groups.add(groupFs);
+        this.groups.add(diskGroup);
     }
 
-    public void add(EpisodeFs episodeFs) {
+    public void add(DiskEpisode diskEpisode) {
 
-        this.files.add(episodeFs);
+        this.files.add(diskEpisode);
     }
 
     public void finalize(CharSequence animeFsRoot, CharSequence subtitleFsRoot) {
@@ -58,8 +58,8 @@ public class AnimeFs {
         JSONArray groups = new JSONArray();
         JSONArray files  = new JSONArray();
 
-        this.groups.stream().map(GroupFs::toJson).forEach(groups::put);
-        this.files.stream().map(EpisodeFs::toJson).forEach(files::put);
+        this.groups.stream().map(DiskGroup::toJson).forEach(groups::put);
+        this.files.stream().map(DiskEpisode::toJson).forEach(files::put);
 
         JSONObject json = new JSONObject();
         json.put("id", this.uuid.toString());

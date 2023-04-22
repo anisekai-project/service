@@ -1,4 +1,4 @@
-package me.anisekai.toshiko.helpers.fs;
+package me.anisekai.toshiko.io.entities;
 
 import me.anisekai.toshiko.Texts;
 import org.json.JSONArray;
@@ -10,19 +10,19 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-public class GroupFs {
+public class DiskGroup {
 
     private final UUID           uuid;
     private final File           path;
-    private final String         name;
-    private final Set<EpisodeFs> files;
+    private final String           name;
+    private final Set<DiskEpisode> files;
 
-    public GroupFs(File file) {
+    public DiskGroup(File file) {
 
         this.uuid  = UUID.randomUUID();
         this.path  = file;
         this.name  = Texts.unslugify(file.getName());
-        this.files = new TreeSet<>(Comparator.comparing(EpisodeFs::getName));
+        this.files = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
     }
 
     public File getPath() {
@@ -40,15 +40,15 @@ public class GroupFs {
         this.files.forEach(f -> f.finalize(animeFsRoot, subtitleFsRoot));
     }
 
-    public void add(EpisodeFs episodeFs) {
+    public void add(DiskEpisode diskEpisode) {
 
-        this.files.add(episodeFs);
+        this.files.add(diskEpisode);
     }
 
     public JSONObject toJson() {
 
         JSONArray episodes = new JSONArray();
-        this.files.stream().map(EpisodeFs::toJson).forEach(episodes::put);
+        this.files.stream().map(DiskEpisode::toJson).forEach(episodes::put);
 
         JSONObject json = new JSONObject();
         json.put("id", this.uuid.toString());

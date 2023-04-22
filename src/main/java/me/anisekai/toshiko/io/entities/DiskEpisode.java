@@ -1,6 +1,6 @@
-package me.anisekai.toshiko.helpers.fs;
+package me.anisekai.toshiko.io.entities;
 
-import me.anisekai.toshiko.services.StorageService;
+import me.anisekai.toshiko.io.DiskService;
 import me.anisekai.toshiko.utils.FileSystemUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,15 +10,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class EpisodeFs {
+public class DiskEpisode {
 
     private final UUID            uuid;
     private final File            path;
     private final String          name;
-    private       String          uri;
-    private final Set<SubtitleFs> subtitles;
+    private       String            uri;
+    private final Set<DiskSubtitle> subtitles;
 
-    public EpisodeFs(File file) {
+    public DiskEpisode(File file) {
 
         this.uuid      = UUID.randomUUID();
         this.path      = file;
@@ -50,20 +50,20 @@ public class EpisodeFs {
         if (subtitlesDirectoryFile.exists()) {
             FileSystemUtils.files(subtitleDirectory).stream()
                            .filter(file -> file.getName().startsWith(filter))
-                           .map(SubtitleFs::new)
+                           .map(DiskSubtitle::new)
                            .forEach(this.subtitles::add);
 
             this.subtitles.forEach(s -> s.finalize(subtitleFsRoot));
         }
 
-        this.uri = this.getPath().getAbsolutePath().replace(animeFsRoot, StorageService.HTTP_ANIME_ROOT)
+        this.uri = this.getPath().getAbsolutePath().replace(animeFsRoot, DiskService.HTTP_ANIME_ROOT)
                        .replace("\\", "/");
     }
 
     public JSONObject toJson() {
 
         JSONArray subtitles = new JSONArray();
-        this.subtitles.stream().map(SubtitleFs::toJson).forEach(subtitles::put);
+        this.subtitles.stream().map(DiskSubtitle::toJson).forEach(subtitles::put);
 
         JSONObject json = new JSONObject();
         json.put("id", this.uuid.toString());
