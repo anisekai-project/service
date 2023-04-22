@@ -430,7 +430,10 @@ public class ToshikoService {
         }
 
         DiscordUser discordUser = this.findUser(user);
+        return this.setUserEmoji(discordUser, emoji);
+    }
 
+    public boolean setUserEmoji(DiscordUser discordUser, String emoji) {
         if (emoji.equalsIgnoreCase(discordUser.getEmote())) {
             return false;
         }

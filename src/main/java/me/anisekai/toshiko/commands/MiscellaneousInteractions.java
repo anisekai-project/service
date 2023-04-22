@@ -96,7 +96,7 @@ public class MiscellaneousInteractions {
     // <editor-fold desc="@ disk/cache ─ Rebuild the anime cache">
     @Interact(
             name = "disk/cache",
-            description = "Rebuild the anime cache",
+            description = "\uD83D\uDD12 Rebuild the anime cache",
             defer = true
     )
     public SlashResponse rebuildCache(DiscordUser user) {

@@ -33,7 +33,7 @@ public class DiscordUser {
     private @Nullable String emote;
 
     @Column(nullable = false)
-    private boolean banned;
+    private boolean active;
 
     @Column(nullable = false)
     private boolean admin;
@@ -43,7 +43,7 @@ public class DiscordUser {
     public DiscordUser(@NotNull User user) {
 
         this.updateWith(user);
-        this.banned = false;
+        this.active = false;
         this.admin  = false;
     }
 
@@ -79,14 +79,14 @@ public class DiscordUser {
         this.emote = emote;
     }
 
-    public boolean isBanned() {
+    public boolean isActive() {
 
-        return this.banned;
+        return this.active;
     }
 
-    public void setBanned(boolean banned) {
+    public void setActive(boolean active) {
 
-        this.banned = banned;
+        this.active = active;
     }
 
     public boolean isAdmin() {

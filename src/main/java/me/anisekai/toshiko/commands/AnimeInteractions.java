@@ -182,7 +182,7 @@ public class AnimeInteractions {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setDescription("Ton niveau d'interêt pour cet anime a bien été mis à jour.");
 
-        if (discordUser.isBanned()) {
+        if (!discordUser.isActive()) {
             builder.appendDescription("\n");
             builder.appendDescription("Mais suite à une décision *administrative*, tes votes ne sont plus comptabilisés.");
         }
@@ -261,7 +261,7 @@ public class AnimeInteractions {
     )
     public SlashResponse importFromJson(DiscordUser user, @Param("json") String rawJson) {
 
-        if (user.isBanned()) {
+        if (!user.isActive()) {
             return new SimpleResponse("Désolé, mais suite à une décision *administrative*, tu ne peux plus ajouter d'anime.", false, false);
         }
 

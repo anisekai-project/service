@@ -17,10 +17,10 @@ public interface InterestRepository extends JpaRepository<Interest, InterestKey>
 
     Optional<Interest> findByAnimeAndUser(Anime anime, DiscordUser user);
 
-    @Query("SELECT i FROM Interest i WHERE i.user.banned = false AND i.anime = :anime")
+    @Query("SELECT i FROM Interest i WHERE i.user.active = true AND i.anime = :anime")
     List<Interest> findAllActiveByAnime(Anime anime);
 
-    @Query("SELECT i FROM Interest i WHERE i.user.banned = false")
+    @Query("SELECT i FROM Interest i WHERE i.user.active = true")
     List<Interest> findAllActive();
 
     @Deprecated
