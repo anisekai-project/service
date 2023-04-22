@@ -534,7 +534,7 @@ public class ToshikoService {
         AnimeNightScheduler<AnimeNight> scheduler = this.createScheduler();
 
         Set<AnimeNight> updated = new HashSet<>();
-        scheduler.calibrate(this.animeRepository.findAllByStatusIn(AnimeStatus.getWatchable()), updated::add);
+        scheduler.calibrate(this.animeRepository.findAll(), updated::add);
 
         this.animeNightRepository.saveAll(updated).stream()
                                  .map(night -> new AnimeNightUpdateEvent(this, this.getBotGuild(), night))
