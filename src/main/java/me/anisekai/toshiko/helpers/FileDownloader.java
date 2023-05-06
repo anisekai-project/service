@@ -10,10 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class FileDownloader extends RestAction<byte[]> {
 
     private static final Map<Anime, byte[]> FILE_CACHE = new HashMap<>();
-    private final String url;
+    private final        String             url;
 
     public FileDownloader(String url) {
 

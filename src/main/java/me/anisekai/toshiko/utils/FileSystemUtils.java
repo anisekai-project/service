@@ -40,15 +40,4 @@ public final class FileSystemUtils {
 
         return files(file);
     }
-
-    public static List<File> find(String path) {
-
-        File file = new File(path);
-
-        if (!file.exists() && !file.isDirectory()) {
-            throw new IllegalStateException("Could not list content at: " + path);
-        }
-
-        return find(file);
-    }
 }

@@ -5,42 +5,51 @@ import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
+import me.anisekai.toshiko.components.RankingHandler;
+import me.anisekai.toshiko.data.anime.AnimeImportResult;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.events.anime.AnimeCreatedEvent;
+import me.anisekai.toshiko.events.anime.AnimeUpdatedEvent;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.embeds.AnimeEmbed;
-import me.anisekai.toshiko.helpers.responses.SimpleResponse;
-import me.anisekai.toshiko.services.ToshikoService;
-import net.dv8tion.jda.api.EmbedBuilder;
+import me.anisekai.toshiko.messages.embeds.AnimeEmbed;
+import me.anisekai.toshiko.messages.embeds.InterestResponse;
+import me.anisekai.toshiko.messages.responses.SimpleResponse;
+import me.anisekai.toshiko.services.AnimeService;
+import me.anisekai.toshiko.services.InterestService;
+import me.anisekai.toshiko.utils.PermissionUtils;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Collection;
 
 @Component
 @InteractionBean
 public class AnimeInteractions {
 
-    private static final Logger         LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
-    private final        ToshikoService toshikoService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
 
-    public AnimeInteractions(ToshikoService toshikoService) {
+    private final AnimeService              animeService;
+    private final InterestService           interestService;
+    private final RankingHandler            ranking;
+    private final ApplicationEventPublisher publisher;
 
-        this.toshikoService = toshikoService;
+    public AnimeInteractions(AnimeService animeService, InterestService interestService, RankingHandler ranking, ApplicationEventPublisher publisher) {
+
+        this.animeService    = animeService;
+        this.interestService = interestService;
+        this.ranking         = ranking;
+        this.publisher       = publisher;
     }
 
     // <editor-fold desc="@ anime/announce">
@@ -58,29 +67,25 @@ public class AnimeInteractions {
     )
     public SlashResponse sendAnimeNotification(DiscordUser discordUser, @Param("anime") Long animeId) {
 
-        if (!discordUser.isAdmin()) {
-            return new SimpleResponse("Tu n'as pas le droit de faire ça.", false, false);
-        }
+        PermissionUtils.requirePrivileges(discordUser);
+        Collection<Anime> animes = new ArrayList<>();
 
         if (animeId != null) {
-            Anime anime = this.toshikoService.findAnime(animeId);
-            if (anime.getAnnounceMessage() == null) {
-                this.toshikoService.createAnimeAnnounce(anime);
-            } else {
-                this.toshikoService.refreshAnimeAnnounce(anime);
-            }
-            return new SimpleResponse("La notification sera envoyée sous peu.", false, false);
+            animes.add(this.animeService.getAnime(animeId));
         } else {
-            List<Anime> all = this.toshikoService.getAnimeRepository().findAllByStatusIn(AnimeStatus.getDisplayable());
-            all.forEach(anime -> {
-                if (anime.getAnnounceMessage() == null) {
-                    this.toshikoService.createAnimeAnnounce(anime);
-                } else {
-                    this.toshikoService.refreshAnimeAnnounce(anime);
-                }
-            });
-            return new SimpleResponse(String.format("%s annonces vont être envoyées.", all.size()), false, false);
+            animes.addAll(this.animeService.getRepository().findAll());
         }
+
+        for (Anime anime : animes) {
+            if (anime.getAnnounceMessage() == null) {
+                this.publisher.publishEvent(new AnimeCreatedEvent(this, anime));
+            } else {
+                this.publisher.publishEvent(new AnimeUpdatedEvent(this, anime));
+            }
+        }
+
+        String text = animes.size() == 1 ? "%s annonce va être envoyée." : "%s annonces vont être envoyées.";
+        return new SimpleResponse(String.format(text, animes.size()), false, false);
     }
     // </editor-fold>
 
@@ -100,12 +105,10 @@ public class AnimeInteractions {
     )
     public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
 
-        Anime              anime      = this.toshikoService.findAnime(animeId);
-        Map<Anime, Double> animeVotes = this.toshikoService.getAnimeVotes();
-
-        AnimeEmbed sheetMessage = new AnimeEmbed(anime, animeVotes.getOrDefault(anime, 0.0));
-        sheetMessage.setShowButtons(true);
-        return sheetMessage;
+        Anime      anime   = this.animeService.getAnime(animeId);
+        AnimeEmbed message = new AnimeEmbed(anime, this.ranking.getAnimeScore(anime));
+        message.setShowButtons(true);
+        return message;
     }
     // </editor-fold>
 
@@ -132,12 +135,11 @@ public class AnimeInteractions {
     )
     public SlashResponse changeAnimeStatus(DiscordUser discordUser, @Param("anime") long animeId, @Param("status") String statusName) {
 
-        if (!discordUser.isAdmin()) {
-            return new SimpleResponse("Tu n'as pas le droit de faire ça.", false, false);
-        }
+        PermissionUtils.requirePrivileges(discordUser);
 
         AnimeStatus status = AnimeStatus.from(statusName);
-        Anime       anime  = this.toshikoService.setAnimeStatus(animeId, status);
+        Anime       anime  = this.animeService.setStatus(this.animeService.getAnime(animeId), status);
+
         return new SimpleResponse(String.format("Le statut de l'anime '%s' a bien été changé.", anime.getName()), false, false);
     }
     // </editor-fold>
@@ -175,22 +177,12 @@ public class AnimeInteractions {
             return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/profile`)", false, true);
         }
 
+        Anime anime = this.animeService.getAnime(animeId);
+
         InterestLevel level    = InterestLevel.from(interestName);
-        Interest      interest = this.toshikoService.setInterestLevel(animeId, user, level);
+        Interest      interest = this.interestService.setInterestLevel(anime, discordUser, level);
 
-
-        EmbedBuilder builder = new EmbedBuilder();
-        builder.setDescription("Ton niveau d'interêt pour cet anime a bien été mis à jour.");
-
-        if (!discordUser.isActive()) {
-            builder.appendDescription("\n");
-            builder.appendDescription("Cependant comme tu n'es pas considéré(e) comme une personne active, ton vote n'aura aucune influence sur le classement.");
-        }
-
-        builder.addField("Anime", interest.getAnime().getName(), false);
-        builder.addField("Niveau d'interêt", interest.getLevel().getDisplayText(), false);
-
-        return new SimpleResponse(builder, false, interaction instanceof ButtonInteraction);
+        return new InterestResponse(interest);
     }
     // </editor-fold>
 
@@ -226,16 +218,15 @@ public class AnimeInteractions {
             @Param("amount") Long amount
     ) {
 
-        if (!user.isAdmin()) {
-            return new SimpleResponse("Désolé, mais tu ne peux pas faire ça.", false, false);
+        PermissionUtils.requirePrivileges(user);
+
+        Anime anime = this.animeService.getAnime(animeId);
+
+        if (amount != null) {
+            anime = this.animeService.setTotal(anime, amount);
         }
 
-        Anime anime;
-        if (amount != null) {
-            anime = this.toshikoService.setAnimeProgression(animeId, watched, amount);
-        } else {
-            anime = this.toshikoService.setAnimeProgression(animeId, watched);
-        }
+        anime = this.animeService.setProgression(anime, watched);
 
         if (anime.getStatus() == AnimeStatus.WATCHED) {
             return new SimpleResponse("La progression a été sauvegardée et l'anime marqué comme terminé.", false, false);
@@ -261,48 +252,12 @@ public class AnimeInteractions {
     )
     public SlashResponse importFromJson(DiscordUser user, @Param("json") String rawJson) {
 
-        JSONObject   json       = new JSONObject(rawJson);
-        JSONArray    genreArray = json.getJSONArray("genres");
-        JSONArray    themeArray = json.getJSONArray("themes");
-        String       rawStatus  = json.getString("status");
-        List<String> genres     = new ArrayList<>();
-        List<String> themes     = new ArrayList<>();
+        AnimeImportResult air = this.animeService.importAnime(user, new JSONObject(rawJson));
 
-        genreArray.forEach(obj -> genres.add(obj.toString()));
-        themeArray.forEach(obj -> themes.add(obj.toString()));
-
-        AnimeStatus status = AnimeStatus.from(rawStatus);
-        long        total  = Long.parseLong(json.getString("episode"));
-        long        time   = Long.parseLong(json.getString("time"));
-
-        Anime loaded = new Anime();
-        loaded.setName(json.getString("title"));
-        loaded.setSynopsis(json.getString("synopsis"));
-        loaded.setGenres(String.join(", ", genres));
-        loaded.setThemes(String.join(", ", themes));
-        loaded.setStatus(status);
-        loaded.setLink(json.getString("link"));
-        loaded.setImage(json.getString("image"));
-        loaded.setWatched(0);
-        loaded.setTotal(total);
-        loaded.setEpisodeDuration(time == 0 ? 24 : time);
-        loaded.setAddedBy(user);
-        loaded.setAddedAt(ZonedDateTime.now().withNano(0));
-
-        Optional<Anime> byName = this.toshikoService.getAnimeRepository().findByName(loaded.getName());
-
-        if (byName.isPresent()) {
-            Anime anime = byName.get();
-            anime.patch(loaded);
-            this.toshikoService.getAnimeRepository().save(anime);
-            this.toshikoService.refreshAnimeAnnounce(anime);
-            return new SimpleResponse("L'anime a été mis à jour avec succès.", false, false);
-        } else {
-            Anime saved = this.toshikoService.getAnimeRepository().save(loaded);
-            this.toshikoService.getInterestRepository().save(new Interest(saved, user, InterestLevel.INTERESTED));
-            this.toshikoService.createAnimeAnnounce(saved);
-            return new SimpleResponse("L'anime a été importé avec succès.", false, false);
-        }
+        return switch (air.state()) {
+            case CREATED -> new SimpleResponse("L'anime a bien été créé.", false, false);
+            case UPDATED -> new SimpleResponse("L'anime a bien été mis à jour.", false, false);
+        };
     }
     // </editor-fold>
 }

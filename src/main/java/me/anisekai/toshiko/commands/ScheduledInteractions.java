@@ -9,11 +9,11 @@ import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.responses.SimpleResponse;
-import me.anisekai.toshiko.services.ToshikoService;
+import me.anisekai.toshiko.messages.responses.SimpleResponse;
+import me.anisekai.toshiko.services.AnimeNightService;
+import me.anisekai.toshiko.services.AnimeService;
+import me.anisekai.toshiko.utils.PermissionUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,22 +28,20 @@ import java.util.function.Function;
 @InteractionBean
 public class ScheduledInteractions {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledInteractions.class);
+    private final AnimeNightService service;
+    private final AnimeService      animeService;
 
-    private final ToshikoService service;
+    public ScheduledInteractions(AnimeNightService service, AnimeService animeService) {
 
-    public ScheduledInteractions(ToshikoService service) {
-
-        this.service = service;
+        this.service      = service;
+        this.animeService = animeService;
     }
 
     private SlashResponse scheduleInterval(DiscordUser user, long animeId, CharSequence timeParam, long amount, CharSequence startingParam, Function<ZonedDateTime, ZonedDateTime> timeIncrement) {
 
-        if (!user.isAdmin()) {
-            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
-        }
+        PermissionUtils.requirePrivileges(user);
 
-        Anime anime = this.service.findAnime(animeId);
+        Anime anime = this.animeService.getAnime(animeId);
 
         if (anime.getTotal() < 1) {
             return new SimpleResponse("Impossible de programmer en masse cet anime.", false, false);
@@ -203,7 +201,7 @@ public class ScheduledInteractions {
             return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
         }
 
-        Anime     anime       = this.service.findAnime(animeId);
+        Anime     anime       = this.animeService.getAnime(animeId);
         LocalTime timeParam   = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"));
         LocalDate scheduledAt = LocalDate.now();
 
@@ -220,7 +218,6 @@ public class ScheduledInteractions {
                                                    .withSecond(0)
                                                    .withNano(0);
 
-        LOGGER.info("[schedule/night] Trying to schedule (Anime={}, Day={}, Time={})", animeId, startDateTime, time);
         return this.service.schedule(anime, startDateTime, amount);
     }
     // </editor-fold>
@@ -233,12 +230,21 @@ public class ScheduledInteractions {
     )
     public SlashResponse calibrateSchedule(DiscordUser user) {
 
-        if (!user.isAdmin()) {
-            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
+        PermissionUtils.requirePrivileges(user);
+
+        int updated = 0;
+
+        List<Anime> animes = this.service.getRepository()
+                                         .findAllByStatusIn(AnimeNight.WATCHABLE)
+                                         .stream()
+                                         .map(AnimeNight::getAnime)
+                                         .distinct().toList();
+
+        for (Anime anime : animes) {
+            updated += this.service.calibrate(anime).size();
         }
 
-        int updateCount = this.service.calibrate();
-        return new SimpleResponse(String.format("**%s** évènements ont été mis à jour.", updateCount), false, false);
+        return new SimpleResponse(String.format("**%s** évènements ont été mis à jour.", updated), false, false);
     }
     // </editor-fold>
 
@@ -258,16 +264,9 @@ public class ScheduledInteractions {
     )
     public SlashResponse delaySchedule(DiscordUser user, @Param("delay") long delay) {
 
-        if (!user.isAdmin()) {
-            return new SimpleResponse("Tu n'as pas le droit de faire ça !", false, false);
-        }
+        PermissionUtils.requirePrivileges(user);
 
-        int delayedAmount = this.service.delay(delay);
-
-        if (delayedAmount == -1) {
-            return new SimpleResponse("Impossible de décaler les évènements.", false, false);
-        }
-
+        int delayedAmount = this.service.delay(delay).size();
         return new SimpleResponse(String.format("**%s** évènements ont été décalés.", delayedAmount), false, false);
     }
     // </editor-fold>

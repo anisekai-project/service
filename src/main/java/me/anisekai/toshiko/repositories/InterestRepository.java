@@ -3,7 +3,7 @@ package me.anisekai.toshiko.repositories;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
-import me.anisekai.toshiko.entities.keys.InterestKey;
+import me.anisekai.toshiko.entities.keys.UserAnimeAssocKey;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface InterestRepository extends JpaRepository<Interest, InterestKey> {
+public interface InterestRepository extends JpaRepository<Interest, UserAnimeAssocKey> {
 
     Optional<Interest> findByAnimeAndUser(Anime anime, DiscordUser user);
 

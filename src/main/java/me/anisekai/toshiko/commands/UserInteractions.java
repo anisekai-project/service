@@ -7,8 +7,8 @@ import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.responses.SimpleResponse;
-import me.anisekai.toshiko.services.ToshikoService;
+import me.anisekai.toshiko.messages.responses.SimpleResponse;
+import me.anisekai.toshiko.services.UserService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.UserSnowflake;
@@ -19,40 +19,12 @@ import org.springframework.stereotype.Component;
 @InteractionBean
 public class UserInteractions {
 
-    private final ToshikoService toshikoService;
+    private final UserService service;
 
-    public UserInteractions(ToshikoService toshikoService) {
+    public UserInteractions(UserService service) {
 
-        this.toshikoService = toshikoService;
+        this.service = service;
     }
-
-    // <editor-fold desc="@ user/icon/set">
-    @Interact(
-            name = "user/icon/set",
-            description = Texts.USER_ICON__DESCRIPTION,
-            options = {
-                    @Option(
-                            name = "icon",
-                            description = Texts.USER_ICON__OPTION_ICON,
-                            type = OptionType.STRING,
-                            required = true
-                    )
-            }
-    )
-    public SlashResponse changeUserIcon(DiscordUser discordUser, User user, @Param("icon") String icon) {
-
-        if (!this.toshikoService.setUserEmoji(user, icon)) {
-            return new SimpleResponse("Ton icône de vote reste inchangée.", false, true);
-        }
-
-        if (!discordUser.isActive()) {
-            this.toshikoService.queueUpdateAll(false);
-        }
-
-        return new SimpleResponse("Ton icône de vote a été mise à jour.", false, false);
-    }
-    // </editor-fold>
-
 
     // <editor-fold desc="@ profile">
     @Interact(
@@ -105,7 +77,7 @@ public class UserInteractions {
         DiscordUser target = sender;
 
         if (user != null) {
-            target = this.toshikoService.findUser(user);
+            target = this.service.get(user);
         }
 
         UserSnowflake targetedUser = UserSnowflake.fromId(sender.getId());
@@ -122,7 +94,7 @@ public class UserInteractions {
         }
 
         if (icon != null) {
-            if (!this.toshikoService.setUserEmoji(target, icon)) {
+            if (!this.service.setUserEmote(target, icon)) {
                 embedBuilder.addField("Icône de vote", target.getEmote() + " *(Inchangé)*", false);
             } else {
                 embedBuilder.addField("Icône de vote", target.getEmote() != null ? target.getEmote() : "*Aucune*", false);

@@ -5,13 +5,14 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.helpers.InteractionBean;
-import me.anisekai.toshiko.helpers.responses.SimpleResponse;
 import me.anisekai.toshiko.messages.AnimeNightMessages;
 import me.anisekai.toshiko.messages.GeneralEnglishMessage;
 import me.anisekai.toshiko.messages.GeneralFrenchMessage;
-import me.anisekai.toshiko.tasks.DelayedTask;
+import me.anisekai.toshiko.messages.responses.SimpleResponse;
+import me.anisekai.toshiko.services.misc.TaskService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -24,11 +25,11 @@ import java.util.Arrays;
 @InteractionBean
 public class MessageInteractions {
 
-    private final DelayedTask delayedTask;
+    private final TaskService taskService;
 
-    public MessageInteractions(DelayedTask delayedTask) {
+    public MessageInteractions(TaskService taskService) {
 
-        this.delayedTask = delayedTask;
+        this.taskService = taskService;
     }
 
     // <editor-fold desc="@ rules ─ Show the rules">
@@ -60,10 +61,33 @@ public class MessageInteractions {
     public SlashResponse showRules(@Param("num") Long num, MessageChannel channel) {
 
         if (num == null) {
-            this.delayedTask.queue("RULES", () -> channel.sendMessage(MessageCreateData.fromEmbeds(
-                    GeneralFrenchMessage.getRulesEmbed().build(),
-                    GeneralEnglishMessage.getRulesEmbed().build()
-            )).complete());
+            this.taskService.queue(new Task() {
+
+                @Override
+                public String getName() {
+
+                    return "MSG:RULES";
+                }
+
+                @Override
+                public void onFinished() {
+
+                }
+
+                @Override
+                public void onException(Exception e) {
+
+                }
+
+                @Override
+                public void run() throws Exception {
+
+                    channel.sendMessage(MessageCreateData.fromEmbeds(
+                            GeneralFrenchMessage.getRulesEmbed().build(),
+                            GeneralEnglishMessage.getRulesEmbed().build()
+                    )).complete();
+                }
+            });
             return new SimpleResponse("Les messages vont être envoyés.", false, true);
         }
 
@@ -165,8 +189,28 @@ public class MessageInteractions {
 
     private void send(String name, MessageChannel channel, EmbedBuilder builder) {
 
-        this.delayedTask.queue(name, () -> {
-            channel.sendMessageEmbeds(builder.build()).complete();
+        this.taskService.queue(new Task() {
+
+            @Override
+            public String getName() {
+
+                return name;
+            }
+
+            @Override
+            public void onFinished() {
+
+            }
+
+            @Override
+            public void onException(Exception e) {
+
+            }
+
+            @Override
+            public void run() throws Exception {
+                channel.sendMessageEmbeds(builder.build()).complete();
+            }
         });
     }
 }

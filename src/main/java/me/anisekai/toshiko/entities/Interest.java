@@ -1,22 +1,22 @@
 package me.anisekai.toshiko.entities;
 
 import jakarta.persistence.*;
-import me.anisekai.toshiko.entities.keys.InterestKey;
+import me.anisekai.toshiko.entities.keys.UserAnimeAssocKey;
 import me.anisekai.toshiko.enums.InterestLevel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 @Entity
-@IdClass(InterestKey.class)
+@IdClass(UserAnimeAssocKey.class)
 public class Interest {
 
     @Id
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Anime anime;
 
     @Id
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private DiscordUser user;
 
     @Enumerated(EnumType.STRING)

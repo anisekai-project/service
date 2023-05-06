@@ -4,11 +4,14 @@ import me.anisekai.toshiko.entities.Anime;
 
 import java.util.function.Supplier;
 
-public class FakeService {
+public final class FakeService {
 
-    public static Anime fakeAnime(String name, long watched, long total, long duration) {
+    private FakeService() {}
+
+    public static Anime fakeAnime(long id, String name, long watched, long total, long duration) {
 
         Anime anime = new Anime();
+        anime.setId(id);
         anime.setName(name);
         anime.setWatched(watched);
         anime.setTotal(total);
@@ -17,8 +20,8 @@ public class FakeService {
         return anime;
     }
 
-    public static final Supplier<Anime> FAKE_ANIME_ONE = () -> fakeAnime("AnimeOne", 0, 12, 24);
-    public static final Supplier<Anime> FAKE_ANIME_TWO = () -> fakeAnime("AnimeOne", 0, 12, 24);
+    public static final Supplier<Anime> FAKE_ANIME_ONE = () -> fakeAnime(1, "AnimeOne", 0, 12, 24);
+    public static final Supplier<Anime> FAKE_ANIME_TWO = () -> fakeAnime(2, "AnimeOne", 0, 12, 24);
 
 
 }

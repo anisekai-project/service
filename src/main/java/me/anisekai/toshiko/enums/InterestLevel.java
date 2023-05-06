@@ -36,4 +36,9 @@ public enum InterestLevel {
 
         return this.displayText;
     }
+
+    public boolean isNonNeutral() {
+
+        return this != NEUTRAL;
+    }
 }

@@ -21,8 +21,7 @@ public class Watchlist implements Comparable<Watchlist> {
     @Column
     private Long messageId;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "status", referencedColumnName = "status")
+    @OneToMany(mappedBy = "status", fetch = FetchType.EAGER)
     private Set<Anime> animes;
 
     @Column(nullable = false)
@@ -35,13 +34,6 @@ public class Watchlist implements Comparable<Watchlist> {
 
         this.status    = status;
         this.messageId = null;
-        this.state     = CronState.DONE;
-    }
-
-    public Watchlist(@NotNull AnimeStatus status, @NotNull Message message) {
-
-        this.status    = status;
-        this.messageId = message.getIdLong();
         this.state     = CronState.DONE;
     }
 
@@ -63,6 +55,11 @@ public class Watchlist implements Comparable<Watchlist> {
     public Set<Anime> getAnimes() {
 
         return this.animes;
+    }
+
+    public void setAnimes(Set<Anime> animes) {
+
+        this.animes = animes;
     }
 
     public CronState getState() {

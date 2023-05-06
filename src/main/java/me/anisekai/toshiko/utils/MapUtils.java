@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class to handle {@link Map} related methods.
+ */
 public final class MapUtils {
 
     private MapUtils() {}

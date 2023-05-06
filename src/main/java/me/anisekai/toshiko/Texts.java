@@ -110,7 +110,7 @@ public final class Texts {
 
     // <editor-fold desc="@ profile">
     public static final String PROFILE_DESCRIPTION    = "Mettre à jour les données d'un profil utilisateur";
-    public static final String PROFILE__OPTION_USER   = "\uD83D\uDD12 Utilisateur pour lequel le profil sera actualisé. Ne pas préciser pour modifier ses propres informations.";
+    public static final String PROFILE__OPTION_USER   = "\uD83D\uDD12 Utilisateur pour lequel le profil sera actualisé.";
     public static final String PROFILE__OPTION_ICON   = "Change l'icône de vote";
     public static final String PROFILE__OPTION_ACTIVE = "\uD83D\uDD12 Change le statut d'activité";
     public static final String PROFILE__OPTION_ADMIN  = "\uD83D\uDD12 Change le statut administrateur";
@@ -143,11 +143,6 @@ public final class Texts {
         }
 
         return Strings.join(parts, ' ');
-    }
-
-    public static String unslugifyExt(String str) {
-
-        return unslugify(str.substring(0, str.lastIndexOf('.')));
     }
 
     public static String truncate(String str, int maxLength) {

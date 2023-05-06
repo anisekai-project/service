@@ -3,7 +3,6 @@ package me.anisekai.toshiko.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.interfaces.AnimeProvider;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +39,7 @@ public class Anime implements Comparable<Anime> {
     @JsonIgnore
     private Set<Interest> interests;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private DiscordUser addedBy;
 
     @Column(nullable = false, unique = true)
@@ -66,23 +65,6 @@ public class Anime implements Comparable<Anime> {
 
     public Anime() {}
 
-    public Anime(@NotNull DiscordUser user, @NotNull AnimeProvider provider) {
-
-        this(user, provider, provider.getPublicationState().getStatus());
-    }
-
-    public Anime(@NotNull DiscordUser user, @NotNull AnimeProvider provider, @NotNull AnimeStatus status) {
-
-        this.name            = provider.getName();
-        this.status          = status;
-        this.addedBy         = user;
-        this.image           = provider.getImage();
-        this.link            = provider.getUrl();
-        this.addedAt         = ZonedDateTime.now().withNano(0);
-        this.total           = provider.getEpisodeCount().orElse(0L);
-        this.episodeDuration = 24;
-    }
-
     public void patch(Anime other) {
 
         this.synopsis        = other.getSynopsis();
@@ -98,6 +80,11 @@ public class Anime implements Comparable<Anime> {
     public Long getId() {
 
         return this.id;
+    }
+
+    public void setId(Long id) {
+
+        this.id = id;
     }
 
     public @NotNull String getName() {

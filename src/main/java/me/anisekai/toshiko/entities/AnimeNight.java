@@ -27,7 +27,7 @@ public class AnimeNight implements AnimeNightMeta, SlashResponse {
     @Column
     private Long eventId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private Anime anime;
 
     @Column(nullable = false)

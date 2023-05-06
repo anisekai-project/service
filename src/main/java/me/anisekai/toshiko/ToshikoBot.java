@@ -2,9 +2,10 @@ package me.anisekai.toshiko;
 
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
-import me.anisekai.toshiko.helpers.JdaStoreService;
+import me.anisekai.toshiko.components.JdaStore;
+import me.anisekai.toshiko.configurations.ToshikoDiscordConfiguration;
 import me.anisekai.toshiko.listeners.ScheduledEventListener;
-import me.anisekai.toshiko.services.InteractionWrapper;
+import me.anisekai.toshiko.services.misc.DiscordService;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -14,25 +15,22 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ToshikoBot extends ListenerAdapter {
 
-    private static final Logger                 LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
-    private final        ScheduledEventListener scheduledEventListener;
-    private final        InteractionWrapper     wrapper;
-    private final        JdaStoreService        store;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToshikoBot.class);
 
-    @Value("${discord.bot.token}")
-    private String token;
+    private final ToshikoDiscordConfiguration discordConfiguration;
+    private final ScheduledEventListener      scheduledEventListener;
+    private final DiscordService              wrapper;
+    private final JdaStore                    store;
 
-    @Value("${toshiko.anime.server}")
-    private long toshikoAnimeServer;
 
-    public ToshikoBot(ScheduledEventListener scheduledEventListener, InteractionWrapper wrapper, JdaStoreService store) {
+    public ToshikoBot(ToshikoDiscordConfiguration discordConfiguration, ScheduledEventListener scheduledEventListener, DiscordService wrapper, JdaStore store) {
 
+        this.discordConfiguration   = discordConfiguration;
         this.scheduledEventListener = scheduledEventListener;
         this.wrapper                = wrapper;
         this.store                  = store;
@@ -43,7 +41,7 @@ public class ToshikoBot extends ListenerAdapter {
         try {
             JDABuilder builder = JDABuilder.create(GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS));
             builder.addEventListeners(this, this.store, this.scheduledEventListener);
-            builder.setToken(this.token);
+            builder.setToken(this.discordConfiguration.getToken());
             builder.build();
         } catch (Exception e) {
             LOGGER.warn("Unable to connect to Discord. The token provided is probably invalid.", e);
@@ -63,10 +61,10 @@ public class ToshikoBot extends ListenerAdapter {
         LOGGER.info("== == == == == == == Toshiko Bot == == == == == == ==");
         LOGGER.info("Logged in as '{} ({})'", self.getName(), self.getId());
 
-        Guild guild = event.getJDA().getGuildById(this.toshikoAnimeServer);
+        Guild guild = event.getJDA().getGuildById(this.discordConfiguration.getServerId());
 
         if (guild == null) {
-            LOGGER.error("Unable to find the discord server [{}]", this.toshikoAnimeServer);
+            LOGGER.error("Unable to find the discord server [{}]", this.discordConfiguration.getServerId());
             return;
         }
 

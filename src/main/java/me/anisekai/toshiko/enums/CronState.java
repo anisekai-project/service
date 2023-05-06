@@ -4,6 +4,7 @@ public enum CronState {
 
     REQUIRED,
     QUEUED,
-    DONE;
+    DONE,
+    NONE;
 
 }

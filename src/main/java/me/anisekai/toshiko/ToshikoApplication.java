@@ -1,5 +1,6 @@
 package me.anisekai.toshiko;
 
+import me.anisekai.toshiko.configurations.ToshikoFeatureConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -10,9 +11,16 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 public class ToshikoApplication {
 
-    ToshikoApplication(ToshikoBot bot) {
+    private final ToshikoFeatureConfiguration featureConfiguration;
 
-        bot.login();
+
+    ToshikoApplication(ToshikoBot bot, ToshikoFeatureConfiguration featureConfiguration) {
+
+        this.featureConfiguration = featureConfiguration;
+
+        if (this.featureConfiguration.isBotEnabled()) {
+            bot.login();
+        }
     }
 
     public static void main(String[] args) {

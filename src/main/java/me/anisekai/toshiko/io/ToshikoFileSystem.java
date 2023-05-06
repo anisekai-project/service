@@ -26,11 +26,11 @@ public class ToshikoFileSystem {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ToshikoFileSystem.class);
 
-    private final DiskService        diskService;
-    private final FileManagerService fileManagerService;
+    private final DiskService             diskService;
+    private final FileManagerService      fileManagerService;
     private final Collection<DiskFile>    diskFileLocking = new HashSet<>();
     private final BlockingDeque<DiskFile> automationQueue = new LinkedBlockingDeque<>();
-    private boolean hasFileWaiting = false;
+    private       boolean                 hasFileWaiting  = false;
 
     public ToshikoFileSystem(DiskService diskService, FileManagerService fileManagerService) {
 
@@ -50,13 +50,13 @@ public class ToshikoFileSystem {
 
     private void moveVideo(DiskFile mkv) throws IOException {
 
-        File output = this.getOutput(mkv, this.diskService.getFsAnimes());
+        File output = this.getOutput(mkv, this.diskService.getDiskConfiguration().getAnimesOutput());
         Files.move(mkv.getPath(), output.toPath(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     private void moveSubtitle(DiskFile subtitle) throws IOException {
 
-        File output = this.getOutput(subtitle, this.diskService.getFsSubtitles());
+        File output = this.getOutput(subtitle, this.diskService.getDiskConfiguration().getSubtitlesOutput());
         Files.move(subtitle.getPath(), output.toPath(), StandardCopyOption.ATOMIC_MOVE);
     }
 
@@ -71,6 +71,10 @@ public class ToshikoFileSystem {
     }
 
     public int checkForAutomation() {
+
+        if (!this.diskService.isEnabled()) {
+            return 0;
+        }
 
         LOGGER.info("Checking automation directory...");
 
@@ -97,6 +101,10 @@ public class ToshikoFileSystem {
 
     @Scheduled(cron = "0/2 * * * * *")
     public void handleNextFile() {
+
+        if (!this.diskService.isEnabled()) {
+            return;
+        }
 
         DiskFile diskFile = this.automationQueue.poll();
 

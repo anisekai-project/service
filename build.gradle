@@ -15,11 +15,11 @@ group = 'fr.alexpado.bots'
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
-/*
+
 compileJava.options.encoding = generalCharset
 compileTestJava.options.encoding = generalCharset
 javadoc.options.encoding = generalCharset
-*/
+
 reckon {
     stages('dev', 'beta', 'rc', 'final')
 
@@ -39,6 +39,8 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'

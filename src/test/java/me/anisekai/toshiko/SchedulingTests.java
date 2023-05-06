@@ -2,6 +2,7 @@ package me.anisekai.toshiko;
 
 import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.exceptions.nights.AnimeNightOverlappingException;
 import me.anisekai.toshiko.helpers.AnimeNightScheduler;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 import me.anisekai.toshiko.utils.FakeService;
@@ -31,10 +32,8 @@ public class SchedulingTests {
         ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
         OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
 
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
 
-        Assertions.assertTrue(bookedAnimeNight.isPresent());
-        BookedAnimeNight night  = bookedAnimeNight.get();
+        BookedAnimeNight night  = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
         OffsetDateTime   actual = night.getStartDateTime();
 
         Assertions.assertEquals(expected.getHour(), actual.getHour(), "Scheduled hour doesn't match");
@@ -54,10 +53,7 @@ public class SchedulingTests {
         ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0).plusDays(1);
         OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
 
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-
-        Assertions.assertTrue(bookedAnimeNight.isPresent());
-        BookedAnimeNight night  = bookedAnimeNight.get();
+        BookedAnimeNight night  = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
         OffsetDateTime   actual = night.getStartDateTime();
 
         Assertions.assertEquals(expected.getHour(), actual.getHour(), "Scheduled hour doesn't match");
@@ -76,10 +72,7 @@ public class SchedulingTests {
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
 
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-
-        Assertions.assertTrue(bookedAnimeNight.isPresent());
-        BookedAnimeNight night = bookedAnimeNight.get();
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(1, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -98,10 +91,7 @@ public class SchedulingTests {
         ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
         fakeAnimeOne.setWatched(3);
 
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-
-        Assertions.assertTrue(bookedAnimeNight.isPresent());
-        BookedAnimeNight night = bookedAnimeNight.get();
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(4, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -120,11 +110,8 @@ public class SchedulingTests {
         ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-        scheduleAt = scheduleAt.plusDays(1);
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-
-        Assertions.assertTrue(bookedAnimeNight.isPresent());
-        BookedAnimeNight night = bookedAnimeNight.get();
+        ZonedDateTime tomorrow = scheduleAt.plusDays(1);
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, tomorrow, booking -> booking));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(4, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -143,9 +130,7 @@ public class SchedulingTests {
         ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-        Optional<BookedAnimeNight> bookedAnimeNight = scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-
-        Assertions.assertTrue(bookedAnimeNight.isEmpty());
+        Assertions.assertThrows(AnimeNightOverlappingException.class, () -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
     }
 
     @Test
@@ -321,10 +306,9 @@ public class SchedulingTests {
 
         Assertions.assertEquals(4, events.size(), "Wrong amount of scheduled event");
 
-        Set<BookedAnimeNight> delayed     = new HashSet<>();
-        boolean               delayResult = scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
+        Set<BookedAnimeNight> delayed = new HashSet<>();
 
-        Assertions.assertTrue(delayResult, "The delaying was not successful.");
+        Assertions.assertDoesNotThrow(() -> scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
         Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 10));
     }
 
@@ -347,11 +331,8 @@ public class SchedulingTests {
 
         Assertions.assertEquals(4, events.size(), "Wrong amount of scheduled event");
 
-        Set<BookedAnimeNight> delayed     = new HashSet<>();
-        boolean               delayResult = scheduler.delay(-10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
-
-        Assertions.assertTrue(delayResult, "The delaying was not successful.");
-        // TODO: Check the date, but with day change and all meh
+        Set<BookedAnimeNight> delayed = new HashSet<>();
+        Assertions.assertDoesNotThrow(() -> scheduler.delay(-10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
         Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 50));
     }
 
@@ -383,9 +364,8 @@ public class SchedulingTests {
         Assertions.assertEquals(2, events.size(), "Wrong amount of scheduled event");
 
         Set<BookedAnimeNight> delayed = new HashSet<>();
-        boolean delayResult = scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add);
 
-        Assertions.assertFalse(delayResult, "The delay was executed");
+        Assertions.assertThrows(AnimeNightOverlappingException.class, () -> scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
         Assertions.assertEquals(0, delayed.size(), "The event has been delayed.");
     }
 

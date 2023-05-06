@@ -2,8 +2,8 @@ package me.anisekai.toshiko.helpers;
 
 import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.exceptions.nights.AnimeNightOverlappingException;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
-import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +19,8 @@ import java.util.function.Predicate;
 
 public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
-    public final static  List<ScheduledEvent.Status> STATUSES = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
-    private static final Logger                      LOGGER   = LoggerFactory.getLogger(AnimeNightScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnimeNightScheduler.class);
+
     private final Set<T> nights;
 
     public AnimeNightScheduler(Collection<T> sourceData) {
@@ -81,7 +81,9 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
      *
      * @return The scheduled event {@link T}, if scheduled successfully.
      */
-    public Optional<T> scheduleAt(Anime anime, long amount, ZonedDateTime at, Function<BookedAnimeNight, T> scheduler) {
+    public T scheduleAt(Anime anime, long amount, ZonedDateTime at, Function<BookedAnimeNight, T> scheduler) {
+
+        LOGGER.info("Trying to schedule {} episode of anime {} at {}", amount, anime.getId(), at);
 
         long duration = anime.getEpisodeDuration() * amount - (3 * (amount - 1));
 
@@ -90,7 +92,8 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
         // Check for collision
         if (this.nights.stream().anyMatch(night -> night.isColliding(startingAt, endingAt))) {
-            return Optional.empty();
+            LOGGER.warn("Could not schedule at {}: Collision detected.", at);
+            throw new AnimeNightOverlappingException(anime, startingAt, endingAt);
         }
 
         // No collision !
@@ -100,19 +103,25 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
         // Do we have a previous event ?
         if (optionalLatest.isPresent()) {
+            LOGGER.debug("Previous scheduled event detected. Setting watch data based on latest occurrence...");
             AnimeNightMeta meta = optionalLatest.get();
             firstEpisode = meta.getLastEpisode() + 1;
             lastEpisode  = meta.getLastEpisode() + amount;
         } else {
+            LOGGER.debug("No previous scheduled event detected. Setting watch data based on anime data....");
             firstEpisode = anime.getWatched() + 1;
             lastEpisode  = anime.getWatched() + amount;
         }
 
-        BookedAnimeNight night    = new BookedAnimeNight(anime, firstEpisode, lastEpisode, amount, startingAt, endingAt);
-        T                instance = scheduler.apply(night);
+        BookedAnimeNight night = new BookedAnimeNight(anime, firstEpisode, lastEpisode, amount, startingAt, endingAt);
+
+        LOGGER.debug("Calling scheduler function...");
+        T instance = scheduler.apply(night);
+
+        LOGGER.info("Event scheduled !");
         this.nights.add(instance);
 
-        return Optional.of(instance);
+        return instance;
     }
 
     /**
@@ -134,15 +143,19 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
      */
     public void scheduleAllStartingAt(Anime anime, long amount, ZonedDateTime startingAt, Function<BookedAnimeNight, T> scheduler, Function<ZonedDateTime, ZonedDateTime> incrementalTime) {
 
+        LOGGER.info("Trying to schedule Anime {} completely...", anime.getId());
+
         if (anime.getTotal() < 1) {
+            LOGGER.warn("Unknown total of episode: Can't schedule.");
             throw new IllegalStateException("You can't schedule every episode of this anime: The total number of episode is unknown.");
         }
 
         ZonedDateTime now           = ZonedDateTime.now();
         ZonedDateTime securityLimit = now.plusYears(2);
-        ZonedDateTime scheduleAt    = startingAt;
+        ZonedDateTime scheduleAt    = startingAt.withSecond(0).withNano(0);
 
         if (scheduleAt.isBefore(now)) {
+            LOGGER.warn("Tried to schedule in the past.");
             throw new IllegalStateException("Are you fucking kidding me ? Don't schedule thing in the past you moron");
         }
 
@@ -151,18 +164,23 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
                                                      .orElseGet(anime::getWatched);
 
         while (left > 0) {
+            LOGGER.debug("Watch data: {} episodes left to schedule.", left);
             long nextAmount = Math.min(amount, left);
 
-            Optional<T> optionallyScheduled = this.scheduleAt(anime, nextAmount, scheduleAt, scheduler);
-
-            if (optionallyScheduled.isPresent()) {
+            try {
+                LOGGER.debug("Trying to schedule {} episodes at {}", nextAmount, scheduleAt);
+                this.scheduleAt(anime, nextAmount, scheduleAt, scheduler);
+                LOGGER.info("An event has been scheduled at {} !", scheduleAt);
                 left -= nextAmount;
-                continue;
+            } catch (AnimeNightOverlappingException ignore) {
+                LOGGER.debug("Could not schedule at {}: Something is already scheduled here.", scheduleAt);
+                // Expected exception, let's continue.
             }
 
             scheduleAt = incrementalTime.apply(scheduleAt);
 
             if (scheduleAt.isAfter(securityLimit)) {
+                LOGGER.error("WOW ! Tried to schedule an event 2 years later, something is obviously wrong here.");
                 throw new IllegalStateException("Could not completely schedule the anime within a 2 years time period. Either you have a lot to watch, or you fucked up the code.");
             }
         }
@@ -198,6 +216,7 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
     public void calibrate(Iterable<Anime> animes, Consumer<T> onUpdate) {
 
         for (Anime anime : animes) {
+            LOGGER.info("Calibrating anime {}...", anime.getId());
             // Even if the ZonID is wrong there, it's almost impossible that it is before "now"... right ?
             // ... What are you doing with this time travel machine ? Put it away, I beg you.
             OffsetDateTime time = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).toOffsetDateTime();
@@ -252,15 +271,17 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
         }
     }
 
-    public boolean delay(long value, TimeUnit unit, Predicate<OffsetDateTime> predicate, Consumer<T> onUpdate) {
+    public void delay(long value, TimeUnit unit, Predicate<OffsetDateTime> predicate, Consumer<T> onUpdate) {
 
+        LOGGER.info("Trying to delay schedule by {} {}", value, unit.name());
         // Retrieve delayable entities.
         List<T> delayable = this.nights.stream()
                                        .filter(event -> predicate.test(event.getStartDateTime()))
                                        .sorted(Comparator.comparing(AnimeNightMeta::getStartDateTime).reversed())
                                        .toList();
 
-        // Dry run - We first check if we can delay safely.
+        // We first check if we can delay safely.
+        LOGGER.info("Checking if schedule can be delayed...");
         for (T event : delayable) {
             // Make a copy
             BookedAnimeNight night = new BookedAnimeNight(event);
@@ -273,18 +294,19 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
                                          .filter(item -> !delayable.contains(item))
                                          .anyMatch(item -> item.isColliding(night));
 
+
             if (collide) {
-                return false;
+                LOGGER.info("Nope, it can't be scheduled.");
+                throw new AnimeNightOverlappingException(night.getAnime(), night.getStartDateTime(), night.getEndDateTime());
             }
         }
 
+        LOGGER.info("Delaying...");
         // Hey, we can delay the schedule !
         for (T event : delayable) {
             // Apply delay
             event.setStartDateTime(event.getStartDateTime().plus(value, unit.toChronoUnit()));
             onUpdate.accept(event);
         }
-        // Delay success !
-        return true;
     }
 }

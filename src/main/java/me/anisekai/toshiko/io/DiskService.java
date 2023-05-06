@@ -1,6 +1,8 @@
 package me.anisekai.toshiko.io;
 
 import jakarta.annotation.PostConstruct;
+import me.anisekai.toshiko.configurations.ToshikoDiskConfiguration;
+import me.anisekai.toshiko.configurations.ToshikoFeatureConfiguration;
 import me.anisekai.toshiko.io.entities.DiskAnime;
 import me.anisekai.toshiko.io.entities.DiskEpisode;
 import me.anisekai.toshiko.io.entities.DiskGroup;
@@ -9,7 +11,6 @@ import me.anisekai.toshiko.utils.FileSystemUtils;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -26,34 +27,30 @@ public class DiskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiskService.class);
 
-    @Value("${toshiko.fs.automation}")
-    private String fsAutomation;
-
-    @Value("${toshiko.fs.animes}")
-    private String fsAnimes;
-
-    @Value("${toshiko.fs.subtitles}")
-    private String fsSubtitles;
+    private final ToshikoFeatureConfiguration featureConfiguration;
+    private final ToshikoDiskConfiguration    diskConfiguration;
 
     private Path automationPath;
     private Path animePath;
     private Path subtitlePath;
 
-    private Set<DiskAnime> database;
-    private JSONArray      databaseCache;
+    private       Set<DiskAnime> database;
+    private final JSONArray      databaseCache;
 
-    public DiskService() {
+    public DiskService(ToshikoFeatureConfiguration featureConfiguration, ToshikoDiskConfiguration diskConfiguration) {
 
-        this.database      = new TreeSet<>(Comparator.comparing(DiskAnime::getName));
-        this.databaseCache = new JSONArray();
+        this.featureConfiguration = featureConfiguration;
+        this.diskConfiguration    = diskConfiguration;
+        this.database             = new TreeSet<>(Comparator.comparing(DiskAnime::getName));
+        this.databaseCache        = new JSONArray();
     }
 
     @PostConstruct
     private void initialize() {
 
-        this.automationPath = Path.of(this.fsAutomation);
-        this.animePath      = Path.of(this.fsAnimes);
-        this.subtitlePath   = Path.of(this.fsSubtitles);
+        this.automationPath = Path.of(this.diskConfiguration.getAnimesInput());
+        this.animePath      = Path.of(this.diskConfiguration.getAnimesOutput());
+        this.subtitlePath   = Path.of(this.diskConfiguration.getSubtitlesOutput());
 
         this.cache();
     }
@@ -73,19 +70,14 @@ public class DiskService {
         return this.subtitlePath;
     }
 
-    public String getFsAutomation() {
+    public ToshikoDiskConfiguration getDiskConfiguration() {
 
-        return this.fsAutomation;
+        return this.diskConfiguration;
     }
 
-    public String getFsAnimes() {
+    public boolean isEnabled() {
 
-        return this.fsAnimes;
-    }
-
-    public String getFsSubtitles() {
-
-        return this.fsSubtitles;
+        return this.featureConfiguration.isDiskEnabled();
     }
 
     public Set<DiskAnime> getDatabase() {
@@ -100,10 +92,13 @@ public class DiskService {
 
     public void cache() {
         // Build the cache.
+        if (!this.featureConfiguration.isDiskEnabled()) {
+            return;
+        }
 
         Set<DiskAnime> cache = new TreeSet<>(Comparator.comparing(DiskAnime::getName));
 
-        for (File anime : FileSystemUtils.files(this.fsAnimes)) {
+        for (File anime : FileSystemUtils.files(this.diskConfiguration.getAnimesOutput())) {
 
             if (anime.isFile()) {
                 continue;
@@ -152,7 +147,7 @@ public class DiskService {
         }
 
         LOGGER.debug("Finalizing...");
-        cache.forEach(a -> a.finalize(this.fsAnimes, this.fsSubtitles));
+        cache.forEach(a -> a.finalize(this.diskConfiguration.getAnimesOutput(), this.diskConfiguration.getSubtitlesOutput()));
         LOGGER.debug("Finalized.");
 
         // Apply cache
