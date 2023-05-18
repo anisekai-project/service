@@ -91,7 +91,7 @@ public class MiscellaneousInteractions {
                 return new SimpleResponse("Les listes seront actualisées sous peu.", false, false);
             }
             case "announce" -> {
-                this.animeService.announce();
+                this.animeService.announce(false);
                 return new SimpleResponse("Les annonces seront actualisées sous peu.", false, false);
             }
             case "schedule" -> {

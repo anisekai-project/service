@@ -227,13 +227,13 @@ public class AnimeService {
         return new AnimeImportResult(saved, AnimeImportResult.State.CREATED);
     }
 
-    public void announce() {
+    public void announce(boolean createMissing) {
         // Check anime announce status
 
         for (Anime anime : this.repository.findAll()) {
-            if (anime.getAnnounceMessage() == null) {
+            if (anime.getAnnounceMessage() == null && createMissing) {
                 this.publisher.publishEvent(new AnimeCreatedEvent(this, anime));
-            } else {
+            } else if (anime.getAnnounceMessage() != null) {
                 this.publisher.publishEvent(new AnimeUpdatedEvent(this, anime));
             }
         }
