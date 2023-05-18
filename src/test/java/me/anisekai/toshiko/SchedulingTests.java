@@ -29,7 +29,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime  now        = ZonedDateTime.now();
-        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
         OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
 
 
@@ -50,7 +50,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime  now        = ZonedDateTime.now();
-        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0).plusDays(1);
+        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0).plusDays(1);
         OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
 
         BookedAnimeNight night  = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
@@ -70,7 +70,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
 
@@ -88,7 +88,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
         fakeAnimeOne.setWatched(3);
 
         BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
@@ -107,7 +107,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
         ZonedDateTime tomorrow = scheduleAt.plusDays(1);
@@ -127,7 +127,7 @@ public class SchedulingTests {
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
         Assertions.assertThrows(AnimeNightOverlappingException.class, () -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
@@ -141,7 +141,7 @@ public class SchedulingTests {
         AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
@@ -190,7 +190,7 @@ public class SchedulingTests {
         AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 1, scheduleAt, booking -> {
@@ -239,7 +239,7 @@ public class SchedulingTests {
         AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
-        ZonedDateTime scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 1, scheduleAt, booking -> {
@@ -296,7 +296,7 @@ public class SchedulingTests {
 
         ZonedDateTime  now        = ZonedDateTime.now();
         OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
-        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
@@ -321,7 +321,7 @@ public class SchedulingTests {
 
         ZonedDateTime  now        = ZonedDateTime.now();
         OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
-        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
@@ -346,7 +346,7 @@ public class SchedulingTests {
         AnimeNightScheduler<BookedAnimeNight> scheduler = new AnimeNightScheduler<>(Collections.emptyList());
 
         ZonedDateTime  now        = ZonedDateTime.now();
-        ZonedDateTime  scheduleAt = now.withHour(now.getHour() + 1).withMinute(0);
+        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
         OffsetDateTime delayLimit = scheduleAt.plusMinutes(5).toOffsetDateTime();
 
         Set<AnimeNightMeta> events = new HashSet<>();
