@@ -11,10 +11,12 @@ import java.util.function.Consumer;
 public class InterestResponse implements ButtonResponse, SlashResponse {
 
     private final Interest interest;
+    private final boolean  editOriginal;
 
-    public InterestResponse(Interest interest) {
+    public InterestResponse(Interest interest, boolean editOriginal) {
 
-        this.interest = interest;
+        this.interest     = interest;
+        this.editOriginal = editOriginal;
     }
 
     @Override
@@ -41,12 +43,12 @@ public class InterestResponse implements ButtonResponse, SlashResponse {
     @Override
     public boolean shouldEditOriginalMessage() {
 
-        return true;
+        return this.editOriginal;
     }
 
     @Override
     public boolean isEphemeral() {
 
-        return false;
+        return !this.editOriginal;
     }
 }

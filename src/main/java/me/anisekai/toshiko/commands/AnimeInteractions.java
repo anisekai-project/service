@@ -24,6 +24,7 @@ import me.anisekai.toshiko.utils.PermissionUtils;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,7 +183,7 @@ public class AnimeInteractions {
         InterestLevel level    = InterestLevel.from(interestName);
         Interest      interest = this.interestService.setInterestLevel(anime, discordUser, level);
 
-        return new InterestResponse(interest);
+        return new InterestResponse(interest, interaction instanceof SlashCommandInteraction);
     }
     // </editor-fold>
 
