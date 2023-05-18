@@ -50,7 +50,7 @@ public class SeasonalSelectionService {
         // Get all animes in SIMULCAST state...
 
         List<Anime> simulcasts = this.animeRepository
-                .findAllByStatusIn(Collections.singleton(AnimeStatus.SIMULCAST));
+                .findAllByStatusIn(Collections.singleton(AnimeStatus.SIMULCAST_AVAILABLE));
 
         ss.setAnimes(new HashSet<>(simulcasts));
 
