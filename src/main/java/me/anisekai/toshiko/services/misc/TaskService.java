@@ -53,7 +53,7 @@ public class TaskService {
             return;
         }
 
-        LOGGER.debug("Running '{}' task...", taskName);
+        LOGGER.debug("[{} left] Running '{}' task...", this.taskQueue.size(), taskName);
         long start = System.currentTimeMillis();
         Task task  = this.runnableMap.get(taskName);
 
@@ -61,10 +61,10 @@ public class TaskService {
             task.run();
             long end = System.currentTimeMillis();
             task.onFinished();
-            LOGGER.debug("Task '{}' executed in {}ms", task.getName(), (end - start));
+            LOGGER.debug("[{} left] Task '{}' executed in {}ms", this.taskQueue.size(), task.getName(), (end - start));
         } catch (Exception e) {
             long end = System.currentTimeMillis();
-            LOGGER.debug("Task '{}' failed after {}ms", task.getName(), (end - start));
+            LOGGER.debug("[{} left] Task '{}' failed after {}ms", this.taskQueue.size(), task.getName(), (end - start));
             LOGGER.error("Task failed:", e);
             task.onException(e);
         }
