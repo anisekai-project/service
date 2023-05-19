@@ -6,6 +6,7 @@ import me.anisekai.toshiko.entities.SeasonalVote;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.events.animenight.AnimeNightFinishedEvent;
 import me.anisekai.toshiko.events.animenight.AnimeNightStartedEvent;
+import me.anisekai.toshiko.events.interest.InterestUpdatedEvent;
 import me.anisekai.toshiko.events.selections.SeasonalSelectionClosedEvent;
 import me.anisekai.toshiko.services.AnimeService;
 import org.slf4j.Logger;
@@ -74,5 +75,13 @@ public class AnimeListener {
              .map(SeasonalVote::getAnime)
              .distinct()
              .forEach(anime -> this.service.setStatus(anime, AnimeStatus.SIMULCAST));
+    }
+
+    @EventListener
+    public void onInterestedChanged(InterestUpdatedEvent event) {
+
+        Anime anime = event.getInterest().getAnime();
+        this.service.announce(anime);
+
     }
 }

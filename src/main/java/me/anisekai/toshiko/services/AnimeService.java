@@ -236,6 +236,15 @@ public class AnimeService {
         return new AnimeImportResult(saved, AnimeImportResult.State.CREATED);
     }
 
+    public void announce(Anime anime) {
+
+        if (anime.getAnnounceMessage() == null) {
+            this.publisher.publishEvent(new AnimeCreatedEvent(this, anime));
+        } else if (anime.getAnnounceMessage() != null) {
+            this.publisher.publishEvent(new AnimeUpdatedEvent(this, anime));
+        }
+    }
+
     public void announce(boolean createMissing) {
         // Check anime announce status
 
