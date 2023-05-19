@@ -35,7 +35,8 @@ public class Anime implements Comparable<Anime> {
     @Enumerated(EnumType.STRING)
     private AnimeStatus status;
 
-    @OneToMany(mappedBy = "anime", fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "anime_id")
     @JsonIgnore
     private Set<Interest> interests;
 
@@ -140,6 +141,11 @@ public class Anime implements Comparable<Anime> {
     public Set<Interest> getInterests() {
 
         return this.interests;
+    }
+
+    public void setInterests(Set<Interest> interests) {
+
+        this.interests = interests;
     }
 
     public @NotNull DiscordUser getAddedBy() {

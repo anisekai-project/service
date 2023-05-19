@@ -1,16 +1,15 @@
 package me.anisekai.toshiko.services;
 
-import me.anisekai.toshiko.components.JdaStore;
 import me.anisekai.toshiko.data.anime.AnimeImportResult;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
+import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
+import me.anisekai.toshiko.enums.InterestLevel;
 import me.anisekai.toshiko.events.anime.*;
 import me.anisekai.toshiko.exceptions.animes.AnimeNotFoundException;
 import me.anisekai.toshiko.repositories.AnimeRepository;
-import me.anisekai.toshiko.services.misc.TaskService;
-import me.anisekai.toshiko.tasks.SendAnnouncementTask;
-import me.anisekai.toshiko.tasks.UpdateAnnouncementTask;
+import me.anisekai.toshiko.repositories.InterestRepository;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -30,12 +29,20 @@ public class AnimeService {
     private final static Logger LOGGER = LoggerFactory.getLogger(AnimeService.class);
 
     private final AnimeRepository           repository;
+    private final InterestRepository        interestRepository;
     private final ApplicationEventPublisher publisher;
 
-    public AnimeService(AnimeRepository repository, ApplicationEventPublisher publisher, TaskService taskService, JdaStore store) {
+    public AnimeService(AnimeRepository repository, ApplicationEventPublisher publisher, InterestRepository interestRepository) {
 
-        this.repository = repository;
-        this.publisher  = publisher;
+        this.repository         = repository;
+        this.publisher          = publisher;
+        this.interestRepository = interestRepository;
+    }
+
+    private void onPostPersist(Anime anime) {
+
+        this.interestRepository.save(new Interest(anime, anime.getAddedBy(), InterestLevel.INTERESTED));
+        anime.setInterests(this.interestRepository.findAllByAnime(anime));
     }
 
     public AnimeRepository getRepository() {
@@ -44,6 +51,7 @@ public class AnimeService {
     }
 
     public Set<Anime> findByStatus(AnimeStatus status) {
+
         return this.repository.findAllByStatus(status);
     }
 
@@ -219,6 +227,7 @@ public class AnimeService {
 
         LOGGER.info("Anime does not exist. Creating anime entry...");
         Anime saved = this.repository.save(loaded);
+        this.onPostPersist(saved);
 
         LOGGER.debug("Sending AnimeCreatedEvent...");
         AnimeCreatedEvent event = new AnimeCreatedEvent(this, saved);

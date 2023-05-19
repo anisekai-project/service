@@ -16,6 +16,7 @@ import me.anisekai.toshiko.annotations.InteractAt;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.InteractionType;
 import me.anisekai.toshiko.helpers.InteractionBean;
+import me.anisekai.toshiko.helpers.ToshikoErrorHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.Interaction;
@@ -46,6 +47,7 @@ public class DiscordService {
         this.beanFactory       = beanFactory;
         this.extension         = new InteractionExtension();
 
+        this.extension.setErrorHandler(new ToshikoErrorHandler());
         this.extension.getSlashContainer().addClassMapping(DiscordUser.class, this.injectionService.entityUserMapper());
         this.extension.getButtonContainer()
                       .addClassMapping(DiscordUser.class, this.injectionService.entityUserMapper());

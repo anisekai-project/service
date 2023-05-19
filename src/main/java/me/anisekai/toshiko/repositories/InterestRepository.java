@@ -11,20 +11,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface InterestRepository extends JpaRepository<Interest, UserAnimeAssocKey> {
 
     Optional<Interest> findByAnimeAndUser(Anime anime, DiscordUser user);
 
+    Set<Interest> findAllByAnime(Anime anime);
+
     @Query("SELECT i FROM Interest i WHERE i.user.active = true AND i.anime = :anime")
     List<Interest> findAllActiveByAnime(Anime anime);
 
     @Query("SELECT i FROM Interest i WHERE i.user.active = true")
     List<Interest> findAllActive();
-
-    @Deprecated
-    List<Interest> findAllByAnime(Anime anime);
 
     @Deprecated
     @NotNull List<Interest> findAll();

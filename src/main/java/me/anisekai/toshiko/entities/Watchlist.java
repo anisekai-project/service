@@ -21,7 +21,8 @@ public class Watchlist implements Comparable<Watchlist> {
     @Column
     private Long messageId;
 
-    @OneToMany(mappedBy = "status", fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "status")
     private Set<Anime> animes;
 
     @Column(nullable = false)
