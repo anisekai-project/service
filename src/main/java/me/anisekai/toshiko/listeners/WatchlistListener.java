@@ -2,6 +2,7 @@ package me.anisekai.toshiko.listeners;
 
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.events.anime.*;
+import me.anisekai.toshiko.events.user.UserActivityUpdatedEvent;
 import me.anisekai.toshiko.events.user.UserEmoteUpdatedEvent;
 import me.anisekai.toshiko.services.WatchlistService;
 import org.slf4j.Logger;
@@ -95,4 +96,12 @@ public class WatchlistListener {
         LOGGER.info("onUserEmoteUpdated: User {}", event.getUser().getId());
         this.service.updateAll();
     }
+
+    @EventListener
+    public void onUserActivityUpdated(UserActivityUpdatedEvent event) {
+
+        LOGGER.info("onUserActivityUpdated: User {}", event.getUser().getId());
+        this.service.updateAll();
+    }
+
 }

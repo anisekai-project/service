@@ -6,6 +6,7 @@ import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.events.anime.AnimeStatusUpdatedEvent;
 import me.anisekai.toshiko.events.interest.InterestUpdatedEvent;
+import me.anisekai.toshiko.events.user.UserActivityUpdatedEvent;
 import me.anisekai.toshiko.repositories.AnimeRepository;
 import me.anisekai.toshiko.repositories.InterestRepository;
 import me.anisekai.toshiko.repositories.UserRepository;
@@ -115,5 +116,11 @@ public class RankingHandler {
         if (event.getInterest().getUser().isActive() && event.getInterest().getAnime().getStatus().isWatchable()) {
             this.process();
         }
+    }
+
+    @EventListener
+    public void onUserActivityUpdated(UserActivityUpdatedEvent event) {
+
+        this.process();
     }
 }
