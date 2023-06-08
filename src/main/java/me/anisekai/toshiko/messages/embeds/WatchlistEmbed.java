@@ -50,6 +50,8 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
                 builder.setDescription(animes.stream()
                                              .map(WatchlistAnimePart::getMacroFormat)
                                              .collect(Collectors.joining("\n")));
+            } else if (animes.isEmpty()) {
+                builder.setDescription("*Aucun anime présent dans cette liste...*");
             } else {
                 String full = animes.stream().map(WatchlistAnimePart::getFullFormat).collect(Collectors.joining("\n"));
                 String small = animes.stream()
