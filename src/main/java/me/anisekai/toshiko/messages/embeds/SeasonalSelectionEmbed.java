@@ -14,37 +14,73 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
-    private final SeasonalSelection seasonalSelection;
+    private final SeasonalSelection  seasonalSelection;
+    private final Set<SeasonalVote>  votes;
+    private final Set<SeasonalVoter> voters;
 
     public SeasonalSelectionEmbed(SeasonalSelection seasonalSelection) {
 
         this.seasonalSelection = seasonalSelection;
+        this.votes             = seasonalSelection.getVotes()
+                                                  .stream()
+                                                  .sorted(Comparator.comparing(vote -> vote.getAnime().getId()))
+                                                  .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        this.voters = seasonalSelection.getVoters()
+                                       .stream()
+                                       .sorted(
+                                               Comparator.comparing(SeasonalVoter::getAmount)
+                                                         .reversed()
+                                                         .thenComparing(voter -> voter.getUser().getId())
+                                       )
+                                       .collect(Collectors.toCollection(LinkedHashSet::new));
+
+
+    }
+
+    public EmbedBuilder getClosed() {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setDescription(String.format("# Saison: %s\n", this.seasonalSelection.getName()));
+        embedBuilder.appendDescription("Les membres ont fait leur choix!\n");
+
+        for (SeasonalVoter voter : this.voters) {
+
+            List<SeasonalVote> votes = this.votes.stream()
+                                                .filter(vote -> vote.getUser().equals(voter.getUser()))
+                                                .toList();
+
+            embedBuilder.appendDescription(String.format("- %s (<@%s>)\n", voter.getUser().getEmote(), voter.getUser().getId()));
+
+            for (SeasonalVote vote : votes) {
+                embedBuilder.appendDescription(String.format("  - [%s](%s)\n", vote.getAnime().getName(), vote.getAnime().getLink()));
+            }
+
+            embedBuilder.appendDescription("\n");
+        }
+
+        return embedBuilder;
     }
 
     public EmbedBuilder getIntroduction() {
         // Build data for user visibility
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
-        embedBuilder.setTitle("Une saison démarre ! " + this.seasonalSelection.getName());
-        embedBuilder.setDescription("""
-                                    Les votes sont ouvert ! Choisissez le ou les anime(s) que vous souhaitez visionner.
-                                                                   
-                                    Ci-dessous, le nombre de votes par personne:
-                                    """);
+        embedBuilder.setDescription(String.format("# Saison: %s\n", this.seasonalSelection.getName()));
 
-        for (SeasonalVoter voter : this.seasonalSelection.getVoters()) {
-            embedBuilder.addField(String.format("%s (%s)",
-                    voter.getUser().getUsername(),
-                    voter.getUser().getEmote()
-            ), String.format("%s choix possible(s)", voter.getAmount()), false);
-        }
+
+        this.voters.stream()
+                   .map(voter -> String.format(
+                           "- %s - %s choix - (<@%s>)\n",
+                           voter.getUser().getEmote(),
+                           voter.getAmount(),
+                           voter.getUser().getId()
+                   )).forEach(embedBuilder::appendDescription);
 
         return embedBuilder;
     }
@@ -52,10 +88,24 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
     public EmbedBuilder getAnimeList() {
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setDescription("Voici les animes qui sont disponible pour cette saison:");
-
+        embedBuilder.setDescription("# Les Simulcasts:\n");
         for (Anime anime : this.seasonalSelection.getAnimes()) {
-            embedBuilder.addField(this.asField(anime));
+
+            String line = this.getVoteFor(anime).map(vote -> String.format(
+                    "- ~~`[ %s ]` %s [%s](%s)~~",
+                    anime.getId(),
+                    vote.getUser().getEmote(),
+                    anime.getName(),
+                    anime.getLink()
+            )).orElseGet(() -> String.format(
+                    "- **`[ %s ]` [%s](%s)**",
+                    anime.getId(),
+                    anime.getName(),
+                    anime.getLink()
+            ));
+
+            embedBuilder.appendDescription(line).appendDescription("\n");
+            //embedBuilder.addField(this.asField(anime));
         }
 
         return embedBuilder;
@@ -76,10 +126,10 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
     private Optional<SeasonalVote> getVoteFor(Anime anime) {
 
-        return this.seasonalSelection.getVotes()
-                                     .stream()
-                                     .filter(vote -> vote.getAnime().equals(anime))
-                                     .findFirst();
+        return this.votes
+                .stream()
+                .filter(vote -> vote.getAnime().equals(anime))
+                .findFirst();
     }
 
     @Override
@@ -92,22 +142,33 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
     public Consumer<MessageRequest<?>> getHandler() {
 
         return (mr) -> {
+
+            if (this.seasonalSelection.isClosed()) {
+                mr.setEmbeds(this.getClosed().build());
+                mr.setComponents(Collections.emptyList());
+                return;
+            }
+
+
             mr.setEmbeds(this.getIntroduction().build(), this.getAnimeList().build());
 
             // Buttons time ! yay !
             List<Button> buttons = this.seasonalSelection.getAnimes().stream().map(anime ->
                     this.getVoteFor(anime)
-                        .map(vote -> Button.of(ButtonStyle.DANGER,
+                        .map(vote -> Button.of(ButtonStyle.SECONDARY,
                                 String.format("button://season/cast?seasonal=%s&anime=%s", this.seasonalSelection.getId(), anime.getId()),
                                 String.format("Anime %s", anime.getId()),
                                 Emoji.fromUnicode(Objects.requireNonNull(vote.getUser().getEmote()))
                         ))
-                        .orElseGet(() -> Button.of(ButtonStyle.SUCCESS,
+                        .orElseGet(() -> Button.of(ButtonStyle.PRIMARY,
                                 String.format("button://season/cast?seasonal=%s&anime=%s", this.seasonalSelection.getId(), anime.getId()),
                                 String.format("Anime %s", anime.getId())
                         ))).toList();
 
-            mr.setComponents(ActionRow.partitionOf(buttons));
+            List<ActionRow> rows = new ArrayList<>(ActionRow.partitionOf(buttons));
+            rows.add(ActionRow.of(Button.danger(String.format("button://season/close?seasonal=%s", this.seasonalSelection.getId()), "Clôturer")));
+
+            mr.setComponents(rows);
         };
     }
 

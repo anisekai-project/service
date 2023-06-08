@@ -3,6 +3,8 @@ package me.anisekai.toshiko.entities;
 import jakarta.persistence.*;
 import me.anisekai.toshiko.entities.keys.SeasonalVoterKey;
 
+import java.util.Objects;
+
 @Entity
 @IdClass(SeasonalVoterKey.class)
 public class SeasonalVoter {
@@ -24,7 +26,7 @@ public class SeasonalVoter {
 
     public SeasonalVoter(SeasonalSelection seasonalSelection, DiscordUser user) {
 
-        this(seasonalSelection, user, 1);
+        this(seasonalSelection, user, 0);
     }
 
     public SeasonalVoter(SeasonalSelection seasonalSelection, DiscordUser user, int amount) {
@@ -37,6 +39,11 @@ public class SeasonalVoter {
     public SeasonalSelection getSeasonalSelection() {
 
         return this.seasonalSelection;
+    }
+
+    public void setSeasonalSelection(SeasonalSelection seasonalSelection) {
+
+        this.seasonalSelection = seasonalSelection;
     }
 
     public DiscordUser getUser() {
@@ -52,5 +59,20 @@ public class SeasonalVoter {
     public void setAmount(int amount) {
 
         this.amount = amount;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {return true;}
+        if (o == null || this.getClass() != o.getClass()) {return false;}
+        SeasonalVoter voter = (SeasonalVoter) o;
+        return this.getAmount() == voter.getAmount() && Objects.equals(this.getSeasonalSelection(), voter.getSeasonalSelection()) && Objects.equals(this.getUser(), voter.getUser());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(this.getSeasonalSelection(), this.getUser(), this.getAmount());
     }
 }

@@ -4,20 +4,18 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.toshiko.annotations.InteractAt;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.SeasonalSelection;
-import me.anisekai.toshiko.entities.SeasonalVote;
+import me.anisekai.toshiko.enums.InteractionType;
 import me.anisekai.toshiko.helpers.InteractionBean;
 import me.anisekai.toshiko.messages.embeds.SeasonalSelectionEmbed;
-import me.anisekai.toshiko.messages.responses.SimpleResponse;
 import me.anisekai.toshiko.services.AnimeService;
 import me.anisekai.toshiko.services.SeasonalSelectionService;
 import me.anisekai.toshiko.utils.PermissionUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 @InteractionBean
@@ -48,6 +46,7 @@ public class SeasonalSelectionInteractions {
 
         PermissionUtils.requirePrivileges(user);
         SeasonalSelection ss = this.service.createSeasonalSelection(name);
+
         return new SeasonalSelectionEmbed(ss);
     }
     // </editor-fold>
@@ -61,50 +60,49 @@ public class SeasonalSelectionInteractions {
                             name = "seasonal",
                             description = "Selection saisonnière pour laquelle le simulcast sera choisi",
                             type = OptionType.INTEGER,
-                            required = true,
-                            autoComplete = true
+                            required = true
                     ),
                     @Option(
                             name = "anime",
                             description = "Anime choisi pour la saison",
                             type = OptionType.INTEGER,
-                            required = true,
-                            autoComplete = true
+                            required = true
                     )
             }
     )
-    public SlashResponse castSimulcastVote(DiscordUser user, @Param("id") Long seasonalSelectionId, @Param("anime") Long animeId) {
+    @InteractAt(InteractionType.BUTTON)
+    public SlashResponse castSimulcastVote(DiscordUser user, @Param("seasonal") Long seasonalSelectionId, @Param("anime") Long animeId) {
 
         Anime             anime = this.animeService.getAnime(animeId);
         SeasonalSelection ss    = this.service.getSelection(seasonalSelectionId);
 
-        // Check the vote eligibility of the user
-        if (ss.getVoters().stream().noneMatch(voter -> voter.getUser().equals(user))) {
-            return new SimpleResponse("Tu n'es pas autorisé à choisir un simulcast.", false, true);
-        }
-
-        // Check if anime is already voted.
-        Optional<SeasonalVote> optionalVote = ss.getVotes()
-                                                .stream()
-                                                .filter(sv -> sv.getAnime().equals(anime))
-                                                .findFirst();
-
-        if (optionalVote.isPresent()) {
-            // Sanity checks
-            SeasonalVote vote = optionalVote.get();
-
-            if (!vote.getUser().equals(user)) {
-                return new SimpleResponse("Cet anime est déjà choisi.", false, true);
-            }
-
-            // TODO: Remove vote
-
-            return new SimpleResponse("Ton choix a bien été retiré.", false, true);
-        }
-
-
-        // TODO
-        return new SimpleResponse("La commande n'est pas encore prête.", false, true);
+        return new SeasonalSelectionEmbed(this.service.castVote(ss, user, anime));
     }
     // </editor-fold>
+
+
+    // <editor-fold desc="@ season/close ─ Termine un vote de simulcast">
+    @Interact(
+            name = "season/close",
+            description = "Termine un vote de simulcast",
+            options = {
+                    @Option(
+                            name = "seasonal",
+                            description = "Selection saisonnière à terminer",
+                            type = OptionType.STRING,
+                            required = true
+                    )
+            }
+    )
+    @InteractAt(InteractionType.BUTTON)
+    public SlashResponse stopSeasonalSelection(DiscordUser user, @Param("seasonal") String seasonalSelectionId) {
+
+        PermissionUtils.requirePrivileges(user);
+        SeasonalSelection selection = this.service.getSelection(Long.parseLong(seasonalSelectionId));
+        this.service.closeSeasonalSelection(selection, true);
+
+        return new SeasonalSelectionEmbed(selection);
+    }
+    // </editor-fold>
+
 }

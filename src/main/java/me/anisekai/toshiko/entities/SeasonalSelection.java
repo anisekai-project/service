@@ -3,6 +3,7 @@ package me.anisekai.toshiko.entities;
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.interactions.commands.Command;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -17,10 +18,10 @@ public class SeasonalSelection {
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Anime> animes;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "seasonalSelection")
     private Set<SeasonalVoter> voters;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "seasonalSelection")
     private Set<SeasonalVote> votes;
 
     private boolean closed;
@@ -95,5 +96,20 @@ public class SeasonalSelection {
             return new Command.Choice(String.format("%s...", this.getName().substring(0, 90)), this.getId());
         }
         return new Command.Choice(this.getName(), this.getId());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {return true;}
+        if (o == null || this.getClass() != o.getClass()) {return false;}
+        SeasonalSelection that = (SeasonalSelection) o;
+        return Objects.equals(this.getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(this.getId());
     }
 }
