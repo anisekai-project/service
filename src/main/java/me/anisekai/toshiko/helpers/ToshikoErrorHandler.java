@@ -10,8 +10,12 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ToshikoErrorHandler implements InteractionErrorHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToshikoErrorHandler.class);
 
     /**
      * Called when an exception occurs during the execution of an {@link Interaction}.
@@ -25,8 +29,9 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
     public <T extends Interaction> void handleException(DispatchEvent<T> event, Exception exception) {
 
         SentryId sentryId = null;
-        if (!(exception instanceof DiscordEmbeddable embeddable)) {
+        if (!(exception instanceof DiscordEmbeddable)) {
             sentryId = Sentry.captureException(exception); // Always report these.
+            LOGGER.error(event.getPath().toString(), exception);
         }
 
         if (event.getInteraction() instanceof IReplyCallback callback) {
