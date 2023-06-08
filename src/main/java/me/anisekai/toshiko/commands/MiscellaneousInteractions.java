@@ -82,7 +82,7 @@ public class MiscellaneousInteractions {
 
         switch (target) {
             case "watchlist" -> {
-                if (force) {
+                if (force != null && force) {
                     this.watchlistService.createWatchlists();
                 } else {
                     this.watchlistService.updateAll();
