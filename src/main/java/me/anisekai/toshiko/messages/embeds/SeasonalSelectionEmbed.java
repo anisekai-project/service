@@ -7,7 +7,6 @@ import me.anisekai.toshiko.entities.SeasonalSelection;
 import me.anisekai.toshiko.entities.SeasonalVote;
 import me.anisekai.toshiko.entities.SeasonalVoter;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -45,6 +44,7 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
     }
 
     public EmbedBuilder getClosed() {
+
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setDescription(String.format("# Saison: %s\n", this.seasonalSelection.getName()));
         embedBuilder.appendDescription("Les membres ont fait leur choix!\n");
@@ -52,13 +52,21 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
         for (SeasonalVoter voter : this.voters) {
 
             List<SeasonalVote> votes = this.votes.stream()
-                                                .filter(vote -> vote.getUser().equals(voter.getUser()))
-                                                .toList();
+                                                 .filter(vote -> vote.getUser().equals(voter.getUser()))
+                                                 .toList();
 
-            embedBuilder.appendDescription(String.format("- %s (<@%s>)\n", voter.getUser().getEmote(), voter.getUser().getId()));
+            embedBuilder.appendDescription(String.format(
+                    "- %s (<@%s>)\n",
+                    voter.getUser().getEmote(),
+                    voter.getUser().getId()
+            ));
 
             for (SeasonalVote vote : votes) {
-                embedBuilder.appendDescription(String.format("  - [%s](%s)\n", vote.getAnime().getName(), vote.getAnime().getLink()));
+                embedBuilder.appendDescription(String.format(
+                        "  - [%s](%s)\n",
+                        vote.getAnime().getName(),
+                        vote.getAnime().getLink()
+                ));
             }
 
             embedBuilder.appendDescription("\n");
@@ -75,12 +83,16 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
 
         this.voters.stream()
-                   .map(voter -> String.format(
-                           "- %s - %s choix - (<@%s>)\n",
-                           voter.getUser().getEmote(),
-                           voter.getAmount(),
-                           voter.getUser().getId()
-                   )).forEach(embedBuilder::appendDescription);
+                   .sorted(
+                           Comparator.comparingInt(SeasonalVoter::getAmount)
+                                     .reversed()
+                                     .thenComparingLong(voter -> voter.getUser().getId())
+                   ).map(voter -> String.format(
+                    "- %s - %s choix - (<@%s>)\n",
+                    voter.getUser().getEmote(),
+                    voter.getAmount(),
+                    voter.getUser().getId()
+            )).forEach(embedBuilder::appendDescription);
 
         return embedBuilder;
     }
@@ -89,39 +101,27 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setDescription("# Les Simulcasts:\n");
-        for (Anime anime : this.seasonalSelection.getAnimes()) {
 
-            String line = this.getVoteFor(anime).map(vote -> String.format(
-                    "- ~~`[ %s ]` %s [%s](%s)~~",
-                    anime.getId(),
-                    vote.getUser().getEmote(),
-                    anime.getName(),
-                    anime.getLink()
-            )).orElseGet(() -> String.format(
-                    "- **`[ %s ]` [%s](%s)**",
-                    anime.getId(),
-                    anime.getName(),
-                    anime.getLink()
-            ));
+        this.seasonalSelection.getAnimes().stream()
+                              .sorted(Comparator.comparingLong(Anime::getId))
+                              .forEach(anime -> {
+                                  String line = this.getVoteFor(anime).map(vote -> String.format(
+                                          "- ~~`[ %s ]` %s [%s](%s)~~",
+                                          anime.getId(),
+                                          vote.getUser().getEmote(),
+                                          anime.getName(),
+                                          anime.getLink()
+                                  )).orElseGet(() -> String.format(
+                                          "- **`[ %s ]` [%s](%s)**",
+                                          anime.getId(),
+                                          anime.getName(),
+                                          anime.getLink()
+                                  ));
 
-            embedBuilder.appendDescription(line).appendDescription("\n");
-            //embedBuilder.addField(this.asField(anime));
-        }
+                                  embedBuilder.appendDescription(line).appendDescription("\n");
+                              });
 
         return embedBuilder;
-    }
-
-    private MessageEmbed.Field asField(Anime anime) {
-
-        return this.getVoteFor(anime).map(vote -> new MessageEmbed.Field(
-                String.format("%s • ID: %s", vote.getUser().getEmote(), anime.getId()),
-                String.format("[%s](%s)", anime.getName(), anime.getLink()),
-                false
-        )).orElseGet(() -> new MessageEmbed.Field(
-                String.format("ID: %s", anime.getId()),
-                String.format("[%s](%s)", anime.getName(), anime.getLink()),
-                false
-        ));
     }
 
     private Optional<SeasonalVote> getVoteFor(Anime anime) {
@@ -154,19 +154,41 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
             // Buttons time ! yay !
             List<Button> buttons = this.seasonalSelection.getAnimes().stream().map(anime ->
-                    this.getVoteFor(anime)
-                        .map(vote -> Button.of(ButtonStyle.SECONDARY,
-                                String.format("button://season/cast?seasonal=%s&anime=%s", this.seasonalSelection.getId(), anime.getId()),
-                                String.format("Anime %s", anime.getId()),
-                                Emoji.fromUnicode(Objects.requireNonNull(vote.getUser().getEmote()))
-                        ))
-                        .orElseGet(() -> Button.of(ButtonStyle.PRIMARY,
-                                String.format("button://season/cast?seasonal=%s&anime=%s", this.seasonalSelection.getId(), anime.getId()),
-                                String.format("Anime %s", anime.getId())
-                        ))).toList();
+                                                                                           this.getVoteFor(anime)
+                                                                                               .map(vote -> Button.of(
+                                                                                                       ButtonStyle.SECONDARY,
+                                                                                                       String.format(
+                                                                                                               "button://season/cast?seasonal=%s&anime=%s",
+                                                                                                               this.seasonalSelection.getId(),
+                                                                                                               anime.getId()
+                                                                                                       ),
+                                                                                                       String.format(
+                                                                                                               "Anime %s",
+                                                                                                               anime.getId()
+                                                                                                       ),
+                                                                                                       Emoji.fromUnicode(
+                                                                                                               Objects.requireNonNull(
+                                                                                                                       vote.getUser()
+                                                                                                                           .getEmote()))
+                                                                                               ))
+                                                                                               .orElseGet(() -> Button.of(
+                                                                                                       ButtonStyle.PRIMARY,
+                                                                                                       String.format(
+                                                                                                               "button://season/cast?seasonal=%s&anime=%s",
+                                                                                                               this.seasonalSelection.getId(),
+                                                                                                               anime.getId()
+                                                                                                       ),
+                                                                                                       String.format(
+                                                                                                               "Anime %s",
+                                                                                                               anime.getId()
+                                                                                                       )
+                                                                                               ))).toList();
 
             List<ActionRow> rows = new ArrayList<>(ActionRow.partitionOf(buttons));
-            rows.add(ActionRow.of(Button.danger(String.format("button://season/close?seasonal=%s", this.seasonalSelection.getId()), "Clôturer")));
+            rows.add(ActionRow.of(Button.danger(String.format(
+                    "button://season/close?seasonal=%s",
+                    this.seasonalSelection.getId()
+            ), "Clôturer")));
 
             mr.setComponents(rows);
         };
@@ -177,4 +199,5 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
         return false;
     }
+
 }

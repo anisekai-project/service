@@ -66,4 +66,11 @@ public class JdaStore extends ListenerAdapter {
         return Optional.ofNullable(this.getBotGuild().getRoleById(this.configuration.getAnnounceRoleId()))
                        .orElseThrow(JdaUnavailableException::new);
     }
+
+    public TextChannel getAuditLogChannel() {
+
+        return Optional.ofNullable(this.getBotGuild().getTextChannelById(this.configuration.getAuditLogChannelId()))
+                       .orElseThrow(JdaUnavailableException::new);
+    }
+
 }

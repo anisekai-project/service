@@ -33,6 +33,7 @@ public class DiskService {
     private Path automationPath;
     private Path animePath;
     private Path subtitlePath;
+    private Path torrentPath;
 
     private       Set<DiskAnime> database;
     private final JSONArray      databaseCache;
@@ -51,6 +52,7 @@ public class DiskService {
         this.automationPath = Path.of(this.diskConfiguration.getAnimesInput());
         this.animePath      = Path.of(this.diskConfiguration.getAnimesOutput());
         this.subtitlePath   = Path.of(this.diskConfiguration.getSubtitlesOutput());
+        this.torrentPath    = Path.of(this.diskConfiguration.getTorrentInput());
 
         this.cache();
     }
@@ -68,6 +70,11 @@ public class DiskService {
     public Path getSubtitlePath() {
 
         return this.subtitlePath;
+    }
+
+    public Path getTorrentPath() {
+
+        return this.torrentPath;
     }
 
     public ToshikoDiskConfiguration getDiskConfiguration() {
@@ -158,4 +165,5 @@ public class DiskService {
         this.database.stream().map(DiskAnime::toJson).forEach(this.databaseCache::put);
         LOGGER.info("OK. Cached {} items", this.database.size());
     }
+
 }

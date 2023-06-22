@@ -3,6 +3,7 @@ package me.anisekai.toshiko.commands;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
+import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.components.RankingHandler;
@@ -25,6 +26,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 @Component
 @InteractionBean
@@ -181,9 +184,14 @@ public class AnimeInteractions {
         Anime anime = this.animeService.getAnime(animeId);
 
         InterestLevel level    = InterestLevel.from(interestName);
-        Interest      interest = this.interestService.setInterestLevel(anime, discordUser, level);
 
-        return new InterestResponse(interest, interaction instanceof SlashCommandInteraction);
+        Optional<Interest> optionalInterest = this.interestService.setInterestLevel(anime, discordUser, level);
+
+        if (optionalInterest.isEmpty()) {
+            return new SimpleResponse("Ton niveau d'interêt reste inchangé.", false, interaction instanceof ButtonInteraction);
+        }
+
+        return new InterestResponse(optionalInterest.get(), interaction instanceof SlashCommandInteraction);
     }
     // </editor-fold>
 

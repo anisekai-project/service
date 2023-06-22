@@ -82,6 +82,6 @@ public class AnimeListener {
 
         Anime anime = event.getInterest().getAnime();
         this.service.announce(anime);
-
     }
+
 }

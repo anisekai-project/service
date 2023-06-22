@@ -1,10 +1,17 @@
 package me.anisekai.toshiko.io;
 
+import me.anisekai.toshiko.events.misc.FileImportedEvent;
+import me.anisekai.toshiko.events.misc.ImportStartedEvent;
+import me.anisekai.toshiko.events.misc.TorrentFinishedEvent;
+import me.anisekai.toshiko.helpers.AnimeRenamer;
 import me.anisekai.toshiko.io.video.SubtitleCodec;
 import me.anisekai.toshiko.io.video.VideoFile;
 import me.anisekai.toshiko.utils.FileSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -26,14 +30,16 @@ public class ToshikoFileSystem {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ToshikoFileSystem.class);
 
-    private final DiskService             diskService;
-    private final FileManagerService      fileManagerService;
-    private final Collection<DiskFile>    diskFileLocking = new HashSet<>();
-    private final BlockingDeque<DiskFile> automationQueue = new LinkedBlockingDeque<>();
-    private       boolean                 hasFileWaiting  = false;
+    private final ApplicationEventPublisher publisher;
+    private final DiskService               diskService;
+    private final FileManagerService        fileManagerService;
+    private final Collection<DiskFile>      diskFileLocking = new HashSet<>();
+    private final BlockingDeque<DiskFile>   automationQueue = new LinkedBlockingDeque<>();
+    private       boolean                   hasFileWaiting  = false;
 
-    public ToshikoFileSystem(DiskService diskService, FileManagerService fileManagerService) {
+    public ToshikoFileSystem(ApplicationEventPublisher publisher, DiskService diskService, FileManagerService fileManagerService) {
 
+        this.publisher          = publisher;
         this.diskService        = diskService;
         this.fileManagerService = fileManagerService;
     }
@@ -90,6 +96,7 @@ public class ToshikoFileSystem {
 
         LOGGER.info("Queuing {} file(s) in automation directory.", supportedFiles.size());
 
+        this.publisher.publishEvent(new ImportStartedEvent(this, supportedFiles.size()));
         supportedFiles.forEach(diskFile -> {
             LOGGER.debug(" > Queuing '{}'...", this.getRelativeFsPath(diskFile.getFile()));
             this.diskFileLocking.add(diskFile);
@@ -128,6 +135,7 @@ public class ToshikoFileSystem {
             subtitles.forEach(subtitle -> subtitle.getFile().delete());
             this.diskFileLocking.remove(diskFile);
             LOGGER.info("The file '{}' was imported with success.", this.getRelativeFsPath(diskFile.getFile()));
+            this.publisher.publishEvent(new FileImportedEvent(this, this.getRelativeFsPath(diskFile.getFile())));
 
             if (!this.hasFileWaiting && this.automationQueue.isEmpty()) {
                 LOGGER.info("Automation folder is empty, rebuilding cache...");
@@ -143,6 +151,30 @@ public class ToshikoFileSystem {
             LOGGER.error("Failed to handle file {}: {}", this.getRelativeFsPath(diskFile.getFile()), e.getMessage());
             LOGGER.error("   > Failure reason:", e);
         }
+    }
+
+    @EventListener
+    public void onTorrentFinished(TorrentFinishedEvent event) throws IOException {
+
+        // Try to find the file.
+        File       torrentDirectory = this.diskService.getTorrentPath().toFile();
+        List<File> content          = FileSystemUtils.files(torrentDirectory);
+
+        Optional<File> optionalFile = content.stream()
+                                             .filter(file -> file.getName().startsWith(event.getTorrent().getAnime().getRssMatch()))
+                                             .findFirst();
+
+        if (optionalFile.isEmpty()) {
+            LOGGER.warn("Could not finalize {}", event.getTorrent().getName());
+            return;
+        }
+
+        File episode     = optionalFile.get();
+        File automation  = this.diskService.getAutomationPath().toFile();
+        File destination = new File(automation, event.getTorrent().getAnime().getDiskPath());
+
+        AnimeRenamer.rename(episode, destination);
+        this.checkForAutomation();
     }
 
 }

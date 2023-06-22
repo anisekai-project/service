@@ -32,6 +32,11 @@ public class ToshikoDiscordConfiguration {
      */
     private long watchlistChannelId;
 
+    /**
+     * The channel Discord Snowflake ID into which audit log will be sent.
+     */
+    private long auditLogChannelId;
+
 
     public String getToken() {
 
@@ -82,4 +87,15 @@ public class ToshikoDiscordConfiguration {
 
         this.watchlistChannelId = watchlistChannelId;
     }
+
+    public long getAuditLogChannelId() {
+
+        return this.auditLogChannelId;
+    }
+
+    public void setAuditLogChannelId(long auditLogChannelId) {
+
+        this.auditLogChannelId = auditLogChannelId;
+    }
+
 }

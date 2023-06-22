@@ -1,42 +1,38 @@
-package me.anisekai.toshiko.helpers;
+package me.anisekai.toshiko.lib;
 
 import fr.alexpado.lib.rest.RestAction;
 import fr.alexpado.lib.rest.enums.RequestMethod;
 import fr.alexpado.lib.rest.exceptions.RestException;
 import fr.alexpado.lib.rest.interfaces.IRestAction;
 import fr.alexpado.lib.rest.interfaces.IRestResponse;
+import me.anisekai.toshiko.configurations.AutoDownloadConfiguration;
+import me.anisekai.toshiko.data.NyaaRssItem;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Service
-public class RPC {
+@Component
+public class TransmissionDaemonClient {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(RPC.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransmissionDaemonClient.class);
 
-    @Value("${toshiko.rpc.url:#{null}}")
-    private String target;
-
+    private final AutoDownloadConfiguration configuration;
     private Optional<String> sessionId = Optional.empty();
 
-    public boolean isReady() {
+    public TransmissionDaemonClient(AutoDownloadConfiguration configuration) {
 
-        return this.target != null;
+        this.configuration = configuration;
     }
 
-    private JSONObject send(JSONObject data, boolean session) throws Exception {
 
-        if (this.target == null) {
-            throw new IllegalStateException("RPC service not ready.");
-        }
+    private JSONObject send(JSONObject data, boolean session) throws Exception {
 
         IRestAction<JSONObject> action = new RestAction<>() {
 
@@ -59,7 +55,7 @@ public class RPC {
             @Override
             public @NotNull String getRequestURL() {
 
-                return RPC.this.target;
+                return TransmissionDaemonClient.this.configuration.getRpc();
             }
 
             /**
@@ -72,7 +68,7 @@ public class RPC {
 
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
-                RPC.this.sessionId.ifPresent(id -> headers.put("X-Transmission-Session-Id", id));
+                TransmissionDaemonClient.this.sessionId.ifPresent(id -> headers.put("X-Transmission-Session-Id", id));
 
                 return headers;
             }
@@ -100,24 +96,6 @@ public class RPC {
             public JSONObject convert(IRestResponse response) {
 
                 return new JSONObject(new String(response.getBody()));
-            }
-
-            /**
-             * Send the http request synchronously, returning the http response, or throwing an
-             * exception if an error occurs.
-             *
-             * @return The http response.
-             *
-             * @throws RestException
-             *         If the http response code is not in the 2xx range.
-             * @throws Exception
-             *         If the http couldn't be sent or if the response couldn't be parsed.
-             */
-            @Override
-            public JSONObject complete() throws Exception {
-
-                LOGGER.debug("Sending packet: {}", data.toString());
-                return super.complete();
             }
         };
 
@@ -156,33 +134,29 @@ public class RPC {
                         .put("arguments", new JSONObject()
                                 .put("fields", new JSONArray()
                                         .put("id")
-                                        .put("addedDate")
                                         .put("name")
-                                        .put("error")
-                                        .put("errorString")
-                                        .put("eta")
-                                        .put("isFinished")
-                                        .put("isStalled")
-                                        .put("leftUntilDone")
-                                        .put("metadataPercentComplete")
-                                        .put("peersConnected")
-                                        .put("peersGettingFromUs")
-                                        .put("peersSendingToUs")
-                                        .put("percentDone")
-                                        .put("queuePosition")
-                                        .put("rateDownload")
-                                        .put("rateUpload")
-                                        .put("recheckProgress")
-                                        .put("seedRatioMode")
-                                        .put("seedRatioLimit")
-                                        .put("sizeWhenDone")
                                         .put("status")
-                                        .put("trackers")
                                         .put("downloadDir")
-                                        .put("uploadedEver")
-                                        .put("uploadRatio")
+                                        .put("percentDone")
                                 )
                         )
                 , false);
     }
+
+    public JSONObject startTorrent(NyaaRssItem entry) throws Exception {
+
+        if (this.sessionId.isEmpty()) {
+            this.getServerOptions();
+        }
+
+        return this.send(
+                new JSONObject()
+                        .put("method", "torrent-add")
+                        .put("arguments", new JSONObject()
+                                .put("filename", entry.getTorrent())
+                        )
+                , false);
+
+    }
+
 }

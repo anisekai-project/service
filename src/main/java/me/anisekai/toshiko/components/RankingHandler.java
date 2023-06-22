@@ -52,7 +52,7 @@ public class RankingHandler {
         return this.animeScore.getOrDefault(anime, 0d);
     }
 
-    public Map<DiscordUser, Double> getUserPower() {
+    public Map<DiscordUser, Double> getUserPowerMap() {
 
         return this.userPower;
     }

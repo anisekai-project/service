@@ -64,6 +64,8 @@ dependencies {
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.16.1'
 
     implementation group: 'org.jetbrains', name: 'annotations', version: '24.0.1'
+
+    implementation group: 'rome', name: 'rome', version: '1.0'
 }
 
 tasks.named('test') {

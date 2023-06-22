@@ -17,6 +17,11 @@ public class ToshikoFeatureConfiguration {
      */
     private boolean diskEnabled;
 
+    /**
+     * Define if the application should enable the automatic torrent download through RSS feed.
+     */
+    private boolean autoDownloadEnabled;
+
 
     public boolean isBotEnabled() {
 
@@ -36,5 +41,15 @@ public class ToshikoFeatureConfiguration {
     public void setDiskEnabled(boolean diskEnabled) {
 
         this.diskEnabled = diskEnabled;
+    }
+
+    public boolean isAutoDownloadEnabled() {
+
+        return this.autoDownloadEnabled;
+    }
+
+    public void setAutoDownloadEnabled(boolean autoDownloadEnabled) {
+
+        this.autoDownloadEnabled = autoDownloadEnabled;
     }
 }

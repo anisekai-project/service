@@ -61,6 +61,12 @@ public class Anime implements Comparable<Anime> {
     @Column
     private Long announceMessage;
 
+    @Column
+    private String rssMatch;
+
+    @Column
+    private String diskPath;
+
     @Column(nullable = false)
     private ZonedDateTime addedAt;
 
@@ -218,6 +224,26 @@ public class Anime implements Comparable<Anime> {
         this.announceMessage = announceMessage;
     }
 
+    public String getRssMatch() {
+
+        return this.rssMatch;
+    }
+
+    public void setRssMatch(String rssMatch) {
+
+        this.rssMatch = rssMatch;
+    }
+
+    public String getDiskPath() {
+
+        return this.diskPath;
+    }
+
+    public void setDiskPath(String diskPath) {
+
+        this.diskPath = diskPath;
+    }
+
     public @NotNull ZonedDateTime getAddedAt() {
 
         return this.addedAt;
@@ -265,6 +291,11 @@ public class Anime implements Comparable<Anime> {
             return new Command.Choice(String.format("%s...", this.getName().substring(0, 90)), this.getId());
         }
         return new Command.Choice(this.getName(), this.getId());
+    }
+
+    public boolean isAutoDownloadCompatible() {
+
+        return this.rssMatch != null && this.diskPath != null;
     }
 
 }

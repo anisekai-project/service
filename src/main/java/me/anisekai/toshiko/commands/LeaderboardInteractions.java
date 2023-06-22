@@ -96,7 +96,7 @@ public class LeaderboardInteractions {
         StringBuilder description = new StringBuilder();
         AtomicInteger counter     = new AtomicInteger(1);
 
-        this.ranking.getUserPower().entrySet().stream()
+        this.ranking.getUserPowerMap().entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                     .forEach(entry -> description.append(
                             String.format(

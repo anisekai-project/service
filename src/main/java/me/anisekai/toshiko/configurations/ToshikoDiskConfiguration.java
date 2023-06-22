@@ -19,6 +19,10 @@ public class ToshikoDiskConfiguration {
      * Absolute path pointing to the directory where anime to import are located
      */
     private String animesInput;
+    /**
+     * Absolute path pointing to the directory where anime are downloaded using transmission-daemon
+     */
+    private String torrentInput;
 
 
     public String getAnimesOutput() {
@@ -50,4 +54,15 @@ public class ToshikoDiskConfiguration {
 
         this.animesInput = animesInput;
     }
+
+    public String getTorrentInput() {
+
+        return this.torrentInput;
+    }
+
+    public void setTorrentInput(String torrentInput) {
+
+        this.torrentInput = torrentInput;
+    }
+
 }

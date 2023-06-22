@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class InterestService {
 
@@ -54,19 +56,29 @@ public class InterestService {
      *
      * @return The updated/created {@link Interest} entity.
      */
-    public Interest setInterestLevel(Anime anime, DiscordUser user, InterestLevel level) {
+    public Optional<Interest> setInterestLevel(Anime anime, DiscordUser user, InterestLevel level) {
 
         LOGGER.info("setInterestLevel: Interest on Anime {} for User {} is {}", anime.getId(), user.getId(), level.name());
 
-        Interest interest = this.repository.findByAnimeAndUser(anime, user)
-                                           .orElseGet(() -> new Interest(anime, user, level));
+        Optional<Interest> optionalInterest = this.repository.findByAnimeAndUser(anime, user);
+
+        Interest interest;
+        if (optionalInterest.isPresent()) {
+            interest = optionalInterest.get();
+            if (interest.getLevel() == level) {
+                return Optional.empty();
+            }
+        } else {
+            interest = new Interest(anime, user, level);
+        }
 
         interest.setLevel(level);
 
         Interest saved = this.repository.save(interest);
+        saved.getAnime().getInterests().add(interest);
         LOGGER.debug("Sending InterestUpdatedEvent...");
         this.publisher.publishEvent(new InterestUpdatedEvent(this, saved));
 
-        return saved;
+        return Optional.of(saved);
     }
 }

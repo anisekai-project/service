@@ -73,7 +73,7 @@ public class SeasonalSelectionService {
         // Retrieve all potential voters
         List<DiscordUser> votingUsers = this.userRepository.findAllByActiveIsTrue()
                                                            .stream()
-                                                           .sorted(Comparator.comparingDouble(this.ranking::getUserPower))
+                                                           .sorted(Comparator.comparingDouble(this.ranking::getUserPower).reversed())
                                                            .limit(7)
                                                            .toList();
 
