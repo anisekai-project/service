@@ -8,12 +8,13 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class WatchlistAnimePart {
 
-    private final Anime  anime;
-    private final double score;
+    private final Anime             anime;
+    private final double            score;
     private final List<DiscordUser> positiveVotes;
     private final List<DiscordUser> negativeVotes;
 
@@ -49,12 +50,23 @@ public class WatchlistAnimePart {
 
     private String getTitleLinkProgress() {
 
-        return String.format("[%s](%s) ─ %02d/%02d", this.anime.getName(), this.anime.getLink(), this.anime.getWatched(), this.anime.getTotal());
+        return String.format(
+                "[%s](%s) ─ %02d/%02d",
+                this.anime.getName(),
+                this.anime.getLink(),
+                this.anime.getWatched(),
+                this.anime.getTotal()
+        );
     }
 
     private String getTitleProgress() {
 
-        return String.format("**%s** ─ %02d/%02d", this.anime.getName(), this.anime.getWatched(), this.anime.getTotal());
+        return String.format(
+                "**%s** ─ %02d/%02d",
+                this.anime.getName(),
+                this.anime.getWatched(),
+                this.anime.getTotal()
+        );
     }
 
     private String getTitleScore() {
@@ -71,6 +83,7 @@ public class WatchlistAnimePart {
 
         return String.format("▲ %s", this.positiveVotes.stream()
                                                        .map(DiscordUser::getEmote)
+                                                       .filter(Objects::nonNull)
                                                        .collect(Collectors.joining()));
     }
 
@@ -78,6 +91,7 @@ public class WatchlistAnimePart {
 
         return String.format("▼ %s", this.negativeVotes.stream()
                                                        .map(DiscordUser::getEmote)
+                                                       .filter(Objects::nonNull)
                                                        .collect(Collectors.joining()));
     }
 
@@ -95,7 +109,11 @@ public class WatchlistAnimePart {
         boolean hasNegativeVote = !this.negativeVotes.isEmpty();
 
         if (hasPositiveVote && hasNegativeVote) {
-            return String.format(lineFormat, title, String.join(" ─ ", Arrays.asList(this.getPositiveVotes(), this.getNegativeVotes())));
+            return String.format(
+                    lineFormat,
+                    title,
+                    String.join(" ─ ", Arrays.asList(this.getPositiveVotes(), this.getNegativeVotes()))
+            );
         }
 
         if (hasPositiveVote) {
