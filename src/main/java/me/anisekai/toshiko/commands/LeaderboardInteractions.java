@@ -75,7 +75,7 @@ public class LeaderboardInteractions {
             download  = LeaderboardUtils.getTopAscFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
         }
 
-        builder.addField(AnimeStatus.DOWNLOADED.getDisplay(), download, false);
+        builder.setDescription(download);
         return new SimpleResponse(builder, false, false);
     }
     // </editor-fold>
