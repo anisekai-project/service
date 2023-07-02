@@ -67,20 +67,15 @@ public class LeaderboardInteractions {
         long               count      = Optional.ofNullable(limit).orElse(5L);
 
         EmbedBuilder builder = new EmbedBuilder();
-        String       simulcast;
+
         String       download;
         if (order.equalsIgnoreCase("DESC")) {
-            simulcast = LeaderboardUtils.getTopDescFormatted(animeScore, AnimeStatus.SIMULCAST_AVAILABLE, count);
             download  = LeaderboardUtils.getTopDescFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
         } else {
-            simulcast = LeaderboardUtils.getTopAscFormatted(animeScore, AnimeStatus.SIMULCAST_AVAILABLE, count);
             download  = LeaderboardUtils.getTopAscFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
         }
 
-        builder.addField(AnimeStatus.SIMULCAST_AVAILABLE.getDisplay(), simulcast, false);
-        builder.addBlankField(false);
         builder.addField(AnimeStatus.DOWNLOADED.getDisplay(), download, false);
-
         return new SimpleResponse(builder, false, false);
     }
     // </editor-fold>
