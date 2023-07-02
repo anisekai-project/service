@@ -42,7 +42,7 @@ public class AnimeListener {
         }
 
         this.service.setStatus(anime, switch (anime.getStatus()) {
-            case WATCHED, WATCHING, DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED, NO_SOURCE, UNAVAILABLE -> AnimeStatus.WATCHING;
+            case CANCELLED, WATCHED, WATCHING, DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED, NO_SOURCE, UNAVAILABLE -> AnimeStatus.WATCHING;
             case SIMULCAST, SIMULCAST_AVAILABLE -> AnimeStatus.SIMULCAST;
         });
     }

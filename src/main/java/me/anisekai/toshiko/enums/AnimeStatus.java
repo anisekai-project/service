@@ -15,7 +15,8 @@ public enum AnimeStatus {
     DOWNLOADING("\uD83D\uDCD8", "En cours de téléchargement", PublicationState.FINISHED, false),
     NOT_DOWNLOADED("\uD83D\uDCD5", "Non téléchargé", PublicationState.FINISHED, false),
     NO_SOURCE("\uD83D\uDCD9", "Pas de source trouvée", PublicationState.FINISHED, false),
-    UNAVAILABLE("\uD83D\uDD16", "Pas encore sorti", PublicationState.UNAVAILABLE, false);
+    UNAVAILABLE("\uD83D\uDD16", "Pas encore sorti", PublicationState.UNAVAILABLE, false),
+    CANCELLED("\uD83D\uDED1", "Abandonné", PublicationState.FINISHED, false, false);
 
     private final String           icon;
     private final String           label;
