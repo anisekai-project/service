@@ -25,6 +25,11 @@ public class DiskGroup {
         this.files = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
     }
 
+    public UUID getUuid() {
+
+        return this.uuid;
+    }
+
     public File getPath() {
 
         return this.path;

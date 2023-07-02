@@ -5,6 +5,7 @@ import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.SeasonalSelection;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.io.DiskService;
 import me.anisekai.toshiko.repositories.AnimeRepository;
 import me.anisekai.toshiko.repositories.SeasonalSelectionRepository;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -18,13 +19,38 @@ import java.util.stream.Stream;
 @Service
 public class DiscordCompletionService {
 
+    private final DiskService                 diskService;
     private final AnimeRepository             animeRepository;
     private final SeasonalSelectionRepository seasonalSelectionRepository;
 
-    public DiscordCompletionService(AnimeRepository animeRepository, SeasonalSelectionRepository seasonalSelectionRepository) {
+    public DiscordCompletionService(DiskService diskService, AnimeRepository animeRepository, SeasonalSelectionRepository seasonalSelectionRepository) {
 
+        this.diskService = diskService;
         this.animeRepository             = animeRepository;
         this.seasonalSelectionRepository = seasonalSelectionRepository;
+    }
+
+    public List<Command.Choice> diskGroupCompletion(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
+
+        return this.diskService
+                .getDatabase()
+                .stream()
+                .filter(diskAnime -> diskAnime.getName().toLowerCase().contains(value.toLowerCase()))
+                .sorted()
+                .map(diskAnime -> new Command.Choice(diskAnime.getName(), diskAnime.getUuid().toString()))
+                .toList();
+    }
+
+    public List<Command.Choice> diskAnimeCompletion(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
+
+        return this.diskService
+                .getDatabase()
+                .stream()
+                .flatMap(diskAnime -> diskAnime.getGroups().stream())
+                .filter(diskGroup -> diskGroup.getName().toLowerCase().contains(value.toLowerCase()))
+                .sorted()
+                .map(diskAnime -> new Command.Choice(diskAnime.getName(), diskAnime.getUuid().toString()))
+                .toList();
     }
 
     public List<Command.Choice> animeCompletion(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {

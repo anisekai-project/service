@@ -127,6 +127,8 @@ public class DiscordService {
                     completion.addCompletionProvider("seasonal", this.completionService::seasonalSelectionCompletion);
                     completion.addCompletionProvider("interest", this.completionService::interestLevelCompletion);
                     completion.addCompletionProvider("status", this.completionService::animeStatusCompletion);
+                    completion.addCompletionProvider("diskGroup", this.completionService::diskGroupCompletion);
+                    completion.addCompletionProvider("diskAnime", this.completionService::diskAnimeCompletion);
 
                     this.extension.getAutocompleteContainer().register(completion);
                 }

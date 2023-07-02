@@ -27,6 +27,11 @@ public class DiskAnime {
         this.files  = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
     }
 
+    public UUID getUuid() {
+
+        return this.uuid;
+    }
+
     public File getPath() {
 
         return this.path;
@@ -45,6 +50,11 @@ public class DiskAnime {
     public void add(DiskEpisode diskEpisode) {
 
         this.files.add(diskEpisode);
+    }
+
+    public Set<DiskGroup> getGroups() {
+
+        return this.groups;
     }
 
     public void finalize(CharSequence animeFsRoot, CharSequence subtitleFsRoot) {
