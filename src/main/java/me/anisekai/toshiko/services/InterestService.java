@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.services;
 
+import jakarta.persistence.EntityManager;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
@@ -73,12 +74,12 @@ public class InterestService {
         }
 
         interest.setLevel(level);
-
-        Interest saved = this.repository.save(interest);
-        saved.getAnime().getInterests().add(interest);
+        this.repository.save(interest);
+        interest.getAnime().getInterests().add(interest);
         LOGGER.debug("Sending InterestUpdatedEvent...");
-        this.publisher.publishEvent(new InterestUpdatedEvent(this, saved));
+        this.publisher.publishEvent(new InterestUpdatedEvent(this, interest));
 
-        return Optional.of(saved);
+        return Optional.of(interest);
     }
+
 }

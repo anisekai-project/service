@@ -6,6 +6,7 @@ import me.anisekai.toshiko.enums.InterestLevel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Entity
 @IdClass(UserAnimeAssocKey.class)
@@ -61,4 +62,27 @@ public class Interest {
 
         return powerMap.getOrDefault(this.getUser(), 0.0) * this.getLevel().getPowerModifier();
     }
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+        Interest interest = (Interest) o;
+        return Objects.equals(this.getAnime(), interest.getAnime()) && Objects.equals(
+                this.getUser(),
+                interest.getUser()
+        );
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(this.getAnime(), this.getUser());
+    }
+
 }
