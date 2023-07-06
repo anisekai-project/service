@@ -73,7 +73,7 @@ public class UserInteractions {
             }
         }
 
-        if (icon == null && active == null && admin == null) {
+        if (icon == null && active == null && admin == null && web == null) {
             return new SimpleResponse("Aucune information actualisée.", false, false);
         }
 
