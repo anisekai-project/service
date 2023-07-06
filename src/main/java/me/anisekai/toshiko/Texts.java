@@ -108,6 +108,7 @@ public final class Texts {
     public static final String PROFILE__OPTION_ICON   = "Change l'icône de vote";
     public static final String PROFILE__OPTION_ACTIVE = "\uD83D\uDD12 Change le statut d'activité";
     public static final String PROFILE__OPTION_ADMIN  = "\uD83D\uDD12 Change le statut administrateur";
+    public static final String PROFILE__OPTION_WEB    = "\uD83D\uDD12 Change le droit d'accès web";
     // </editor-fold>
 
     private Texts() {}

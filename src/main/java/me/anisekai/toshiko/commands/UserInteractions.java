@@ -50,6 +50,11 @@ public class UserInteractions {
                             name = "admin",
                             description = Texts.PROFILE__OPTION_ADMIN,
                             type = OptionType.BOOLEAN
+                    ),
+                    @Option(
+                            name = "web",
+                            description = Texts.PROFILE__OPTION_WEB,
+                            type = OptionType.BOOLEAN
                     )
             }
     )
@@ -58,10 +63,11 @@ public class UserInteractions {
             @Param("user") User user,
             @Param("icon") String icon,
             @Param("active") Boolean active,
-            @Param("admin") Boolean admin
+            @Param("admin") Boolean admin,
+            @Param("web") Boolean web
     ) {
 
-        if (((user != null) || admin != null || active != null) && !sender.isAdmin()) {
+        if ((user != null || admin != null || active != null || web != null) && !sender.isAdmin()) {
             if (!sender.isAdmin()) {
                 return new SimpleResponse("Seul un administrateur peut modifier ces informations.", false, false);
             }
@@ -91,6 +97,11 @@ public class UserInteractions {
         if (active != null) {
             target.setActive(active);
             embedBuilder.addField("Statut d'activité", active ? "Actif" : "Non actif", false);
+        }
+
+        if (web != null) {
+            target.setWebAccess(web);
+            embedBuilder.addField("Accès Web", web ? "Autorisé" : "Non autorisé", false);
         }
 
         if (icon != null) {
