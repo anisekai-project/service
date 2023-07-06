@@ -28,7 +28,7 @@ public class FileDownloader extends RestAction<byte[]> {
         }
 
         IRestAction<byte[]> image = new FileDownloader(String.format(
-                "https://toshiko.alexpado.fr/%s.png",
+                "https://media.anisekai.fr/%s.png",
                 anime.getId()
         ));
         byte[] data = image.complete();
