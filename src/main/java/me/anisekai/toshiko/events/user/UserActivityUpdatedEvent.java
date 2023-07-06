@@ -17,4 +17,5 @@ public class UserActivityUpdatedEvent extends ApplicationEvent {
 
         return this.user;
     }
+
 }

@@ -20,12 +20,10 @@ public interface InterestRepository extends JpaRepository<Interest, UserAnimeAss
 
     Set<Interest> findAllByAnime(Anime anime);
 
-    @Query("SELECT i FROM Interest i WHERE i.user.active = true AND i.anime = :anime")
-    List<Interest> findAllActiveByAnime(Anime anime);
-
     @Query("SELECT i FROM Interest i WHERE i.user.active = true")
     List<Interest> findAllActive();
 
     @Deprecated
     @NotNull List<Interest> findAll();
+
 }

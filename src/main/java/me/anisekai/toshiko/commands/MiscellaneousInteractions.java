@@ -99,7 +99,7 @@ public class MiscellaneousInteractions {
                 return new SimpleResponse("Les évènements seront actualisés sous peu.", false, false);
             }
             default -> {
-                return new SimpleResponse("Hmmm, quelque chose s'est mal passé.", false, false);
+                return new SimpleResponse("Hmm, quelque chose s'est mal passé.", false, false);
             }
         }
     }
@@ -122,7 +122,11 @@ public class MiscellaneousInteractions {
         long duration = Duration.between(start, end).getSeconds();
         long amount   = this.diskService.getDatabase().size();
 
-        return new SimpleResponse(String.format("Il y a `%s` anime sur le disque (détecté en `%s`s).", amount, duration), false, false);
+        return new SimpleResponse(String.format(
+                "Il y a `%s` anime sur le disque (détecté en `%s`s).",
+                amount,
+                duration
+        ), false, false);
     }
     // </editor-fold>
 

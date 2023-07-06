@@ -20,6 +20,10 @@
         <label for="search-input" hidden>Search</label>
         <input id="search-input" placeholder="Rechercher..." />
     </div>
+
+    <div class="logout">
+        <a href="/logout">Déconnexion</a>
+    </div>
 </nav>
 
 <div class="note">
@@ -33,7 +37,26 @@
     merci de contacter <span class="discord">Akio Nakao#0001</span> sur Discord.
 </div>
 
-<div id="tree-view"></div>
+<div id="tree-view" th:if="${!@diskService.getDatabase().isEmpty()}">
+    <details th:each="anime : ${@diskService.getDatabase()}" th:id="${anime.getUuid().toString()}">
+        <summary th:text="${anime.getName()}"></summary>
+        <div class="content">
+            <details th:each="group : ${anime.getGroups()}" th:id="${group.getUuid().toString()}">
+                <summary th:text="${group.getName()}"></summary>
+                <div class="content">
+                    <div class="file" th:each="episode : ${group.getEpisodes()}" th:id="${episode.getUuid().toString()}">
+                        <span th:text="${episode.getName()}"></span>
+                        <meta name="subtitle" th:each="sub : ${episode.getSubtitles()}" th:content="${sub.getUuid()}"/>
+                    </div>
+                </div>
+            </details>
+            <div class="file" th:each="episode : ${anime.getEpisodes()}" th:id="${episode.getUuid().toString()}">
+                <span th:text="${episode.getName()}"></span>
+                <meta name="subtitle" th:each="sub : ${episode.getSubtitles()}" th:content="${sub.getUuid()}"/>
+            </div>
+        </div>
+    </details>
+</div>
 
 <div class="no-results" data-if="empty">
     Aucun résultat
@@ -46,20 +69,6 @@
         <a id="download" download>Télécharger le fichier</a>
     </div>
 </div>
-
-
-<template id="collapse">
-    <details data-bind="instance">
-        <summary data-bind="name"></summary>
-        <div class="content" data-bind="children"></div>
-    </details>
-</template>
-
-<template id="file">
-    <div class="file" data-bind="instance">
-        <span data-bind="name"></span>
-    </div>
-</template>
 
 </body>
 <script src="assets/plyr/plyr.min.js"></script>

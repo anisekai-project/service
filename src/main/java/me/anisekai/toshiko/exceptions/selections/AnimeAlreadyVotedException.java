@@ -24,4 +24,5 @@ public class AnimeAlreadyVotedException extends RuntimeException implements Disc
 
         return false;
     }
+
 }

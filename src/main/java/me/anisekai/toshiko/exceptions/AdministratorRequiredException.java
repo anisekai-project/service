@@ -24,4 +24,5 @@ public class AdministratorRequiredException extends RuntimeException implements 
 
         return true;
     }
+
 }

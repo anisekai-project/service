@@ -2,26 +2,19 @@ package me.anisekai.toshiko.enums;
 
 public enum TorrentStatus {
 
-    STOPPED(0, false),
-    VERIFY_QUEUED(1, false),
-    VERIFYING(2, false),
-    DOWNLOAD_QUEUED(3, false),
-    DOWNLOADING(4, false),
-    SEED_QUEUED(5, true),
-    SEEDING(6, true);
+    STOPPED(false),
+    VERIFY_QUEUED(false),
+    VERIFYING(false),
+    DOWNLOAD_QUEUED(false),
+    DOWNLOADING(false),
+    SEED_QUEUED(true),
+    SEEDING(true);
 
-    private final int value;
     private final boolean finished;
 
-    TorrentStatus(int value, boolean finished) {
+    TorrentStatus(boolean finished) {
 
-        this.value = value;
         this.finished = finished;
-    }
-
-    public int getValue() {
-
-        return this.value;
     }
 
     public boolean isFinished() {
@@ -30,6 +23,7 @@ public enum TorrentStatus {
     }
 
     public static TorrentStatus from(int status) {
+
         return switch (status) {
             case 0 -> STOPPED;
             case 1 -> VERIFY_QUEUED;

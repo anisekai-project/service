@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TorrentRepository extends JpaRepository<Torrent, Integer> {
 
-    boolean existsByInfoHash(String infoHash);
-
 }

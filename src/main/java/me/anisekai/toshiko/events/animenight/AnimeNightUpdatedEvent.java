@@ -17,4 +17,5 @@ public class AnimeNightUpdatedEvent extends ApplicationEvent {
 
         return this.animeNight;
     }
+
 }

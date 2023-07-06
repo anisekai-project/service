@@ -24,4 +24,5 @@ public class TooMuchVoteException extends RuntimeException implements DiscordEmb
 
         return false;
     }
+
 }

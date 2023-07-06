@@ -68,11 +68,11 @@ public class LeaderboardInteractions {
 
         EmbedBuilder builder = new EmbedBuilder();
 
-        String       download;
+        String download;
         if (order.equalsIgnoreCase("DESC")) {
-            download  = LeaderboardUtils.getTopDescFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
+            download = LeaderboardUtils.getTopDescFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
         } else {
-            download  = LeaderboardUtils.getTopAscFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
+            download = LeaderboardUtils.getTopAscFormatted(animeScore, AnimeStatus.DOWNLOADED, count);
         }
 
         builder.setDescription(download);

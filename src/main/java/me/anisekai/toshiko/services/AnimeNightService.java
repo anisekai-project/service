@@ -2,7 +2,10 @@ package me.anisekai.toshiko.services;
 
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.AnimeNight;
-import me.anisekai.toshiko.events.animenight.*;
+import me.anisekai.toshiko.events.animenight.AnimeNightCreatedEvent;
+import me.anisekai.toshiko.events.animenight.AnimeNightFinishedEvent;
+import me.anisekai.toshiko.events.animenight.AnimeNightStartedEvent;
+import me.anisekai.toshiko.events.animenight.AnimeNightUpdatedEvent;
 import me.anisekai.toshiko.exceptions.nights.AnimeNightOverlappingException;
 import me.anisekai.toshiko.helpers.AnimeNightScheduler;
 import me.anisekai.toshiko.repositories.AnimeNightRepository;
@@ -88,7 +91,12 @@ public class AnimeNightService {
         );
 
         AnimeNight night = this.createScheduler()
-                               .scheduleAt(anime, amount, time, booking -> this.repository.save(new AnimeNight(booking)));
+                               .scheduleAt(
+                                       anime,
+                                       amount,
+                                       time,
+                                       booking -> this.repository.save(new AnimeNight(booking))
+                               );
 
         LOGGER.info("The anime has been scheduled as AnimeNight {}", night.getId());
 
@@ -174,9 +182,12 @@ public class AnimeNightService {
 
         List<AnimeNight> nights = new ArrayList<>();
         OffsetDateTime   limit  = DELAY_TIME_LIMIT.get();
-        scheduler.delay(minutes, TimeUnit.MINUTES, time -> time.isBefore(limit), night -> {
-            nights.add(this.repository.save(night));
-        });
+        scheduler.delay(
+                minutes,
+                TimeUnit.MINUTES,
+                time -> time.isBefore(limit),
+                night -> nights.add(this.repository.save(night))
+        );
 
         nights.forEach(night -> LOGGER.debug(
                 " > {} updated - {} episodes ({} -> {}) | {} -> {}",
@@ -242,8 +253,7 @@ public class AnimeNightService {
 
     /**
      * Cancel the {@link AnimeNight} associated to the provided {@link ScheduledEvent}. Cancelling an {@link AnimeNight}
-     * will remove the event without triggering the {@link AnimeNightFinishedEvent} or {@link AnimeNightClosedEvent}
-     * events.
+     * will remove the event without triggering {@link AnimeNightFinishedEvent} events.
      * <p>
      * Upon deletion, {@link #calibrate(Anime)} will be called using the {@link AnimeNight#getAnime()} value.
      * <p>

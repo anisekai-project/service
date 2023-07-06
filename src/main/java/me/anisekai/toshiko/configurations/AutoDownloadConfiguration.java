@@ -37,4 +37,5 @@ public class AutoDownloadConfiguration {
 
         this.rpc = rpc;
     }
+
 }

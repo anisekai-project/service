@@ -184,7 +184,7 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
                                                                                                        )
                                                                                                ))).toList();
 
-            List<ActionRow> rows = new ArrayList<>(ActionRow.partitionOf(buttons));
+            Collection<ActionRow> rows = new ArrayList<>(ActionRow.partitionOf(buttons));
             rows.add(ActionRow.of(Button.danger(String.format(
                     "button://season/close?seasonal=%s",
                     this.seasonalSelection.getId()

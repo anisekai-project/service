@@ -18,7 +18,10 @@ import java.util.function.Consumer;
 @Entity
 public class AnimeNight implements AnimeNightMeta, SlashResponse {
 
-    public static final List<ScheduledEvent.Status> WATCHABLE = Arrays.asList(ScheduledEvent.Status.ACTIVE, ScheduledEvent.Status.SCHEDULED);
+    public static final List<ScheduledEvent.Status> WATCHABLE = Arrays.asList(
+            ScheduledEvent.Status.ACTIVE,
+            ScheduledEvent.Status.SCHEDULED
+    );
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -204,7 +207,7 @@ public class AnimeNight implements AnimeNightMeta, SlashResponse {
         return (mr) -> {
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle(this.getAnime().getName(), this.getAnime().getLink());
-            builder.setDescription("La scéance a bien été programmée.");
+            builder.setDescription("La séance a bien été programmée.");
             builder.addField("Épisode(s)", this.asEventDescription(), true);
 
             mr.setEmbeds(builder.build());
@@ -216,4 +219,5 @@ public class AnimeNight implements AnimeNightMeta, SlashResponse {
 
         return false;
     }
+
 }

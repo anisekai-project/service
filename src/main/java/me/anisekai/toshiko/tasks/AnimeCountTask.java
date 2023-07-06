@@ -26,7 +26,7 @@ public class AnimeCountTask implements Task {
     }
 
     @Override
-    public void run() throws Exception {
+    public void run() {
 
         List<Anime> animes = this.service.getRepository().findAllByStatusIn(AnimeStatus.getDisplayable());
 
@@ -34,13 +34,4 @@ public class AnimeCountTask implements Task {
         this.channel.getManager().setTopic(description).complete();
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
 }

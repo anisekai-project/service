@@ -1,14 +1,11 @@
 package me.anisekai.toshiko;
 
-import net.dv8tion.jda.api.interactions.commands.Command;
 import org.apache.logging.log4j.util.Strings;
 
-import java.time.DayOfWeek;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
 public final class Texts {
 
@@ -29,7 +26,7 @@ public final class Texts {
     // </editor-fold>
 
     // <editor-fold desc="@ anime/interest">
-    public static final String ANIME_INTEREST__DESCRIPTION                         = "\uD83E\uDE99 Change ton niveau d'interêt pour un anime";
+    public static final String ANIME_INTEREST__DESCRIPTION                         = "\uD83E\uDE99 Change ton niveau d'intérêt pour un anime";
     public static final String ANIME_INTEREST__OPTION_NAME                         = "Nom de l'anime";
     public static final String ANIME_INTEREST__OPTION_LEVEL                        = "Niveau de l'intérêt";
     public static final String ANIME_INTEREST__OPTION_LEVEL__CHOICE_INTERESTED     = "Je suis intéressé";
@@ -65,7 +62,7 @@ public final class Texts {
     public static final String SCHEDULE_DAILY__DESCRIPTION     = "\uD83D\uDD12 Programme des soirées anime de façon journalière";
     public static final String SCHEDULE_DAILY__OPTION_ANIME    = "Anime à programmer";
     public static final String SCHEDULE_DAILY__OPTION_AT       = "Heure à laquelle les soirées anime doivent être programmées tous les jours (HH:MM)";
-    public static final String SCHEDULE_DAILY__OPTION_AMOUNT   = "Nombre d'épisode à regarder à chaque scéance";
+    public static final String SCHEDULE_DAILY__OPTION_AMOUNT   = "Nombre d'épisode à regarder à chaque séance";
     public static final String SCHEDULE_DAILY__OPTION_STARTING = "A partir de quel jour la programmation devrait commencer (JJ/MM/AAAA)";
     // </editor-fold>
 
@@ -73,7 +70,7 @@ public final class Texts {
     public static final String SCHEDULE_WEEKLY__DESCRIPTION     = "\uD83D\uDD12 Programme des soirées anime de façon hebdomadaire";
     public static final String SCHEDULE_WEEKLY__OPTION_ANIME    = "Anime à programmer";
     public static final String SCHEDULE_WEEKLY__OPTION_AT       = "Heure à laquelle les soirées anime doivent être programmées toutes les semaines (HH:MM)";
-    public static final String SCHEDULE_WEEKLY__OPTION_AMOUNT   = "Nombre d'épisode à regarder à chaque scéance";
+    public static final String SCHEDULE_WEEKLY__OPTION_AMOUNT   = "Nombre d'épisode à regarder à chaque séance";
     public static final String SCHEDULE_WEEKLY__OPTION_STARTING = "A partir de quel jour la programmation devrait commencer (JJ/MM/AAAA)";
     // </editor-fold>
 
@@ -81,7 +78,7 @@ public final class Texts {
     public static final String SCHEDULE_ANIME__DESCRIPTION   = "\uD83D\uDD12 Programme une soirée anime";
     public static final String SCHEDULE_ANIME__OPTION_ANIME  = "Anime à programmer";
     public static final String SCHEDULE_ANIME__OPTION_AT     = "Heure à laquelle la soirée anime doit être programmée (HH:MM)";
-    public static final String SCHEDULE_ANIME__OPTION_AMOUNT = "Nombre d'épisode à regarder pour la scéance";
+    public static final String SCHEDULE_ANIME__OPTION_AMOUNT = "Nombre d'épisode à regarder pour la séance";
     public static final String SCHEDULE_ANIME__OPTION_DATE   = "Pour quel jour la programmation devrait être faite (JJ/MM/AAAA)";
     // </editor-fold>
 
@@ -94,9 +91,6 @@ public final class Texts {
     public static final String SCHEDULE_DELAY__OPTION_DELAY = "Temps (en minute) de décalage à appliquer aux évènements";
     // </editor-fold>
 
-    // <editor-fold desc="@ user/icon/set">
-    public static final String USER_ICON__DESCRIPTION = "Changer votre icône de vote";
-    public static final String USER_ICON__OPTION_ICON = "Icône de vote";
     // </editor-fold>
 
     // <editor-fold desc="@ refresh">
@@ -118,20 +112,12 @@ public final class Texts {
 
     private Texts() {}
 
-    public static Command.Choice get(DayOfWeek day) {
-
-        String rawValue = day.getDisplayName(TextStyle.FULL, Locale.FRANCE);
-        String value    = rawValue.substring(0, 1).toUpperCase() + rawValue.substring(1);
-
-        return new Command.Choice(value, day.getValue());
-    }
-
     public static String unslugify(String str) {
 
         List<String> romanNumbers = Arrays.asList("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X");
 
-        String[]     split = str.split("-");
-        List<String> parts = new ArrayList<>();
+        String[]           split = str.split("-");
+        Collection<String> parts = new ArrayList<>();
 
         for (String s : split) {
 
@@ -152,4 +138,5 @@ public final class Texts {
         }
         return str.substring(0, maxLength - 3) + "...";
     }
+
 }

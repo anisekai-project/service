@@ -44,7 +44,10 @@ public class SeasonalVoterKey implements Serializable {
         if (this == o) {return true;}
         if (o == null || this.getClass() != o.getClass()) {return false;}
         SeasonalVoterKey that = (SeasonalVoterKey) o;
-        return Objects.equals(this.getSeasonalSelection(), that.getSeasonalSelection()) && Objects.equals(this.getUser(), that.getUser());
+        return Objects.equals(
+                this.getSeasonalSelection(),
+                that.getSeasonalSelection()
+        ) && Objects.equals(this.getUser(), that.getUser());
     }
 
     @Override
@@ -52,4 +55,5 @@ public class SeasonalVoterKey implements Serializable {
 
         return Objects.hash(this.getSeasonalSelection(), this.getUser());
     }
+
 }

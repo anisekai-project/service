@@ -7,12 +7,8 @@ import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.events.anime.AnimeStatusUpdatedEvent;
 import me.anisekai.toshiko.events.interest.InterestUpdatedEvent;
 import me.anisekai.toshiko.events.user.UserActivityUpdatedEvent;
-import me.anisekai.toshiko.repositories.AnimeRepository;
 import me.anisekai.toshiko.repositories.InterestRepository;
-import me.anisekai.toshiko.repositories.UserRepository;
 import me.anisekai.toshiko.utils.MapUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -23,20 +19,14 @@ import java.util.Map;
 @Component
 public class RankingHandler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(RankingHandler.class);
-
     private final InterestRepository interestRepository;
-    private final AnimeRepository    animeRepository;
-    private final UserRepository     userRepository;
 
     private final Map<DiscordUser, Double> userPower;
     private final Map<Anime, Double>       animeScore;
 
-    public RankingHandler(InterestRepository interestRepository, AnimeRepository animeRepository, UserRepository userRepository) {
+    public RankingHandler(InterestRepository interestRepository) {
 
         this.interestRepository = interestRepository;
-        this.animeRepository    = animeRepository;
-        this.userRepository     = userRepository;
 
         this.userPower  = new HashMap<>();
         this.animeScore = new HashMap<>();
@@ -123,4 +113,5 @@ public class RankingHandler {
 
         this.process();
     }
+
 }

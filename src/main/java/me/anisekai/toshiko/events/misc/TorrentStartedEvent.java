@@ -19,11 +19,6 @@ public class TorrentStartedEvent extends ApplicationEvent implements DiscordEmbe
         this.torrents = torrents;
     }
 
-    public List<Torrent> getTorrents() {
-
-        return this.torrents;
-    }
-
     /**
      * Retrieve an {@link EmbedBuilder} representing this {@link DiscordEmbeddable}.
      *

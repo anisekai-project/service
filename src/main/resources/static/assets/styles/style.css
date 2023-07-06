@@ -57,6 +57,19 @@ nav .search #search-input:focus {
     outline: 2px solid #333333;
 }
 
+nav .logout {
+    margin: auto 0 auto auto;
+}
+
+nav .logout a {
+    color: darkgray;
+    text-decoration: none;
+}
+
+nav .logout a:hover {
+    color: white;
+}
+
 #modal {
     position:         fixed;
     top:              0;
@@ -216,5 +229,25 @@ nav .search #search-input:focus {
 
 .discord {
     font-family: monospace;
-    color: #00B2FF;
+    color:       #00B2FF;
 }
+
+#page {
+    width:           100%;
+    height:          calc(100vh - 70px);
+    display:         flex;
+    flex-direction:  column;
+    text-align:      center;
+    justify-content: center;
+    gap:             2em;
+}
+
+#page a {
+    color:            white;
+    background-color: #525EEB;
+    padding:          1em 3em;
+    text-decoration:  none;
+    display:          inline-block;
+    margin:           0 auto;
+}
+

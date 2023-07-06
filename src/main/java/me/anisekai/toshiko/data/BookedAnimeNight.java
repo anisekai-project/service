@@ -4,19 +4,16 @@ import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.exceptions.animes.InvalidAnimeProgressException;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 
-import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.ZonedDateTime;
 
 public class BookedAnimeNight implements AnimeNightMeta {
 
-    private Anime          anime;
-    private long           firstEpisode;
-    private long           lastEpisode;
-    private long           amount;
-    private OffsetDateTime startDateTime;
-    private OffsetDateTime endDateTime;
+    private final Anime          anime;
+    private       long           firstEpisode;
+    private       long           lastEpisode;
+    private final long           amount;
+    private       OffsetDateTime startDateTime;
+    private       OffsetDateTime endDateTime;
 
     public BookedAnimeNight(AnimeNightMeta meta) {
 
@@ -57,42 +54,10 @@ public class BookedAnimeNight implements AnimeNightMeta {
         this.setStartDateTime(startTime);
     }
 
-    public static BookedAnimeNight with(Anime anime, DayOfWeek day, OffsetTime time, long amount) {
-
-        OffsetDateTime startDateTime = ZonedDateTime.now()
-                                                    .withHour(time.getHour())
-                                                    .withMinute(time.getMinute())
-                                                    .withSecond(0)
-                                                    .withNano(0)
-                                                    .toOffsetDateTime();
-
-        while (startDateTime.getDayOfWeek() != day) {
-            startDateTime = startDateTime.plusDays(1);
-        }
-
-        return with(anime, startDateTime, amount);
-    }
-
-    public static BookedAnimeNight with(Anime anime, OffsetDateTime startTime, long amount) {
-
-        return new BookedAnimeNight(anime, startTime, amount);
-    }
-
-    public static BookedAnimeNight after(AnimeNightMeta meta, OffsetDateTime startTime, long amount) {
-
-        return new BookedAnimeNight(meta.getAnime(), startTime, amount, meta.getLastEpisode() + 1);
-    }
-
     @Override
     public Anime getAnime() {
 
         return this.anime;
-    }
-
-    @Override
-    public void setAnime(Anime anime) {
-
-        this.anime = anime;
     }
 
     @Override
@@ -125,13 +90,6 @@ public class BookedAnimeNight implements AnimeNightMeta {
     public long getAmount() {
 
         return this.amount;
-    }
-
-    @Override
-    public void setAmount(long amount) {
-
-        this.amount      = amount;
-        this.lastEpisode = this.getFirstEpisode() + (this.getAmount() - 1);
     }
 
     public OffsetDateTime getStartDateTime() {

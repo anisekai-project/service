@@ -27,15 +27,13 @@ public class FileDownloader extends RestAction<byte[]> {
             return FILE_CACHE.get(anime);
         }
 
-        IRestAction<byte[]> image = new FileDownloader(String.format("https://toshiko.alexpado.fr/%s.png", anime.getId()));
-        byte[]              data  = image.complete();
+        IRestAction<byte[]> image = new FileDownloader(String.format(
+                "https://toshiko.alexpado.fr/%s.png",
+                anime.getId()
+        ));
+        byte[] data = image.complete();
         FILE_CACHE.put(anime, data);
         return data;
-    }
-
-    public static void cleanCache() {
-
-        FILE_CACHE.clear();
     }
 
     @Override
@@ -63,4 +61,5 @@ public class FileDownloader extends RestAction<byte[]> {
 
         return response.getBody();
     }
+
 }

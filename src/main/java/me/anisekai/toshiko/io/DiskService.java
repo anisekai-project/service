@@ -6,24 +6,19 @@ import me.anisekai.toshiko.configurations.ToshikoFeatureConfiguration;
 import me.anisekai.toshiko.io.entities.DiskAnime;
 import me.anisekai.toshiko.io.entities.DiskEpisode;
 import me.anisekai.toshiko.io.entities.DiskGroup;
+import me.anisekai.toshiko.io.entities.DiskSubtitle;
 import me.anisekai.toshiko.io.video.SubtitleCodec;
 import me.anisekai.toshiko.utils.FileSystemUtils;
-import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 @Service
 public class DiskService {
-
-    public static final String HTTP_ANIME_ROOT = "https://toshiko.alexpado.fr/animes";
-    public static final String HTTP_SUBS_ROOT  = "https://toshiko.alexpado.fr/subtitles";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiskService.class);
 
@@ -31,27 +26,21 @@ public class DiskService {
     private final ToshikoDiskConfiguration    diskConfiguration;
 
     private Path automationPath;
-    private Path animePath;
-    private Path subtitlePath;
     private Path torrentPath;
 
-    private       Set<DiskAnime> database;
-    private final JSONArray      databaseCache;
+    private Set<DiskAnime> database;
 
     public DiskService(ToshikoFeatureConfiguration featureConfiguration, ToshikoDiskConfiguration diskConfiguration) {
 
         this.featureConfiguration = featureConfiguration;
         this.diskConfiguration    = diskConfiguration;
         this.database             = new TreeSet<>(Comparator.comparing(DiskAnime::getName));
-        this.databaseCache        = new JSONArray();
     }
 
     @PostConstruct
     private void initialize() {
 
         this.automationPath = Path.of(this.diskConfiguration.getAnimesInput());
-        this.animePath      = Path.of(this.diskConfiguration.getAnimesOutput());
-        this.subtitlePath   = Path.of(this.diskConfiguration.getSubtitlesOutput());
         this.torrentPath    = Path.of(this.diskConfiguration.getTorrentInput());
 
         this.cache();
@@ -60,16 +49,6 @@ public class DiskService {
     public Path getAutomationPath() {
 
         return this.automationPath;
-    }
-
-    public Path getAnimePath() {
-
-        return this.animePath;
-    }
-
-    public Path getSubtitlePath() {
-
-        return this.subtitlePath;
     }
 
     public Path getTorrentPath() {
@@ -90,11 +69,6 @@ public class DiskService {
     public Set<DiskAnime> getDatabase() {
 
         return this.database;
-    }
-
-    public JSONArray getDatabaseCache() {
-
-        return this.databaseCache;
     }
 
     public void cache() {
@@ -154,16 +128,57 @@ public class DiskService {
         }
 
         LOGGER.debug("Finalizing...");
-        cache.forEach(a -> a.finalize(this.diskConfiguration.getAnimesOutput(), this.diskConfiguration.getSubtitlesOutput()));
+        cache.forEach(a -> a.finalize(
+                this.diskConfiguration.getAnimesOutput(),
+                this.diskConfiguration.getSubtitlesOutput()
+        ));
         LOGGER.debug("Finalized.");
 
         // Apply cache
         this.database = cache;
-
-        LOGGER.info("Jsonify...");
-        this.databaseCache.clear();
-        this.database.stream().map(DiskAnime::toJson).forEach(this.databaseCache::put);
         LOGGER.info("OK. Cached {} items", this.database.size());
+    }
+
+
+    public Optional<DiskEpisode> findEpisode(UUID anime, UUID episode) {
+
+        return this.getDatabase()
+                   .stream()
+                   .filter(diskAnime -> diskAnime.getUuid().equals(anime))
+                   .findFirst()
+                   .flatMap(diskAnime -> diskAnime
+                           .getEpisodes()
+                           .stream()
+                           .filter(diskEpisode -> diskEpisode.getUuid().equals(episode))
+                           .findFirst()
+                   );
+    }
+
+    public Optional<DiskEpisode> findEpisode(UUID anime, UUID group, UUID episode) {
+
+        return this.getDatabase()
+                   .stream()
+                   .filter(diskAnime -> diskAnime.getUuid().equals(anime))
+                   .findFirst()
+                   .flatMap(diskAnime -> diskAnime
+                           .getGroups()
+                           .stream()
+                           .filter(diskGroup -> diskGroup.getUuid().equals(group))
+                           .findFirst()
+                           .flatMap(diskGroup -> diskGroup
+                                   .getEpisodes()
+                                   .stream()
+                                   .filter(diskEpisode -> diskEpisode.getUuid().equals(episode))
+                                   .findFirst()
+                           )
+                   );
+    }
+
+    public Optional<DiskSubtitle> findSubtitle(DiskEpisode episode, UUID subTrack) {
+
+        return episode.getSubtitles().stream()
+                      .filter(diskSubtitle -> diskSubtitle.getUuid().equals(subTrack))
+                      .findFirst();
     }
 
 }

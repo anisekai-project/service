@@ -11,14 +11,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 public class ToshikoApplication {
 
-    private final ToshikoFeatureConfiguration featureConfiguration;
-
-
     ToshikoApplication(ToshikoBot bot, ToshikoFeatureConfiguration featureConfiguration) {
 
-        this.featureConfiguration = featureConfiguration;
-
-        if (this.featureConfiguration.isBotEnabled()) {
+        if (featureConfiguration.isBotEnabled()) {
             bot.login();
         }
     }
@@ -27,4 +22,5 @@ public class ToshikoApplication {
 
         SpringApplication.run(ToshikoApplication.class, args);
     }
+
 }

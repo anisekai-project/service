@@ -26,4 +26,5 @@ public class AnimeScoreComparator implements Comparator<Map.Entry<Anime, Double>
 
         return compare == 0 ? entryA.getKey().getId().compareTo(entryB.getKey().getId()) : compare;
     }
+
 }

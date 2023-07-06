@@ -97,7 +97,11 @@ public class UserInteractions {
             if (!this.service.setUserEmote(target, icon)) {
                 embedBuilder.addField("Icône de vote", target.getEmote() + " *(Inchangé)*", false);
             } else {
-                embedBuilder.addField("Icône de vote", target.getEmote() != null ? target.getEmote() : "*Aucune*", false);
+                embedBuilder.addField(
+                        "Icône de vote",
+                        target.getEmote() != null ? target.getEmote() : "*Aucune*",
+                        false
+                );
             }
         }
 

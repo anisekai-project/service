@@ -5,8 +5,6 @@ import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.helpers.FileDownloader;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
-import me.anisekai.toshiko.services.AnimeNightService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Icon;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
@@ -19,13 +17,11 @@ public class UpdateAnimeNightTask implements Task {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UpdateAnimeNightTask.class);
 
-    private final AnimeNightService service;
-    private final Guild             guild;
-    private final AnimeNight        animeNight;
+    private final Guild      guild;
+    private final AnimeNight animeNight;
 
-    public UpdateAnimeNightTask(AnimeNightService service, Guild guild, AnimeNight animeNight) {
+    public UpdateAnimeNightTask(Guild guild, AnimeNight animeNight) {
 
-        this.service    = service;
         this.guild      = guild;
         this.animeNight = animeNight;
     }
@@ -45,7 +41,11 @@ public class UpdateAnimeNightTask implements Task {
         ScheduledEvent event = this.guild.getScheduledEventById(this.animeNight.getEventId());
 
         if (event == null) {
-            LOGGER.error("ScheduledEvent {} (for AnimeNight {}) was not found !", this.animeNight.getEventId(), this.animeNight.getId());
+            LOGGER.error(
+                    "ScheduledEvent {} (for AnimeNight {}) was not found !",
+                    this.animeNight.getEventId(),
+                    this.animeNight.getId()
+            );
             return;
         }
         String name = Texts.truncate(this.animeNight.getAnime().getName(), ScheduledEvent.MAX_NAME_LENGTH);
@@ -65,13 +65,4 @@ public class UpdateAnimeNightTask implements Task {
         }
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
 }

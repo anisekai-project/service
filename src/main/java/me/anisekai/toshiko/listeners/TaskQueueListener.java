@@ -44,26 +44,34 @@ public class TaskQueueListener {
     @EventListener
     public void onAnimeUpdated(AnimeUpdatedEvent event) {
 
-        this.service.queue(new UpdateAnnouncementTask(this.animeService, this.store, event.getAnime()));
+        this.service.queue(new UpdateAnnouncementTask(this.store, event.getAnime()));
         this.service.queue(new AnimeCountTask(this.animeService, this.store.getWatchlistChannel()));
     }
 
     @EventListener
     public void onAnimeStatusUpdated(AnimeStatusUpdatedEvent event) {
 
-        this.service.queue(new UpdateAnnouncementTask(this.animeService, this.store, event.getAnime()));
+        this.service.queue(new UpdateAnnouncementTask(this.store, event.getAnime()));
         this.service.queue(new AnimeCountTask(this.animeService, this.store.getWatchlistChannel()));
     }
 
     @EventListener
     public void onAnimeNightCreated(AnimeNightCreatedEvent event) {
 
-        this.service.queue(new ScheduleAnimeNightTask(this.animeNightService, this.store.getBotGuild(), event.getAnimeNight()));
+        this.service.queue(new ScheduleAnimeNightTask(
+                this.animeNightService,
+                this.store.getBotGuild(),
+                event.getAnimeNight()
+        ));
     }
 
     @EventListener
     public void onAnimeNightUpdated(AnimeNightUpdatedEvent event) {
 
-        this.service.queue(new UpdateAnimeNightTask(this.animeNightService, this.store.getBotGuild(), event.getAnimeNight()));
+        this.service.queue(new UpdateAnimeNightTask(
+                this.store.getBotGuild(),
+                event.getAnimeNight()
+        ));
     }
+
 }

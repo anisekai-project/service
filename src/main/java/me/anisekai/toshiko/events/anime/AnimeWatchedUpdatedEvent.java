@@ -31,4 +31,5 @@ public class AnimeWatchedUpdatedEvent extends ApplicationEvent {
 
         return this.newWatched;
     }
+
 }

@@ -55,11 +55,17 @@ public class FileManagerService {
         DiskFile extracted = new DiskFile(video, String.format(
                 "%s-%s",
                 video.getName(),
-                track.getId()),
-                track.getCodec().getExtension()
+                track.getId()
+        ),
+                                          track.getCodec().getExtension()
         );
 
-        LOGGER.info("mkvmerge: Extracting TrackID {} of file '{}' into '{}'...", track.getId(), video.getFilename(), extracted.getFilename());
+        LOGGER.info(
+                "mkvmerge: Extracting TrackID {} of file '{}' into '{}'...",
+                track.getId(),
+                video.getFilename(),
+                extracted.getFilename()
+        );
 
         Runtime runtime = Runtime.getRuntime();
         Process process = runtime.exec(new String[]{
@@ -73,7 +79,12 @@ public class FileManagerService {
 
         // 0 = OK | 1 = OK with Warnings ?
         if (exitCode != 0 && exitCode != 1) {
-            LOGGER.error("mkvmerge: TrackID {} of file '{}' could not be extracted (exit code {})", track.getId(), video.getFilename(), exitCode);
+            LOGGER.error(
+                    "mkvmerge: TrackID {} of file '{}' could not be extracted (exit code {})",
+                    track.getId(),
+                    video.getFilename(),
+                    exitCode
+            );
             throw new IllegalStateException("mkvmerge exit code is " + exitCode);
         }
         LOGGER.info("mkvmerge: TrackID {} of file '{}' has been extracted.", track.getId(), video.getFilename());
@@ -140,4 +151,5 @@ public class FileManagerService {
         }
         return result;
     }
+
 }

@@ -113,9 +113,18 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
         builder.addField("Personne(s) non intéressée(s)", String.join("\n", notInterestedUsers), false);
 
         ActionRow buttons = ActionRow.of(
-                Button.success(this.getButtonUrl(InterestLevel.INTERESTED), Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_INTERESTED),
-                Button.secondary(this.getButtonUrl(InterestLevel.NEUTRAL), Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_NEUTRAL),
-                Button.danger(this.getButtonUrl(InterestLevel.NOT_INTERESTED), Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_NOT_INTERESTED)
+                Button.success(
+                        this.getButtonUrl(InterestLevel.INTERESTED),
+                        Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_INTERESTED
+                ),
+                Button.secondary(
+                        this.getButtonUrl(InterestLevel.NEUTRAL),
+                        Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_NEUTRAL
+                ),
+                Button.danger(
+                        this.getButtonUrl(InterestLevel.NOT_INTERESTED),
+                        Texts.ANIME_INTEREST__OPTION_LEVEL__CHOICE_NOT_INTERESTED
+                )
         );
 
         return (amb) -> {
@@ -139,4 +148,5 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
         return String.format("button://anime/interest?anime=%s&interest=%s", this.anime.getId(), level.name());
     }
+
 }

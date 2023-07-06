@@ -31,4 +31,5 @@ public class AnimeTotalUpdatedEvent extends ApplicationEvent {
 
         return this.newValue;
     }
+
 }

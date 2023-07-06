@@ -258,13 +258,4 @@ public class AnimeService {
 
     }
 
-    /**
-     * Retrieve the count of displayable {@link Anime} in the database.
-     *
-     * @return The count of displayable {@link Anime}.
-     */
-    public long getDisplayableAnimeCount() {
-
-        return this.repository.findAllByStatusIn(AnimeStatus.getDisplayable()).size();
-    }
 }

@@ -17,7 +17,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class TorrentService {
@@ -67,8 +70,7 @@ public class TorrentService {
 
             Iterable<Integer> allIds = torrentMap.keySet();
 
-            List<Torrent> finished   = new ArrayList<>();
-            Collection<Torrent> unfinished = new ArrayList<>();
+            Collection<Torrent> finished = new ArrayList<>();
 
             for (Torrent torrent : this.repository.findAllById(allIds)) {
 
@@ -80,14 +82,14 @@ public class TorrentService {
                 if (torrent.getStatus().isFinished() && !wasFinished) {
                     LOGGER.info("Torrent {} is now finished.", torrent.getId());
                     finished.add(torrent);
-                } else if (!torrent.getStatus().isFinished()){
-                    unfinished.add(torrent);
                 }
             }
 
-            for (int i = 0; i < finished.size(); i++) {
-                Torrent torrent = finished.get(i);
-                this.publisher.publishEvent(new TorrentFinishedEvent(this, torrent, !unfinished.isEmpty() && i+1 < finished.size()));
+            for (Torrent torrent : finished) {
+                this.publisher.publishEvent(new TorrentFinishedEvent(
+                        this,
+                        torrent
+                ));
             }
         } catch (Exception e) {
             if (e instanceof RestException restException) {
@@ -97,4 +99,5 @@ public class TorrentService {
             throw new RuntimeException(e);
         }
     }
+
 }

@@ -24,7 +24,7 @@ public class TransmissionDaemonClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransmissionDaemonClient.class);
 
     private final AutoDownloadConfiguration configuration;
-    private Optional<String> sessionId = Optional.empty();
+    private       Optional<String>          sessionId = Optional.empty();
 
     public TransmissionDaemonClient(AutoDownloadConfiguration configuration) {
 

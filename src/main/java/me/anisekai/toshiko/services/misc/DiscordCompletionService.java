@@ -25,7 +25,7 @@ public class DiscordCompletionService {
 
     public DiscordCompletionService(DiskService diskService, AnimeRepository animeRepository, SeasonalSelectionRepository seasonalSelectionRepository) {
 
-        this.diskService = diskService;
+        this.diskService                 = diskService;
         this.animeRepository             = animeRepository;
         this.seasonalSelectionRepository = seasonalSelectionRepository;
     }

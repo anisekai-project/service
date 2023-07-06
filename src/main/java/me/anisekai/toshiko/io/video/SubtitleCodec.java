@@ -3,7 +3,6 @@ package me.anisekai.toshiko.io.video;
 import me.anisekai.toshiko.io.DiskFile;
 
 import java.io.File;
-import java.util.List;
 import java.util.stream.Stream;
 
 public enum SubtitleCodec {
@@ -33,11 +32,6 @@ public enum SubtitleCodec {
         }
 
         throw new IllegalArgumentException("Unknown codec: " + codec);
-    }
-
-    public static List<String> allExtensions() {
-
-        return Stream.of(SubtitleCodec.values()).map(SubtitleCodec::getExtension).toList();
     }
 
     public static boolean isSubtitle(String extension) {

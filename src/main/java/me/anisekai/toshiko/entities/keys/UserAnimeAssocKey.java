@@ -50,4 +50,5 @@ public class UserAnimeAssocKey implements Serializable {
 
         return Objects.hash(this.getAnime(), this.getUser());
     }
+
 }

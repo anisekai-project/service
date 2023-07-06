@@ -3,7 +3,6 @@ package me.anisekai.toshiko.entities;
 import jakarta.persistence.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.CronState;
-import net.dv8tion.jda.api.entities.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,4 +96,5 @@ public class Watchlist implements Comparable<Watchlist> {
 
         return this.getStatus().compareTo(o.getStatus());
     }
+
 }

@@ -28,30 +28,30 @@ public final class AnimeRenamer {
     }};
 
     private AnimeRenamer() {
+
     }
 
-    public static File rename(File source, File destination) throws IOException {
+    public static void rename(File source, File destination) throws IOException {
 
         for (Map.Entry<String, Pattern> entry : REGEX_STORE.entrySet()) {
-            String regexName = entry.getKey();
-            Pattern pattern = entry.getValue();
-            Matcher matcher = pattern.matcher(source.getName());
+            String  regexName = entry.getKey();
+            Pattern pattern   = entry.getValue();
+            Matcher matcher   = pattern.matcher(source.getName());
 
             if (matcher.matches()) {
                 String renameAs = "%02d.%s";
-                int ep = Integer.parseInt(matcher.group("ep"));
-                String ext = matcher.group("ext");
+                int    ep       = Integer.parseInt(matcher.group("ep"));
+                String ext      = matcher.group("ext");
 
                 String newName = String.format(renameAs, ep, ext);
-                File target = new File(destination, newName);
+                File   target  = new File(destination, newName);
 
                 LOGGER.info("Renaming {} to {} using regex {}", source.getName(), newName, regexName);
                 Files.move(source.toPath(), target.toPath());
-                return target;
+                return;
             }
         }
         LOGGER.error("Unable to rename {}: No regex matched the filename.", source.getName());
-        return null;
     }
 
 }

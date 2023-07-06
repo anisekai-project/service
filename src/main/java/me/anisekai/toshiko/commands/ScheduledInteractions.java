@@ -66,7 +66,11 @@ public class ScheduledInteractions {
 
         List<AnimeNight> nights = this.service.scheduleAll(anime, scheduleAt, amount, timeIncrement);
 
-        return new SimpleResponse(String.format("%s scéance(s) ont été programmé pour l'anime **%s**", nights.size(), anime.getName()), false, false);
+        return new SimpleResponse(String.format(
+                "%s séance(s) ont été programmé pour l'anime **%s**",
+                nights.size(),
+                anime.getName()
+        ), false, false);
     }
 
     // <editor-fold desc="@ schedule/daily">

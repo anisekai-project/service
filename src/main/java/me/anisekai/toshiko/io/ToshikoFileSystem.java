@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +49,7 @@ public class ToshikoFileSystem {
         File   animeDir  = new File(destinationDirectory);
         File   output    = new File(animeDir, relative);
         File   container = output.getParentFile();
+        //noinspection ResultOfMethodCallIgnored
         container.mkdirs();
         return output;
     }
@@ -132,6 +132,7 @@ public class ToshikoFileSystem {
                 this.moveSubtitle(subtitle);
             }
             LOGGER.info("Removing leftover files from automation directory...");
+            //noinspection ResultOfMethodCallIgnored
             subtitles.forEach(subtitle -> subtitle.getFile().delete());
             this.diskFileLocking.remove(diskFile);
             LOGGER.info("The file '{}' was imported with success.", this.getRelativeFsPath(diskFile.getFile()));
@@ -161,7 +162,10 @@ public class ToshikoFileSystem {
         List<File> content          = FileSystemUtils.files(torrentDirectory);
 
         Optional<File> optionalFile = content.stream()
-                                             .filter(file -> file.getName().startsWith(event.getTorrent().getAnime().getRssMatch()))
+                                             .filter(file -> file.getName()
+                                                                 .startsWith(event.getTorrent()
+                                                                                  .getAnime()
+                                                                                  .getRssMatch()))
                                              .findFirst();
 
         if (optionalFile.isEmpty()) {

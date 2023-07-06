@@ -147,7 +147,8 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
         if (anime.getTotal() < 1) {
             LOGGER.warn("Unknown total of episode: Can't schedule.");
-            throw new IllegalStateException("You can't schedule every episode of this anime: The total number of episode is unknown.");
+            throw new IllegalStateException(
+                    "You can't schedule every episode of this anime: The total number of episode is unknown.");
         }
 
         ZonedDateTime now           = ZonedDateTime.now();
@@ -181,7 +182,8 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
             if (scheduleAt.isAfter(securityLimit)) {
                 LOGGER.error("WOW ! Tried to schedule an event 2 years later, something is obviously wrong here.");
-                throw new IllegalStateException("Could not completely schedule the anime within a 2 years time period. Either you have a lot to watch, or you fucked up the code.");
+                throw new IllegalStateException(
+                        "Could not completely schedule the anime within a 2 years time period. Either you have a lot to watch, or you fucked up the code.");
             }
         }
     }
@@ -284,7 +286,7 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
         LOGGER.info("Checking if schedule can be delayed...");
         for (T event : delayable) {
             // Make a copy
-            BookedAnimeNight night = new BookedAnimeNight(event);
+            AnimeNightMeta night = new BookedAnimeNight(event);
 
             // Apply delay
             night.setStartDateTime(night.getStartDateTime().plus(value, unit.toChronoUnit()));
@@ -297,7 +299,11 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
 
             if (collide) {
                 LOGGER.info("Nope, it can't be scheduled.");
-                throw new AnimeNightOverlappingException(night.getAnime(), night.getStartDateTime(), night.getEndDateTime());
+                throw new AnimeNightOverlappingException(
+                        night.getAnime(),
+                        night.getStartDateTime(),
+                        night.getEndDateTime()
+                );
             }
         }
 
@@ -309,4 +315,5 @@ public class AnimeNightScheduler<T extends AnimeNightMeta> {
             onUpdate.accept(event);
         }
     }
+
 }

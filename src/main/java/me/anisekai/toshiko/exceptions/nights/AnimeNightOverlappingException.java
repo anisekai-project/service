@@ -40,4 +40,5 @@ public class AnimeNightOverlappingException extends RuntimeException implements 
 
         return true;
     }
+
 }

@@ -1,6 +1,5 @@
 package me.anisekai.toshiko.services;
 
-import jakarta.persistence.EntityManager;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.Interest;
@@ -29,23 +28,6 @@ public class InterestService {
     }
 
     /**
-     * Retrieve the {@link InterestLevel} of a {@link DiscordUser} for a specific {@link Anime}.
-     *
-     * @param anime
-     *         The {@link Anime} for which the {@link InterestLevel} should be fetched
-     * @param user
-     *         The {@link DiscordUser} to which the {@link InterestLevel} belongs.
-     *
-     * @return The {@link InterestLevel}, or {@link InterestLevel#NEUTRAL} if no {@link Interest} was found.
-     */
-    public InterestLevel getInterestLevel(Anime anime, DiscordUser user) {
-
-        return this.repository.findByAnimeAndUser(anime, user)
-                              .map(Interest::getLevel)
-                              .orElse(InterestLevel.NEUTRAL);
-    }
-
-    /**
      * Define the {@link InterestLevel} of a {@link DiscordUser} for a specific {@link Anime}.
      *
      * @param anime
@@ -59,7 +41,12 @@ public class InterestService {
      */
     public Optional<Interest> setInterestLevel(Anime anime, DiscordUser user, InterestLevel level) {
 
-        LOGGER.info("setInterestLevel: Interest on Anime {} for User {} is {}", anime.getId(), user.getId(), level.name());
+        LOGGER.info(
+                "setInterestLevel: Interest on Anime {} for User {} is {}",
+                anime.getId(),
+                user.getId(),
+                level.name()
+        );
 
         Optional<Interest> optionalInterest = this.repository.findByAnimeAndUser(anime, user);
 

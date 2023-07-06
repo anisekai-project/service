@@ -3,7 +3,6 @@ package me.anisekai.toshiko.commands;
 import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
-import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.components.RankingHandler;
@@ -28,8 +27,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -40,8 +37,6 @@ import java.util.Optional;
 @Component
 @InteractionBean
 public class AnimeInteractions {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnimeInteractions.class);
 
     private final AnimeService              animeService;
     private final InterestService           interestService;
@@ -144,7 +139,11 @@ public class AnimeInteractions {
         AnimeStatus status = AnimeStatus.from(statusName);
         Anime       anime  = this.animeService.setStatus(this.animeService.getAnime(animeId), status);
 
-        return new SimpleResponse(String.format("Le statut de l'anime '%s' a bien été changé.", anime.getName()), false, false);
+        return new SimpleResponse(
+                String.format("Le statut de l'anime '%s' a bien été changé.", anime.getName()),
+                false,
+                false
+        );
     }
     // </editor-fold>
 
@@ -178,17 +177,25 @@ public class AnimeInteractions {
     ) {
 
         if (discordUser.getEmote() == null) {
-            return new SimpleResponse("Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/profile`)", false, true);
+            return new SimpleResponse(
+                    "Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/profile`)",
+                    false,
+                    true
+            );
         }
 
         Anime anime = this.animeService.getAnime(animeId);
 
-        InterestLevel level    = InterestLevel.from(interestName);
+        InterestLevel level = InterestLevel.from(interestName);
 
         Optional<Interest> optionalInterest = this.interestService.setInterestLevel(anime, discordUser, level);
 
         if (optionalInterest.isEmpty()) {
-            return new SimpleResponse("Ton niveau d'interêt reste inchangé.", false, interaction instanceof ButtonInteraction);
+            return new SimpleResponse(
+                    "Ton niveau d'intérêt reste inchangé.",
+                    false,
+                    interaction instanceof ButtonInteraction
+            );
         }
 
         return new InterestResponse(optionalInterest.get(), interaction instanceof SlashCommandInteraction);
@@ -238,7 +245,11 @@ public class AnimeInteractions {
         anime = this.animeService.setProgression(anime, watched);
 
         if (anime.getStatus() == AnimeStatus.WATCHED) {
-            return new SimpleResponse("La progression a été sauvegardée et l'anime marqué comme terminé.", false, false);
+            return new SimpleResponse(
+                    "La progression a été sauvegardée et l'anime marqué comme terminé.",
+                    false,
+                    false
+            );
         } else {
             return new SimpleResponse("La progression a été sauvegardée.", false, false);
         }

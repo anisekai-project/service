@@ -25,4 +25,5 @@ public class AnimeNightStartedEvent extends ApplicationEvent {
 
         return this.scheduledEvent;
     }
+
 }

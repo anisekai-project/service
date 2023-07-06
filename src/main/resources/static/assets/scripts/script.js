@@ -1,27 +1,39 @@
-const templates = {
-    collapse: document.getElementById('collapse'),
-    file:     document.getElementById('file'),
-};
+class Collapse {
 
-const tree     = document.getElementById('tree-view');
+    constructor(el) {
+        this.el = el;
+
+        this.id = this.el.id;
+        this.name = this.el.querySelector('summary').innerText;
+    }
+
+    hide() {
+        this.el.classList.add('hidden')
+    }
+
+    show() {
+        this.el.classList.remove('hidden')
+    }
+}
+
+
+const tree = document.getElementById('tree-view');
 const download = document.getElementById('download');
-const search   = document.getElementById('search-input');
-const modal    = document.getElementById('modal');
-const player   = document.getElementById('video-player');
+const search = document.getElementById('search-input');
+const modal = document.getElementById('modal');
+const player = document.getElementById('video-player');
 const noResult = document.querySelector('[data-if="empty"]');
 
 const backdrop = modal.querySelector('.backdrop');
-const plyr     = new Plyr(player, {
+const plyr = new Plyr(player, {
     disableContextMenu: false,
-    captions:           {
-        active:   true,
+    captions: {
+        active: true,
         language: 'fr',
     },
-    global:             true,
-    iconUrl:            'assets/plyr/plyr.svg',
+    global: true,
+    iconUrl: 'assets/plyr/plyr.svg',
 });
-
-const data = [];
 
 /**
  * @param {string} uri
@@ -30,10 +42,10 @@ const data = [];
 const playEpisode = (uri, subtitles) => {
 
     const options = {
-        type:    'video',
+        type: 'video',
         sources: [
             {
-                src:  uri,
+                src: `/${uri}/video`,
                 type: 'video/mp4',
             },
         ],
@@ -42,7 +54,7 @@ const playEpisode = (uri, subtitles) => {
                 kind:    'captions',
                 label:   'French',
                 srclang: 'fr',
-                src:     obj.uri,
+                src:     `/${uri}/subs/${obj}`,
                 default: true,
             };
         }),
@@ -53,7 +65,7 @@ const playEpisode = (uri, subtitles) => {
     plyr.source = options;
 
     plyr.captions.enabled = true;
-    download.href         = uri;
+    download.href = `/${uri}/video`;
     modal.classList.remove('hidden');
 };
 
@@ -62,61 +74,13 @@ const closePlayer = () => {
     plyr.pause();
 };
 
-class Collapse {
+const data = [];
 
-    constructor(id, name) {
-        this.id       = id;
-        this.name     = name;
-        this.children = [];
-        this.el       = templates.collapse.content.cloneNode(true);
-
-        this.el.querySelector('[data-bind="instance"]').setAttribute('data-instance', this.id);
-        this.el.querySelector('[data-bind="name"]').innerText = name;
-    }
-
-    reselect() {
-        this.el = document.querySelector(`[data-instance="${this.id}"]`);
-    }
-
-    add(item) {
-        this.children.push(item);
-        this.el.querySelector('[data-bind="children"]').appendChild(item.el);
-        item.reselect();
-    }
-
-    hide() {
-        this.el.classList.add('hidden');
-    }
-
-    show() {
-        this.el.classList.remove('hidden');
-    }
-
-}
-
-class File {
-
-    constructor(id, name, uri, subtitles) {
-        this.id = id;
-        this.el = templates.file.content.cloneNode(true);
-
-        this.el.querySelector('[data-bind="name"]').innerText = name;
-        this.el.querySelector('[data-bind="instance"]').setAttribute('data-instance', this.id);
-
-        this.el.querySelector('[data-instance]').addEventListener('click', () => {
-            playEpisode(uri, subtitles);
-        });
-    }
-
-    reselect() {
-        this.el = document.querySelector(`[data-instance="${this.id}"]`);
-    }
-}
 
 const doFilter = (filter) => {
     console.log('doFilter()', {filter});
 
-    let shown  = 0;
+    let shown = 0;
     let hidden = 0;
 
     data.forEach(anime => {
@@ -144,7 +108,7 @@ const doFilter = (filter) => {
 };
 
 const castShadow = (r) => {
-    const color = '#2c2c2c'; /* white outline */
+    const color = '#2C2C2C'; /* white outline */
     const n = Math.ceil(2 * Math.PI * r); /* number of shadows */
     let str = '';
     for (let i = 0; i < n; i++) { /* append shadows in n evenly distributed directions */
@@ -158,7 +122,6 @@ const castShadow = (r) => {
     }
 };
 
-
 (() => {
 
     // Events
@@ -167,11 +130,11 @@ const castShadow = (r) => {
 
     // Captions font size hack - Make it relative to player size.
     const plyrPlayer = document.querySelector('.player > .plyr');
-    const observer   = new ResizeObserver(entries => {
-        const element   = entries[0];
+    const observer = new ResizeObserver(entries => {
+        const element = entries[0];
         const sizeRatio = 38 / 1920; // Arbitrary.
         const shadowRatio = 3 / 1920;
-        const fontSize  = element.contentRect.width * sizeRatio;
+        const fontSize = element.contentRect.width * sizeRatio;
         const shadowSize = element.contentRect.width * shadowRatio;
         modal.style.setProperty('--fsize', `${fontSize}px`);
         castShadow(shadowSize);
@@ -180,45 +143,33 @@ const castShadow = (r) => {
     observer.observe(plyrPlayer);
 })();
 
-(async () => {
-
-    console.time('HTTP Query');
-
-    const response = await fetch('/api/v1/fs');
-    const rawData  = await response.json();
-
-    console.timeEnd('HTTP Query');
-
-    console.time('Objectifying');
-    rawData.forEach(anime => {
-        const animeInstance = new Collapse(anime.id, anime.name);
-
-        anime.groups.forEach(group => {
-            const groupInstance = new Collapse(group.id, group.name);
-
-            group.episodes.forEach(episode => {
-                const episodeInstance = new File(episode.id, episode.name, episode.uri, episode.subtitles);
-                groupInstance.add(episodeInstance);
-            });
-
-            animeInstance.add(groupInstance);
-        });
-
-        anime.files.forEach(episode => {
-            const episodeInstance = new File(episode.id, episode.name, episode.uri, episode.subtitles);
-            animeInstance.add(episodeInstance);
-        });
-
-        data.push(animeInstance);
+(() => {
+    tree.querySelectorAll(':scope > details').forEach(node => {
+        data.push(new Collapse(node));
     });
-    console.timeEnd('Objectifying');
 
-    console.time('Rendering');
-    data.forEach(anime => {
-        tree.appendChild(anime.el);
-        anime.reselect();
+    tree.querySelectorAll('.file').forEach(node => {
+        node.addEventListener('click', () => {
+
+            const idpath = [node.id];
+            let nextNode = node;
+
+            while ((nextNode = nextNode.parentElement.closest('details')) !== null) {
+                idpath.push(nextNode.id);
+            }
+
+            const path = idpath.reverse().join('/');
+            const subs = [];
+
+            // Retrieve subs
+            node.querySelectorAll('meta[name="subtitle"]').forEach(sub => {
+                subs.push(sub.getAttribute('content'));
+            })
+
+
+            playEpisode(path, subs);
+        })
     });
-    console.timeEnd('Rendering');
 
     doFilter('');
 })();

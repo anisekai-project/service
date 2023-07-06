@@ -3,7 +3,6 @@ package me.anisekai.toshiko.tasks;
 import me.anisekai.toshiko.components.JdaStore;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
 import me.anisekai.toshiko.messages.embeds.AnimeEmbed;
 import me.anisekai.toshiko.services.AnimeService;
 import net.dv8tion.jda.api.entities.Message;
@@ -60,13 +59,4 @@ public class SendAnnouncementTask implements Task {
         LOGGER.info("Announcement task finished.");
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
 }

@@ -22,4 +22,5 @@ public class AnimeNotFoundException extends RuntimeException implements DiscordE
 
         return false;
     }
+
 }

@@ -27,27 +27,8 @@ public class SendMessageTask implements Task {
         return String.format("SEND:%s:MESSAGE", this.embeddable.hashCode());
     }
 
-    /**
-     * Called when this {@link Task} {@link #run()} method has completed successfully.
-     */
     @Override
-    public void onFinished() {
-
-    }
-
-    /**
-     * Called when this {@link Task} {@link #run()} has thrown an exception.
-     *
-     * @param e
-     *         The {@link Exception} that has been thrown.
-     */
-    @Override
-    public void onException(Exception e) {
-
-    }
-
-    @Override
-    public void run() throws Exception {
+    public void run() {
 
         this.channel.sendMessage(MessageCreateData.fromEmbeds(this.embeddable.asEmbed().build())).complete();
     }

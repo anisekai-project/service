@@ -17,4 +17,5 @@ public class UserEmoteUpdatedEvent extends ApplicationEvent {
 
         return this.user;
     }
+
 }

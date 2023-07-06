@@ -5,7 +5,6 @@ import me.anisekai.toshiko.components.RankingHandler;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Watchlist;
 import me.anisekai.toshiko.enums.CronState;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
 import me.anisekai.toshiko.messages.embeds.WatchlistEmbed;
 import me.anisekai.toshiko.services.WatchlistService;
 import net.dv8tion.jda.api.entities.Message;
@@ -53,7 +52,11 @@ public class WatchlistTask implements Task {
 
 
         if (shouldCreateMessage || existingMessage.isEmpty()) {
-            LOGGER.info("Sending a new message (Has ID: {}, Has MSG: {})", !shouldCreateMessage, existingMessage.isPresent());
+            LOGGER.info(
+                    "Sending a new message (Has ID: {}, Has MSG: {})",
+                    !shouldCreateMessage,
+                    existingMessage.isPresent()
+            );
             MessageCreateBuilder mcb = new MessageCreateBuilder();
             message.getHandler().accept(mcb);
 
@@ -71,16 +74,6 @@ public class WatchlistTask implements Task {
         this.service.getRepository().save(this.watchlist);
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
-
     private Optional<Message> findExistingMessage(Watchlist watchlist) {
 
         if (watchlist.getMessageId() == null) {
@@ -96,4 +89,5 @@ public class WatchlistTask implements Task {
             throw e;
         }
     }
+
 }

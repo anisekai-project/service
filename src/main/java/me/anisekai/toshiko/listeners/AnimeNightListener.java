@@ -43,4 +43,5 @@ public class AnimeNightListener {
 
         this.service.calibrate(event.getAnime());
     }
+
 }

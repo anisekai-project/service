@@ -15,7 +15,7 @@ public class SimpleResponse implements SlashResponse, ButtonResponse {
     private final boolean                  edit;
     private final boolean                  ephemeral;
 
-    public SimpleResponse(String message, boolean edit, boolean ephemeral) {
+    public SimpleResponse(CharSequence message, boolean edit, boolean ephemeral) {
 
         this(new EmbedBuilder().setDescription(message), edit, ephemeral);
     }

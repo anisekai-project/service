@@ -112,4 +112,5 @@ public class SeasonalSelection {
 
         return Objects.hash(this.getId());
     }
+
 }

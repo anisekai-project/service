@@ -17,4 +17,5 @@ public class SeasonalSelectionClosedEvent extends ApplicationEvent {
 
         return this.seasonalSelection;
     }
+
 }

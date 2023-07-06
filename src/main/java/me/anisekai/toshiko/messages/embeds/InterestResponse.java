@@ -29,7 +29,8 @@ public class InterestResponse implements ButtonResponse, SlashResponse {
 
             if (!this.interest.getUser().isActive()) {
                 builder.appendDescription("\n");
-                builder.appendDescription("Cependant, comme tu n'es pas considéré(e) comme une personne active, ton vote n'aura aucune influence sur le classement.");
+                builder.appendDescription(
+                        "Cependant, comme tu n'es pas considéré(e) comme une personne active, ton vote n'aura aucune influence sur le classement.");
             }
 
             builder.addField("Anime", this.interest.getAnime().getName(), false);
@@ -51,4 +52,5 @@ public class InterestResponse implements ButtonResponse, SlashResponse {
 
         return !this.editOriginal;
     }
+
 }

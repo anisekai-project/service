@@ -6,8 +6,6 @@ import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.events.selections.SeasonalSelectionClosedEvent;
 import me.anisekai.toshiko.exceptions.selections.*;
 import me.anisekai.toshiko.repositories.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +13,6 @@ import java.util.*;
 
 @Service
 public class SeasonalSelectionService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SeasonalSelectionService.class);
 
     private final SeasonalSelectionRepository repository;
     private final RankingHandler              ranking;
@@ -73,7 +69,8 @@ public class SeasonalSelectionService {
         // Retrieve all potential voters
         List<DiscordUser> votingUsers = this.userRepository.findAllByActiveIsTrue()
                                                            .stream()
-                                                           .sorted(Comparator.comparingDouble(this.ranking::getUserPower).reversed())
+                                                           .sorted(Comparator.comparingDouble(this.ranking::getUserPower)
+                                                                             .reversed())
                                                            .limit(7)
                                                            .toList();
 
@@ -108,7 +105,7 @@ public class SeasonalSelectionService {
 
         if (seasonalSelection.isClosed()) {
             // You can't close an already closed one
-            throw new SeasonalSelectionClosedException(seasonalSelection);
+            throw new SeasonalSelectionClosedException();
         }
 
         if (!ignoreMissingVote) {
@@ -117,7 +114,7 @@ public class SeasonalSelectionService {
             int voteRequired = voters.stream().mapToInt(SeasonalVoter::getAmount).sum();
 
             if (voteRequired > votes.size()) {
-                throw new SeasonalSelectionIncompleteException(seasonalSelection);
+                throw new SeasonalSelectionIncompleteException();
             }
         }
 
@@ -170,4 +167,5 @@ public class SeasonalSelectionService {
         this.voteRepository.save(new SeasonalVote(seasonalSelection, user, anime));
         return this.getSelection(seasonalSelection.getId());
     }
+
 }

@@ -70,17 +70,7 @@ public class MessageInteractions {
                 }
 
                 @Override
-                public void onFinished() {
-
-                }
-
-                @Override
-                public void onException(Exception e) {
-
-                }
-
-                @Override
-                public void run() throws Exception {
+                public void run() {
 
                     channel.sendMessage(MessageCreateData.fromEmbeds(
                             GeneralFrenchMessage.getRulesEmbed().build(),
@@ -156,7 +146,11 @@ public class MessageInteractions {
 
         if (category == null) {
             if (!user.isAdmin()) {
-                return new SimpleResponse("Veuillez choisir une catégorie spécifique (l'affichage de l'aide complète ne peut être faite que par un administrateur).", false, false);
+                return new SimpleResponse(
+                        "Veuillez choisir une catégorie spécifique (l'affichage de l'aide complète ne peut être faite que par un administrateur).",
+                        false,
+                        false
+                );
             }
 
             // Here we go boys
@@ -198,19 +192,11 @@ public class MessageInteractions {
             }
 
             @Override
-            public void onFinished() {
+            public void run() {
 
-            }
-
-            @Override
-            public void onException(Exception e) {
-
-            }
-
-            @Override
-            public void run() throws Exception {
                 channel.sendMessageEmbeds(builder.build()).complete();
             }
         });
     }
+
 }

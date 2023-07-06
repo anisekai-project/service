@@ -29,6 +29,7 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
     public <T extends Interaction> void handleException(DispatchEvent<T> event, Exception exception) {
 
         SentryId sentryId = null;
+        //noinspection ChainOfInstanceofChecks
         if (!(exception instanceof DiscordEmbeddable)) {
             sentryId = Sentry.captureException(exception); // Always report these.
             LOGGER.error(event.getPath().toString(), exception);
@@ -41,7 +42,7 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
             }
 
             EmbedBuilder builder = new EmbedBuilder();
-            builder.setTitle("Une erreur est surevenue.");
+            builder.setTitle("Une erreur est survenue.");
             builder.setDescription("""
                                            Une erreur est survenue lors du traitement de cette action. Merci de réessayer.
                                                                               
@@ -68,7 +69,8 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
         if (event.getInteraction() instanceof IReplyCallback callback) {
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Alors comment dire...");
-            builder.setDescription("Ce que t'as fais, ça a marché, mais la catastrophe est survenue lorsque le résultat devait être affiché.");
+            builder.setDescription(
+                    "Ce que t'as fais, ça a marché, mais la catastrophe est survenue lorsque le résultat devait être affiché.");
 
             builder.setFooter(String.format("I-Path: %s", event.getPath().toString()));
             this.answer(callback, builder.build(), true);

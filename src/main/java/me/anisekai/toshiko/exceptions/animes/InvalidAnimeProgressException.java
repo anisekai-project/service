@@ -22,4 +22,5 @@ public class InvalidAnimeProgressException extends RuntimeException implements D
 
         return false;
     }
+
 }

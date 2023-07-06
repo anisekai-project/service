@@ -14,7 +14,7 @@ public interface Task extends ThrowingRunnable {
     /**
      * Called when this {@link Task} {@link #run()} method has completed successfully.
      */
-    void onFinished();
+    default void onFinished() {}
 
     /**
      * Called when this {@link Task} {@link #run()} has thrown an exception.
@@ -22,6 +22,6 @@ public interface Task extends ThrowingRunnable {
      * @param e
      *         The {@link Exception} that has been thrown.
      */
-    void onException(Exception e);
+    default void onException(Exception e) {}
 
 }

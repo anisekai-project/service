@@ -9,8 +9,6 @@ public class MediaTrack {
     private final int           id;
     private final VideoFile     videoFile;
     private final SubtitleCodec codec;
-    private final int           number;
-    private final String        language;
 
     public MediaTrack(VideoFile videoFile, JSONObject trackData) {
 
@@ -19,8 +17,6 @@ public class MediaTrack {
         this.id        = trackData.getInt("id");
         this.videoFile = videoFile;
         this.codec     = SubtitleCodec.fromCodec(properties.getString("codec_id"));
-        this.number    = properties.getInt("number");
-        this.language  = properties.getString("language");
     }
 
     public int getId() {
@@ -31,16 +27,6 @@ public class MediaTrack {
     public SubtitleCodec getCodec() {
 
         return this.codec;
-    }
-
-    public int getNumber() {
-
-        return this.number;
-    }
-
-    public String getLanguage() {
-
-        return this.language;
     }
 
     public VideoFile getVideoFile() {
@@ -62,4 +48,5 @@ public class MediaTrack {
 
         return Objects.hash(this.getId(), this.videoFile);
     }
+
 }

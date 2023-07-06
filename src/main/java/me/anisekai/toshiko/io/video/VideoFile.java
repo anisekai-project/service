@@ -5,13 +5,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public final class VideoFile {
-
-    public static final List<String> SUPPORTED_EXTENSIONS = Arrays.asList(".mkv", ".mp4");
 
     private final File             file;
     private final JSONObject       rawData;
@@ -63,4 +60,5 @@ public final class VideoFile {
 
         return Objects.hash(this.getFile());
     }
+
 }

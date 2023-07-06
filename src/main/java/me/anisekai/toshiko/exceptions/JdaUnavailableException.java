@@ -19,4 +19,5 @@ public class JdaUnavailableException extends RuntimeException implements Discord
 
         return false;
     }
+
 }

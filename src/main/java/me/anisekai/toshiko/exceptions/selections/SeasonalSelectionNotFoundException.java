@@ -24,4 +24,5 @@ public class SeasonalSelectionNotFoundException extends RuntimeException impleme
 
         return true;
     }
+
 }

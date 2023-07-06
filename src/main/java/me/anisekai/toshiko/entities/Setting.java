@@ -54,4 +54,5 @@ public class Setting {
 
         return Objects.hash(this.getKey());
     }
+
 }

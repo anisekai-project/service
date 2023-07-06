@@ -17,4 +17,5 @@ public class InterestUpdatedEvent extends ApplicationEvent {
 
         return this.interest;
     }
+
 }

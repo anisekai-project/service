@@ -21,4 +21,5 @@ public class DiscordInjectionService {
 
         return event -> () -> this.userService.get(event.getInteraction().getUser());
     }
+
 }

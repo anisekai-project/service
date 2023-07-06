@@ -39,7 +39,11 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
             EmbedBuilder builder = new EmbedBuilder();
             List<WatchlistAnimePart> animes = this.watchlist.getAnimes().stream()
                                                             .sorted()
-                                                            .map(anime -> new WatchlistAnimePart(anime, this.ranking.getAnimeScore(anime)))
+                                                            .map(anime -> new WatchlistAnimePart(
+                                                                    anime,
+                                                                    this.ranking.getAnimeScore(
+                                                                            anime)
+                                                            ))
                                                             .toList();
 
             builder.setAuthor(String.format("%s (%s)", this.watchlist.getStatus().getDisplay(), animes.size()));
@@ -79,4 +83,5 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
 
         return false;
     }
+
 }

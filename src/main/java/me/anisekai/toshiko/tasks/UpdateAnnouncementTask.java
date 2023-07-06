@@ -3,9 +3,7 @@ package me.anisekai.toshiko.tasks;
 import me.anisekai.toshiko.components.JdaStore;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
 import me.anisekai.toshiko.messages.embeds.AnimeEmbed;
-import me.anisekai.toshiko.services.AnimeService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -21,14 +19,12 @@ public class UpdateAnnouncementTask implements Task {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(UpdateAnnouncementTask.class);
 
-    private final AnimeService service;
-    private final TextChannel  channel;
-    private final Role         role;
-    private final Anime        anime;
+    private final TextChannel channel;
+    private final Role        role;
+    private final Anime       anime;
 
-    public UpdateAnnouncementTask(AnimeService service, JdaStore store, Anime anime) {
+    public UpdateAnnouncementTask(JdaStore store, Anime anime) {
 
-        this.service = service;
         this.channel = store.getAnnouncementChannel();
         this.role    = store.getAnnouncementRole();
         this.anime   = anime;
@@ -49,7 +45,10 @@ public class UpdateAnnouncementTask implements Task {
         Optional<Message> existingMessage = this.findExistingMessage(this.anime);
 
         if (existingMessage.isEmpty()) {
-            LOGGER.error("Could not refresh announcement message: Message {} not found.", this.anime.getAnnounceMessage());
+            LOGGER.error(
+                    "Could not refresh announcement message: Message {} not found.",
+                    this.anime.getAnnounceMessage()
+            );
             return;
         }
 
@@ -72,16 +71,6 @@ public class UpdateAnnouncementTask implements Task {
 
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
-
     private Optional<Message> findExistingMessage(Anime anime) {
 
         if (anime.getAnnounceMessage() == null || anime.getAnnounceMessage() == -1) {
@@ -97,4 +86,5 @@ public class UpdateAnnouncementTask implements Task {
             throw e;
         }
     }
+
 }

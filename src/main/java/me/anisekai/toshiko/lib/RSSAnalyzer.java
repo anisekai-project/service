@@ -23,9 +23,9 @@ public class RSSAnalyzer<T> {
 
     public List<T> analyze() throws Exception {
 
-        SyndFeedInput   input   = new SyndFeedInput();
-        SyndFeed        feed    = input.build(new XmlReader(this.uri.toURL()));
-        List<SyndEntry> entries = (List<SyndEntry>) feed.getEntries();
+        SyndFeedInput       input   = new SyndFeedInput();
+        SyndFeed            feed    = input.build(new XmlReader(this.uri.toURL()));
+        Iterable<SyndEntry> entries = (List<SyndEntry>) feed.getEntries();
 
         List<T> items = new ArrayList<>();
 
@@ -35,4 +35,5 @@ public class RSSAnalyzer<T> {
 
         return items;
     }
+
 }

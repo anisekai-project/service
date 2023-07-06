@@ -12,4 +12,5 @@ import java.util.List;
 public interface SeasonalVoterRepository extends JpaRepository<SeasonalVoter, SeasonalVoterKey> {
 
     List<SeasonalVoter> findAllBySeasonalSelection(SeasonalSelection seasonalSelection);
+
 }

@@ -1,7 +1,6 @@
 package me.anisekai.toshiko.services.misc;
 
 import me.anisekai.toshiko.data.Task;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -71,4 +70,5 @@ public class TaskService {
 
 
     }
+
 }

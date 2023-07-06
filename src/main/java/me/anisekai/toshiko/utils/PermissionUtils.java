@@ -1,7 +1,6 @@
 package me.anisekai.toshiko.utils;
 
 import me.anisekai.toshiko.entities.DiscordUser;
-import me.anisekai.toshiko.exceptions.ActivityRequiredException;
 import me.anisekai.toshiko.exceptions.AdministratorRequiredException;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,19 +27,4 @@ public final class PermissionUtils {
         }
     }
 
-    /**
-     * Require the provided {@link DiscordUser} to have {@link DiscordUser#isActive()} to {@code true}.
-     *
-     * @param requester
-     *         The {@link DiscordUser} to check.
-     *
-     * @throws ActivityRequiredException
-     *         Threw if {@link DiscordUser#isActive()} is {@code false}.
-     */
-    public static void requireActivity(@NotNull DiscordUser requester) {
-
-        if (!requester.isActive() && !requester.isAdmin()) {
-            throw new ActivityRequiredException();
-        }
-    }
 }

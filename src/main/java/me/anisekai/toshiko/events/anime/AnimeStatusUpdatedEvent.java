@@ -32,4 +32,5 @@ public class AnimeStatusUpdatedEvent extends ApplicationEvent {
 
         return this.newValue;
     }
+
 }

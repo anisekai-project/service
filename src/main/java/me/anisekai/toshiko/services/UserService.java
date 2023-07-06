@@ -44,27 +44,6 @@ public class UserService {
     }
 
     /**
-     * Update the {@link User} vote emote.
-     *
-     * @param user
-     *         The {@link User} for which the emote should be updated.
-     * @param emote
-     *         The emote to use.
-     *
-     * @return True if the emote has been updated, false if the emote was the same as the previous one.
-     *
-     * @throws InvalidEmoteException
-     *         If the provided string isn't an emote.
-     * @throws EmoteAlreadyUsedException
-     *         Thrown if another {@link DiscordUser} is already using the provided emote.
-     * @see #setUserEmote(DiscordUser, String)
-     */
-    public boolean setUserEmote(User user, String emote) {
-
-        return this.setUserEmote(this.get(user), emote);
-    }
-
-    /**
      * Update the {@link DiscordUser} vote emote.
      *
      * @param user
@@ -110,4 +89,5 @@ public class UserService {
         this.publisher.publishEvent(new UserEmoteUpdatedEvent(this, saved));
         return true;
     }
+
 }

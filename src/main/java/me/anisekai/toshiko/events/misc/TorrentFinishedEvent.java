@@ -11,23 +11,16 @@ import java.time.OffsetDateTime;
 public class TorrentFinishedEvent extends ApplicationEvent implements DiscordEmbeddable {
 
     private final Torrent torrent;
-    private final boolean otherDownloading;
 
-    public TorrentFinishedEvent(Object source, Torrent torrent, boolean otherDownloading) {
+    public TorrentFinishedEvent(Object source, Torrent torrent) {
 
         super(source);
         this.torrent = torrent;
-        this.otherDownloading = otherDownloading;
     }
 
     public Torrent getTorrent() {
 
         return this.torrent;
-    }
-
-    public boolean isOtherDownloading() {
-
-        return this.otherDownloading;
     }
 
     /**

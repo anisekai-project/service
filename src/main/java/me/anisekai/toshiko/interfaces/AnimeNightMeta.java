@@ -8,8 +8,6 @@ public interface AnimeNightMeta {
 
     Anime getAnime();
 
-    void setAnime(Anime anime);
-
     long getFirstEpisode();
 
     void setFirstEpisode(long firstEpisode);
@@ -19,8 +17,6 @@ public interface AnimeNightMeta {
     void setLastEpisode(long lastEpisode);
 
     long getAmount();
-
-    void setAmount(long amount);
 
     OffsetDateTime getStartDateTime();
 

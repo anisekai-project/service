@@ -20,4 +20,5 @@ public class EmoteAlreadyUsedException extends RuntimeException implements Disco
 
         return false;
     }
+
 }

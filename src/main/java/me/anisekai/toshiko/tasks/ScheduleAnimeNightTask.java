@@ -5,7 +5,6 @@ import me.anisekai.toshiko.Texts;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.AnimeNight;
 import me.anisekai.toshiko.helpers.FileDownloader;
-import me.anisekai.toshiko.interfaces.ThrowingRunnable;
 import me.anisekai.toshiko.services.AnimeNightService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Icon;
@@ -64,13 +63,4 @@ public class ScheduleAnimeNightTask implements Task {
         this.service.getRepository().save(this.animeNight);
     }
 
-    @Override
-    public void onFinished() {
-
-    }
-
-    @Override
-    public void onException(Exception e) {
-
-    }
 }

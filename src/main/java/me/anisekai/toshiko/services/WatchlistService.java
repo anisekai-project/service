@@ -69,7 +69,7 @@ public class WatchlistService {
     }
 
     /**
-     * Set the state of all {@link Watchlist} to {@link CronState#REQUIRED} to cause a refresh
+     * Queue every {@link Watchlist} for a refresh
      */
     public void updateAll() {
 
@@ -82,16 +82,21 @@ public class WatchlistService {
     }
 
     /**
-     * Set the state of the matching {@link Watchlist} to {@link CronState#REQUIRED} to cause a refresh.
+     * Queue the {@link Watchlist} having the provided {@link AnimeStatus} for a refresh.
      *
      * @param status
+     *         The {@link Watchlist}'s {@link AnimeStatus}
      */
     public void update(AnimeStatus status) {
 
         LOGGER.info("update: Requesting CRON update for watchlist {}", status.name());
-        this.repository.findById(status).ifPresent(watchlist -> {
-            this.taskService.queue(new WatchlistTask(this, this.ranking, watchlist, this.store.getWatchlistChannel()));
-        });
+        this.repository.findById(status)
+                       .ifPresent(watchlist -> this.taskService.queue(new WatchlistTask(
+                               this,
+                               this.ranking,
+                               watchlist,
+                               this.store.getWatchlistChannel()
+                       )));
     }
 
 }

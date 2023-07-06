@@ -1,6 +1,7 @@
 package me.anisekai.toshiko.entities;
 
 import jakarta.persistence.*;
+import me.anisekai.toshiko.helpers.oauth2.OAuth2DiscordUser;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,35 +39,70 @@ public class DiscordUser {
     @Column(nullable = false)
     private boolean admin;
 
+    @Column(nullable = false)
+    private boolean webAccess;
+
     public DiscordUser() {}
 
     public DiscordUser(@NotNull User user) {
 
         this.updateWith(user);
-        this.active = false;
-        this.admin  = false;
+        this.active    = false;
+        this.admin     = false;
+        this.webAccess = false;
+    }
+
+    public DiscordUser(OAuth2DiscordUser user) {
+
+        this.updateWith(user);
+        this.emote     = null;
+        this.active    = false;
+        this.admin     = false;
+        this.webAccess = false;
     }
 
     public void updateWith(@NotNull User user) {
 
-        this.id            = user.getIdLong();
-        this.username      = user.getName();
+        this.id       = user.getIdLong();
+        this.username = user.getName();
+        //noinspection deprecation
         this.discriminator = user.getDiscriminator();
     }
 
-    public @NotNull Long getId() {
+    public void updateWith(@NotNull OAuth2DiscordUser user) {
+
+        this.id       = user.getIdLong();
+        this.username = user.getUsername();
+    }
+
+    public Long getId() {
 
         return this.id;
     }
 
-    public @NotNull String getUsername() {
+    public void setId(Long id) {
+
+        this.id = id;
+    }
+
+    public String getUsername() {
 
         return this.username;
     }
 
-    public @NotNull String getDiscriminator() {
+    public void setUsername(String username) {
+
+        this.username = username;
+    }
+
+    public String getDiscriminator() {
 
         return this.discriminator;
+    }
+
+    public void setDiscriminator(String discriminator) {
+
+        this.discriminator = discriminator;
     }
 
     public @Nullable String getEmote() {
@@ -97,6 +133,16 @@ public class DiscordUser {
     public void setAdmin(boolean admin) {
 
         this.admin = admin;
+    }
+
+    public boolean isWebAccess() {
+
+        return this.webAccess;
+    }
+
+    public void setWebAccess(boolean webAccess) {
+
+        this.webAccess = webAccess;
     }
 
     @Override

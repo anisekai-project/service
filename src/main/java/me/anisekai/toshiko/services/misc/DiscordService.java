@@ -26,31 +26,26 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Service
 public class DiscordService {
 
     private final DiscordCompletionService completionService;
-    private final DiscordInjectionService  injectionService;
     private final ListableBeanFactory      beanFactory;
     private final InteractionExtension     extension;
 
     public DiscordService(DiscordCompletionService completionService, DiscordInjectionService injectionService, ListableBeanFactory beanFactory) {
 
         this.completionService = completionService;
-        this.injectionService  = injectionService;
         this.beanFactory       = beanFactory;
         this.extension         = new InteractionExtension();
 
         this.extension.setErrorHandler(new ToshikoErrorHandler());
-        this.extension.getSlashContainer().addClassMapping(DiscordUser.class, this.injectionService.entityUserMapper());
+        this.extension.getSlashContainer().addClassMapping(DiscordUser.class, injectionService.entityUserMapper());
         this.extension.getButtonContainer()
-                      .addClassMapping(DiscordUser.class, this.injectionService.entityUserMapper());
+                      .addClassMapping(DiscordUser.class, injectionService.entityUserMapper());
     }
 
     private void hook(JDA jda, Supplier<CommandListUpdateAction> action) {
@@ -62,11 +57,6 @@ public class DiscordService {
         jda.addEventListener(this.extension);
         this.extension.useDefaultMapping();
         this.extension.getSlashContainer().upsertCommands(action.get()).complete();
-    }
-
-    public void hook(JDA jda) {
-
-        this.hook(jda, jda::updateCommands);
     }
 
     public void hook(Guild guild) {
@@ -96,7 +86,7 @@ public class DiscordService {
             if (method.isAnnotationPresent(Interact.class)) {
                 Interact annotation = method.getAnnotation(Interact.class);
 
-                List<InteractionType> types = new ArrayList<>();
+                Collection<InteractionType> types = new ArrayList<>();
 
                 if (method.isAnnotationPresent(InteractAt.class)) {
                     InteractAt at = method.getAnnotation(InteractAt.class);
@@ -149,4 +139,5 @@ public class DiscordService {
             }
         }
     }
+
 }

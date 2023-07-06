@@ -17,11 +17,6 @@ public class FileImportedEvent extends ApplicationEvent implements DiscordEmbedd
         this.path = path;
     }
 
-    public String getPath() {
-
-        return this.path;
-    }
-
 
     /**
      * Retrieve an {@link EmbedBuilder} representing this {@link DiscordEmbeddable}.

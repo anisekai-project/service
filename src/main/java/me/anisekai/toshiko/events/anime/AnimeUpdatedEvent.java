@@ -17,4 +17,5 @@ public class AnimeUpdatedEvent extends ApplicationEvent {
 
         return this.anime;
     }
+
 }

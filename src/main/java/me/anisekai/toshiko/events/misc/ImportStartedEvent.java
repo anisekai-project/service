@@ -17,11 +17,6 @@ public class ImportStartedEvent extends ApplicationEvent implements DiscordEmbed
         this.amount = amount;
     }
 
-    public int getAmount() {
-
-        return this.amount;
-    }
-
     /**
      * Retrieve an {@link EmbedBuilder} representing this {@link DiscordEmbeddable}.
      *

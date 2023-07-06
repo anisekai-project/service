@@ -26,8 +26,8 @@ public class UserAnimeVoteAssocKey implements Serializable {
     public UserAnimeVoteAssocKey(@NotNull SeasonalSelection seasonalSelection, @NotNull Anime anime, @NotNull DiscordUser user) {
 
         this.seasonalSelection = seasonalSelection.getId();
-        this.anime = anime.getId();
-        this.user  = user.getId();
+        this.anime             = anime.getId();
+        this.user              = user.getId();
     }
 
     public @NotNull Long getSeasonalSelection() {
@@ -51,7 +51,10 @@ public class UserAnimeVoteAssocKey implements Serializable {
         if (this == o) {return true;}
         if (o == null || this.getClass() != o.getClass()) {return false;}
         UserAnimeVoteAssocKey that = (UserAnimeVoteAssocKey) o;
-        return Objects.equals(this.getSeasonalSelection(), that.getSeasonalSelection()) && Objects.equals(this.getAnime(), that.getAnime()) && Objects.equals(this.getUser(), that.getUser());
+        return Objects.equals(
+                this.getSeasonalSelection(),
+                that.getSeasonalSelection()
+        ) && Objects.equals(this.getAnime(), that.getAnime()) && Objects.equals(this.getUser(), that.getUser());
     }
 
     @Override
@@ -59,4 +62,5 @@ public class UserAnimeVoteAssocKey implements Serializable {
 
         return Objects.hash(this.getSeasonalSelection(), this.getAnime(), this.getUser());
     }
+
 }

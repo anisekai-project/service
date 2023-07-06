@@ -24,4 +24,5 @@ public class UserVotingForbiddenException extends RuntimeException implements Di
 
         return false;
     }
+
 }

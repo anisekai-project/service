@@ -67,7 +67,10 @@ public class SeasonalVoter {
         if (this == o) {return true;}
         if (o == null || this.getClass() != o.getClass()) {return false;}
         SeasonalVoter voter = (SeasonalVoter) o;
-        return this.getAmount() == voter.getAmount() && Objects.equals(this.getSeasonalSelection(), voter.getSeasonalSelection()) && Objects.equals(this.getUser(), voter.getUser());
+        return this.getAmount() == voter.getAmount() && Objects.equals(
+                this.getSeasonalSelection(),
+                voter.getSeasonalSelection()
+        ) && Objects.equals(this.getUser(), voter.getUser());
     }
 
     @Override
@@ -75,4 +78,5 @@ public class SeasonalVoter {
 
         return Objects.hash(this.getSeasonalSelection(), this.getUser(), this.getAmount());
     }
+
 }

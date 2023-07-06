@@ -20,4 +20,5 @@ public class InvalidEmoteException extends RuntimeException implements DiscordEm
 
         return false;
     }
+
 }
