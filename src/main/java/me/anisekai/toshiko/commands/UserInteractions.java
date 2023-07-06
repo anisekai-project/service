@@ -86,7 +86,7 @@ public class UserInteractions {
             target = this.service.get(user);
         }
 
-        UserSnowflake targetedUser = UserSnowflake.fromId(sender.getId());
+        UserSnowflake targetedUser = UserSnowflake.fromId(target.getId());
         embedBuilder.setDescription("Modification(s) effectuée(s) sur l'utilisateur " + targetedUser.getAsMention());
 
         if (admin != null) {
@@ -116,6 +116,7 @@ public class UserInteractions {
             }
         }
 
+        this.service.save(target);
         return new SimpleResponse(embedBuilder, false, false);
     }
     // </editor-fold>
