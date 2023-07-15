@@ -1,6 +1,7 @@
 package me.anisekai.toshiko;
 
 import me.anisekai.toshiko.configurations.ToshikoFeatureConfiguration;
+import me.anisekai.toshiko.modules.discord.ToshikoBot;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;

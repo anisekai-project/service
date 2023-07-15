@@ -1,9 +1,6 @@
 package me.anisekai.toshiko.entities;
 
 import jakarta.persistence.*;
-import me.anisekai.toshiko.helpers.oauth2.OAuth2DiscordUser;
-import net.dv8tion.jda.api.entities.User;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -41,39 +38,6 @@ public class DiscordUser {
 
     @Column(nullable = false)
     private boolean webAccess;
-
-    public DiscordUser() {}
-
-    public DiscordUser(@NotNull User user) {
-
-        this.updateWith(user);
-        this.active    = false;
-        this.admin     = false;
-        this.webAccess = false;
-    }
-
-    public DiscordUser(OAuth2DiscordUser user) {
-
-        this.updateWith(user);
-        this.emote     = null;
-        this.active    = false;
-        this.admin     = false;
-        this.webAccess = false;
-    }
-
-    public void updateWith(@NotNull User user) {
-
-        this.id       = user.getIdLong();
-        this.username = user.getName();
-        //noinspection deprecation
-        this.discriminator = user.getDiscriminator();
-    }
-
-    public void updateWith(@NotNull OAuth2DiscordUser user) {
-
-        this.id       = user.getIdLong();
-        this.username = user.getUsername();
-    }
 
     public Long getId() {
 

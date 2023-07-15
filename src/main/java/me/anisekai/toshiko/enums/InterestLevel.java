@@ -1,6 +1,6 @@
 package me.anisekai.toshiko.enums;
 
-import me.anisekai.toshiko.Texts;
+import me.anisekai.toshiko.modules.discord.Texts;
 
 public enum InterestLevel {
 

@@ -37,9 +37,23 @@ public class UserService {
     public DiscordUser get(User user) {
 
         DiscordUser discordUser = this.repository.findById(user.getIdLong())
-                                                 .orElseGet(() -> new DiscordUser(user));
+                                                 .orElseGet(() ->
 
-        discordUser.updateWith(user);
+
+                                                 {
+                                                     DiscordUser newUser = new DiscordUser();
+                                                     newUser.setId(user.getIdLong());
+                                                     newUser.setUsername(user.getName());
+                                                     newUser.setDiscriminator("0000");
+                                                     newUser.setActive(false);
+                                                     newUser.setAdmin(false);
+                                                     newUser.setWebAccess(false);
+                                                     return newUser;
+                                                 });
+
+        discordUser.setId(user.getIdLong());
+        discordUser.setUsername(user.getName());
+        discordUser.setDiscriminator("0000");
         return this.repository.save(discordUser);
     }
 
