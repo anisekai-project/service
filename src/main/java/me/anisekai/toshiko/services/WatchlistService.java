@@ -1,13 +1,12 @@
 package me.anisekai.toshiko.services;
 
-import me.anisekai.toshiko.components.JdaStore;
+import me.anisekai.toshiko.modules.discord.JdaStore;
 import me.anisekai.toshiko.components.RankingHandler;
 import me.anisekai.toshiko.entities.Watchlist;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.enums.CronState;
 import me.anisekai.toshiko.repositories.WatchlistRepository;
-import me.anisekai.toshiko.services.misc.TaskService;
-import me.anisekai.toshiko.tasks.WatchlistTask;
+import me.anisekai.toshiko.modules.discord.tasks.WatchlistTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
