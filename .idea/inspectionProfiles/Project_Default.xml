@@ -116,6 +116,7 @@
     <inspection_tool class="OverlyStrongTypeCast" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreInMatchingInstanceof" value="false" />
     </inspection_tool>
+    <inspection_tool class="SSBasedInspection" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SameReturnValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SecurityAdvisoriesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="optionConfiguration">
@@ -173,16 +174,20 @@
       </option>
     </inspection_tool>
     <inspection_tool class="Singleton" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="true">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="false" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
     <inspection_tool class="StaticNonFinalField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SystemOutErr" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThreadDumpStack" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ThrowablePrintStackTrace" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TypeMayBeWeakened" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="useRighthandTypeAsWeakestTypeInAssignments" value="true" />
       <option name="useParameterizedTypeForCollectionMethods" value="true" />
       <option name="doNotWeakenToJavaLangObject" value="true" />
       <option name="onlyWeakentoInterface" value="true" />
-      <stopClasses>net.dv8tion.jda.api.entities.Message,net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel,me.anisekai.toshiko.helpers.embeds.ScheduledEventEmbed,me.anisekai.toshiko.helpers.embeds.WatchlistEmbed,net.dv8tion.jda.api.entities.ScheduledEvent</stopClasses>
+      <stopClasses>net.dv8tion.jda.api.entities.Message,net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel,me.anisekai.toshiko.helpers.embeds.ScheduledEventEmbed,me.anisekai.toshiko.helpers.embeds.WatchlistEmbed,net.dv8tion.jda.api.entities.ScheduledEvent,java.time.ZonedDateTime,me.anisekai.toshiko.interfaces.entities.IUser,java.lang.String,net.dv8tion.jda.api.entities.User</stopClasses>
     </inspection_tool>
     <inspection_tool class="UNCHECKED_WARNING" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="IGNORE_UNCHECKED_ASSIGNMENT" value="false" />

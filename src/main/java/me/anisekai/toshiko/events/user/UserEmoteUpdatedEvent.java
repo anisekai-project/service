@@ -1,21 +1,13 @@
 package me.anisekai.toshiko.events.user;
 
 import me.anisekai.toshiko.entities.DiscordUser;
-import org.springframework.context.ApplicationEvent;
+import me.anisekai.toshiko.events.EntityUpdatedEvent;
 
-public class UserEmoteUpdatedEvent extends ApplicationEvent {
+public class UserEmoteUpdatedEvent extends EntityUpdatedEvent<DiscordUser, String> {
 
-    private final DiscordUser user;
+    public UserEmoteUpdatedEvent(Object source, DiscordUser entity, String previous, String current) {
 
-    public UserEmoteUpdatedEvent(Object source, DiscordUser user) {
-
-        super(source);
-        this.user = user;
-    }
-
-    public DiscordUser getUser() {
-
-        return this.user;
+        super(source, entity, previous, current);
     }
 
 }

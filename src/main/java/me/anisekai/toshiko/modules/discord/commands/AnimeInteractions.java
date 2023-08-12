@@ -4,51 +4,33 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
-import me.anisekai.toshiko.modules.discord.Texts;
 import me.anisekai.toshiko.components.RankingHandler;
-import me.anisekai.toshiko.data.anime.AnimeImportResult;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.DiscordUser;
-import me.anisekai.toshiko.entities.Interest;
 import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.enums.InterestLevel;
-import me.anisekai.toshiko.events.anime.AnimeCreatedEvent;
-import me.anisekai.toshiko.events.anime.AnimeUpdatedEvent;
+import me.anisekai.toshiko.helpers.UpsertResult;
+import me.anisekai.toshiko.interfaces.entities.IUser;
+import me.anisekai.toshiko.modules.discord.Texts;
 import me.anisekai.toshiko.modules.discord.annotations.InteractionBean;
 import me.anisekai.toshiko.modules.discord.messages.embeds.AnimeEmbed;
-import me.anisekai.toshiko.modules.discord.messages.embeds.InterestResponse;
 import me.anisekai.toshiko.modules.discord.messages.responses.SimpleResponse;
-import me.anisekai.toshiko.services.AnimeService;
-import me.anisekai.toshiko.services.InterestService;
 import me.anisekai.toshiko.modules.discord.utils.PermissionUtils;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.interactions.Interaction;
+import me.anisekai.toshiko.services.data.AnimeDataService;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonInteraction;
 import org.json.JSONObject;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
 
 @Component
 @InteractionBean
 public class AnimeInteractions {
 
-    private final AnimeService              animeService;
-    private final InterestService           interestService;
+    private final AnimeDataService          service;
     private final RankingHandler            ranking;
-    private final ApplicationEventPublisher publisher;
 
-    public AnimeInteractions(AnimeService animeService, InterestService interestService, RankingHandler ranking, ApplicationEventPublisher publisher) {
+    public AnimeInteractions(AnimeDataService service, RankingHandler ranking) {
 
-        this.animeService    = animeService;
-        this.interestService = interestService;
-        this.ranking         = ranking;
-        this.publisher       = publisher;
+        this.service   = service;
+        this.ranking   = ranking;
     }
 
     // <editor-fold desc="@ anime/announce">
@@ -58,33 +40,20 @@ public class AnimeInteractions {
             options = {
                     @Option(
                             name = "anime",
+                            required = true,
                             description = Texts.ANIME_NOTIFY_ANNOUNCE__OPTION_ANIME,
                             type = OptionType.INTEGER,
                             autoComplete = true
                     )
             }
     )
-    public SlashResponse sendAnimeNotification(DiscordUser discordUser, @Param("anime") Long animeId) {
+    public SlashResponse sendAnimeNotification(IUser discordUser, @Param("anime") long animeId) {
 
         PermissionUtils.requirePrivileges(discordUser);
-        Collection<Anime> animes = new ArrayList<>();
+        Anime anime = this.service.fetch(animeId);
+        this.service.announce(anime);
 
-        if (animeId != null) {
-            animes.add(this.animeService.getAnime(animeId));
-        } else {
-            animes.addAll(this.animeService.getRepository().findAll());
-        }
-
-        for (Anime anime : animes) {
-            if (anime.getAnnounceMessage() == null) {
-                this.publisher.publishEvent(new AnimeCreatedEvent(this, anime));
-            } else {
-                this.publisher.publishEvent(new AnimeUpdatedEvent(this, anime));
-            }
-        }
-
-        String text = animes.size() == 1 ? "%s annonce va être envoyée." : "%s annonces vont être envoyées.";
-        return new SimpleResponse(String.format(text, animes.size()), false, false);
+        return new SimpleResponse("L'annonce de l'anime va être envoyée sous peu.", false, false);
     }
     // </editor-fold>
 
@@ -104,7 +73,7 @@ public class AnimeInteractions {
     )
     public SlashResponse showAnimeDetails(@Param("anime") long animeId) {
 
-        Anime      anime   = this.animeService.getAnime(animeId);
+        Anime      anime   = this.service.fetch(animeId);
         AnimeEmbed message = new AnimeEmbed(anime, this.ranking.getAnimeScore(anime));
         message.setShowButtons(true);
         return message;
@@ -132,73 +101,17 @@ public class AnimeInteractions {
                     )
             }
     )
-    public SlashResponse changeAnimeStatus(DiscordUser discordUser, @Param("anime") long animeId, @Param("status") String statusName) {
+    public SlashResponse runAnimeStatus(IUser discordUser, @Param("anime") long animeId, @Param("status") String statusName) {
 
         PermissionUtils.requirePrivileges(discordUser);
-
         AnimeStatus status = AnimeStatus.from(statusName);
-        Anime       anime  = this.animeService.setStatus(this.animeService.getAnime(animeId), status);
+        Anime       anime  = this.service.mod(animeId, proxy -> proxy.setStatus(status));
 
         return new SimpleResponse(
                 String.format("Le statut de l'anime '%s' a bien été changé.", anime.getName()),
                 false,
                 false
         );
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="@ anime/interest">
-    @Interact(
-            name = "anime/interest",
-            description = Texts.ANIME_INTEREST__DESCRIPTION,
-            options = {
-                    @Option(
-                            name = "anime",
-                            description = Texts.ANIME_INTEREST__OPTION_NAME,
-                            type = OptionType.INTEGER,
-                            required = true,
-                            autoComplete = true
-                    ),
-                    @Option(
-                            name = "interest",
-                            description = Texts.ANIME_INTEREST__OPTION_LEVEL,
-                            type = OptionType.STRING,
-                            required = true,
-                            autoComplete = true
-                    )
-            }
-    )
-    public SlashResponse interestedByAnime(
-            Interaction interaction,
-            DiscordUser discordUser,
-            User user,
-            @Param("anime") long animeId,
-            @Param("interest") String interestName
-    ) {
-
-        if (discordUser.getEmote() == null) {
-            return new SimpleResponse(
-                    "Avant de pouvoir vote pour un anime, tu dois définir ton icône de vote. (`/profile`)",
-                    false,
-                    true
-            );
-        }
-
-        Anime anime = this.animeService.getAnime(animeId);
-
-        InterestLevel level = InterestLevel.from(interestName);
-
-        Optional<Interest> optionalInterest = this.interestService.setInterestLevel(anime, discordUser, level);
-
-        if (optionalInterest.isEmpty()) {
-            return new SimpleResponse(
-                    "Ton niveau d'intérêt reste inchangé.",
-                    false,
-                    interaction instanceof ButtonInteraction
-            );
-        }
-
-        return new InterestResponse(optionalInterest.get(), interaction instanceof SlashCommandInteraction);
     }
     // </editor-fold>
 
@@ -221,28 +134,21 @@ public class AnimeInteractions {
                             required = true
                     ),
                     @Option(
-                            name = "amount",
+                            name = "total",
                             description = Texts.ANIME_PROGRESS__OPTION_AMOUNT,
                             type = OptionType.INTEGER
                     )
             }
     )
-    public SlashResponse changeAnimeProgress(
-            DiscordUser user,
+    public SlashResponse runAnimeProgress(
+            IUser user,
             @Param("anime") long animeId,
             @Param("watched") long watched,
-            @Param("amount") Long amount
+            @Param("total") Long total
     ) {
 
         PermissionUtils.requirePrivileges(user);
-
-        Anime anime = this.animeService.getAnime(animeId);
-
-        if (amount != null) {
-            anime = this.animeService.setTotal(anime, amount);
-        }
-
-        anime = this.animeService.setProgression(anime, watched);
+        Anime anime = this.service.mod(animeId, this.service.progression(watched, total));
 
         if (anime.getStatus() == AnimeStatus.WATCHED) {
             return new SimpleResponse(
@@ -270,14 +176,15 @@ public class AnimeInteractions {
             },
             defer = true
     )
-    public SlashResponse importFromJson(DiscordUser user, @Param("json") String rawJson) {
+    public SlashResponse runAnimeImport(DiscordUser user, @Param("json") String rawJson) {
 
-        AnimeImportResult air = this.animeService.importAnime(user, new JSONObject(rawJson));
+        UpsertResult<Anime> result = this.service.runImport(user, new JSONObject(rawJson));
 
-        return switch (air.state()) {
-            case CREATED -> new SimpleResponse("L'anime a bien été créé.", false, false);
-            case UPDATED -> new SimpleResponse("L'anime a bien été mis à jour.", false, false);
-        };
+        if (result.isNew()) {
+            return new SimpleResponse("L'anime a bien été créé.", false, false);
+        } else {
+            return new SimpleResponse("L'anime a bien été mis à jour.", false, false);
+        }
     }
     // </editor-fold>
 }

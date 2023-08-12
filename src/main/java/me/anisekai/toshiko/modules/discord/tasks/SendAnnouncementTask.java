@@ -1,10 +1,10 @@
 package me.anisekai.toshiko.modules.discord.tasks;
 
-import me.anisekai.toshiko.modules.discord.JdaStore;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.modules.discord.JdaStore;
 import me.anisekai.toshiko.modules.discord.messages.embeds.AnimeEmbed;
-import me.anisekai.toshiko.services.AnimeService;
+import me.anisekai.toshiko.services.data.AnimeDataService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -16,12 +16,12 @@ public class SendAnnouncementTask implements Task {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(SendAnnouncementTask.class);
 
-    private final AnimeService service;
-    private final TextChannel  channel;
-    private final Role         role;
-    private final Anime        anime;
+    private final AnimeDataService service;
+    private final TextChannel      channel;
+    private final Role             role;
+    private final Anime            anime;
 
-    public SendAnnouncementTask(AnimeService service, JdaStore store, Anime anime) {
+    public SendAnnouncementTask(AnimeDataService service, JdaStore store, Anime anime) {
 
         this.service = service;
         this.channel = store.getAnnouncementChannel();
@@ -54,8 +54,7 @@ public class SendAnnouncementTask implements Task {
         LOGGER.debug("Sending announcement message...");
         Message discordMessage = this.channel.sendMessage(mcb.build()).complete();
         LOGGER.debug("Saving announcement message ID...");
-        this.anime.setAnnounceMessage(discordMessage.getIdLong());
-        this.service.getRepository().save(this.anime);
+        this.service.mod(this.anime.getId(), anime -> anime.setAnnounceMessage(discordMessage.getIdLong()));
         LOGGER.info("Announcement task finished.");
     }
 

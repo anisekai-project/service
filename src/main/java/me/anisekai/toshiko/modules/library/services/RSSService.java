@@ -6,15 +6,15 @@ import me.anisekai.toshiko.data.NyaaRssItem;
 import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.Torrent;
 import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.events.misc.TorrentStartedEvent;
+import me.anisekai.toshiko.enums.TorrentStatus;
+import me.anisekai.toshiko.events.torrent.TorrentCreatedEvent;
 import me.anisekai.toshiko.modules.library.lib.RSSAnalyzer;
 import me.anisekai.toshiko.modules.library.lib.TransmissionDaemonClient;
 import me.anisekai.toshiko.repositories.AnimeRepository;
-import me.anisekai.toshiko.repositories.TorrentRepository;
+import me.anisekai.toshiko.services.data.TorrentDataService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -28,22 +28,19 @@ public class RSSService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RSSService.class);
 
-    private final ApplicationEventPublisher   publisher;
     private final ToshikoFeatureConfiguration featureConfiguration;
     private final AutoDownloadConfiguration   configuration;
     private final AnimeRepository             animeRepository;
     private final TransmissionDaemonClient    client;
-    private final TorrentRepository           torrentRepository;
+    private final TorrentDataService          service;
 
-    public RSSService(ApplicationEventPublisher publisher, ToshikoFeatureConfiguration featureConfiguration, AutoDownloadConfiguration configuration, AnimeRepository animeRepository, TransmissionDaemonClient client, TorrentRepository torrentRepository) {
-
-        this.publisher = publisher;
+    public RSSService(ToshikoFeatureConfiguration featureConfiguration, AutoDownloadConfiguration configuration, AnimeRepository animeRepository, TransmissionDaemonClient client, TorrentDataService service) {
 
         this.featureConfiguration = featureConfiguration;
         this.configuration        = configuration;
         this.animeRepository      = animeRepository;
         this.client               = client;
-        this.torrentRepository    = torrentRepository;
+        this.service              = service;
     }
 
     // Every 2m
@@ -71,7 +68,7 @@ public class RSSService {
 
 
             LOGGER.info("Filtering results...");
-            List<String> hashes = this.torrentRepository.findAll().stream().map(Torrent::getInfoHash).toList();
+            List<String> hashes = this.service.fetchAll().stream().map(Torrent::getInfoHash).toList();
             List<String> titles = downloadableAnime.stream().map(Anime::getRssMatch).toList();
 
             rssItems.removeIf(entry -> hashes.contains(entry.getInfoHash()));
@@ -116,19 +113,15 @@ public class RSSService {
                     continue;
                 }
 
-                Torrent torrent = this.torrentRepository.save(new Torrent(
-                        optionalAnime.get(),
-                        torrentData.getInt("id"),
-                        rssItem.getTitle(),
-                        rssItem.getInfoHash(),
-                        rssItem.getLink()
-                ));
-
-                startedTorrents.add(torrent);
-            }
-
-            if (!startedTorrents.isEmpty()) {
-                this.publisher.publishEvent(new TorrentStartedEvent(this, startedTorrents));
+                this.service.getProxy().create(torrent -> {
+                    torrent.setId(torrentData.getInt("id"));
+                    torrent.setAnime(optionalAnime.get());
+                    torrent.setLink(rssItem.getLink());
+                    torrent.setName(rssItem.getTitle());
+                    torrent.setStatus(TorrentStatus.VERIFY_QUEUED);
+                    torrent.setPercentDone(0);
+                    torrent.setInfoHash(rssItem.getInfoHash());
+                }, TorrentCreatedEvent::new);
             }
         } catch (Exception e) {
             LOGGER.error("Failure", e);

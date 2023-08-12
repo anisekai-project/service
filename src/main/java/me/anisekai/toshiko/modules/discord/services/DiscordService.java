@@ -12,9 +12,10 @@ import fr.alexpado.jda.interactions.interfaces.interactions.button.ButtonInterac
 import fr.alexpado.jda.interactions.interfaces.interactions.slash.SlashInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
-import me.anisekai.toshiko.modules.discord.annotations.InteractAt;
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.enums.InteractionType;
+import me.anisekai.toshiko.interfaces.entities.IUser;
+import me.anisekai.toshiko.modules.discord.annotations.InteractAt;
 import me.anisekai.toshiko.modules.discord.annotations.InteractionBean;
 import me.anisekai.toshiko.modules.discord.utils.ToshikoErrorHandler;
 import net.dv8tion.jda.api.JDA;
@@ -44,8 +45,11 @@ public class DiscordService {
 
         this.extension.setErrorHandler(new ToshikoErrorHandler());
         this.extension.getSlashContainer().addClassMapping(DiscordUser.class, injectionService.entityUserMapper());
+        this.extension.getSlashContainer().addClassMapping(IUser.class, injectionService.entityUserInterfaceMapper());
         this.extension.getButtonContainer()
                       .addClassMapping(DiscordUser.class, injectionService.entityUserMapper());
+        this.extension.getButtonContainer()
+                      .addClassMapping(IUser.class, injectionService.entityUserInterfaceMapper());
     }
 
     private void hook(JDA jda, Supplier<CommandListUpdateAction> action) {
@@ -119,6 +123,7 @@ public class DiscordService {
                     completion.addCompletionProvider("status", this.completionService::animeStatusCompletion);
                     completion.addCompletionProvider("diskGroup", this.completionService::diskGroupCompletion);
                     completion.addCompletionProvider("diskAnime", this.completionService::diskAnimeCompletion);
+                    completion.addCompletionProvider("frequency", this.completionService::frequencyCompletion);
 
                     this.extension.getAutocompleteContainer().register(completion);
                 }

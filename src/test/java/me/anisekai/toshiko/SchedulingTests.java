@@ -2,8 +2,8 @@ package me.anisekai.toshiko;
 
 import me.anisekai.toshiko.data.BookedAnimeNight;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.exceptions.nights.AnimeNightOverlappingException;
-import me.anisekai.toshiko.helpers.AnimeNightScheduler;
+import me.anisekai.toshiko.exceptions.broadcast.BroadcastOverlappingException;
+import me.anisekai.toshiko.helpers.BroadcastScheduler;
 import me.anisekai.toshiko.interfaces.AnimeNightMeta;
 import me.anisekai.toshiko.utils.FakeService;
 import org.junit.jupiter.api.Assertions;
@@ -24,17 +24,21 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure Today")
     public void testScheduleNow() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
-        ZonedDateTime  now        = ZonedDateTime.now();
-        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
-        OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
+        ZonedDateTime now      = ZonedDateTime.now();
+        ZonedDateTime expected = now.plusHours(1).withMinute(0);
 
 
-        BookedAnimeNight night  = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
-        OffsetDateTime   actual = night.getStartDateTime();
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(
+                fakeAnimeOne,
+                3,
+                expected,
+                booking -> booking
+        ));
+        ZonedDateTime actual = night.getStartDateTime();
 
         Assertions.assertEquals(expected.getHour(), actual.getHour(), "Scheduled hour doesn't match");
         Assertions.assertEquals(expected.getMinute(), actual.getMinute(), "Scheduled minute doesn't match");
@@ -45,16 +49,21 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure Tomorrow")
     public void testScheduleTomorrow() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime  now        = ZonedDateTime.now();
         ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0).plusDays(1);
         OffsetDateTime expected   = scheduleAt.toOffsetDateTime();
 
-        BookedAnimeNight night  = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
-        OffsetDateTime   actual = night.getStartDateTime();
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(
+                fakeAnimeOne,
+                3,
+                scheduleAt,
+                booking -> booking
+        ));
+        ZonedDateTime actual = night.getStartDateTime();
 
         Assertions.assertEquals(expected.getHour(), actual.getHour(), "Scheduled hour doesn't match");
         Assertions.assertEquals(expected.getMinute(), actual.getMinute(), "Scheduled minute doesn't match");
@@ -65,14 +74,19 @@ public class SchedulingTests {
     @DisplayName("Follow: Ensure right episode count (from 0)")
     public void testFollowNow() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
-        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(
+                fakeAnimeOne,
+                3,
+                scheduleAt,
+                booking -> booking
+        ));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(1, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -83,15 +97,20 @@ public class SchedulingTests {
     @DisplayName("Follow: Ensure right episode count (from x)")
     public void testFollowNextNow() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
         fakeAnimeOne.setWatched(3);
 
-        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(
+                fakeAnimeOne,
+                3,
+                scheduleAt,
+                booking -> booking
+        ));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(4, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -102,8 +121,8 @@ public class SchedulingTests {
     @DisplayName("Follow: Ensure right episode count (from previous)")
     public void testFollowPreviousNow() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
@@ -111,7 +130,12 @@ public class SchedulingTests {
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
         ZonedDateTime tomorrow = scheduleAt.plusDays(1);
-        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(fakeAnimeOne, 3, tomorrow, booking -> booking));
+        BookedAnimeNight night = Assertions.assertDoesNotThrow(() -> scheduler.scheduleAt(
+                fakeAnimeOne,
+                3,
+                tomorrow,
+                booking -> booking
+        ));
 
         Assertions.assertEquals(3, night.getAmount(), "Scheduled amount doesn't match");
         Assertions.assertEquals(4, night.getFirstEpisode(), "Scheduled first episode doesn't match");
@@ -122,23 +146,26 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure scheduling refusal when overlap")
     public void testScheduleOverlap() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         // Get very close time to ensure not switching hour/day.
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking);
-        Assertions.assertThrows(AnimeNightOverlappingException.class, () -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking));
+        Assertions.assertThrows(
+                BroadcastOverlappingException.class,
+                () -> scheduler.scheduleAt(fakeAnimeOne, 3, scheduleAt, booking -> booking)
+        );
     }
 
     @Test
     @DisplayName("Scheduling: Ensure daily scheduling")
     public void testDailyScheduling() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
@@ -165,15 +192,27 @@ public class SchedulingTests {
         for (BookedAnimeNight night : sortedList) {
 
             Assertions.assertEquals(expectedAmount, night.getAmount(), "Wrong amount in event " + loop);
-            Assertions.assertEquals(expectedFirstEpisode, night.getFirstEpisode(), "Wrong first first ep in event " + loop);
-            Assertions.assertEquals(expectedLastEpisode, night.getLastEpisode(), "Wrong first last ep in event " + loop);
+            Assertions.assertEquals(
+                    expectedFirstEpisode,
+                    night.getFirstEpisode(),
+                    "Wrong first first ep in event " + loop
+            );
+            Assertions.assertEquals(
+                    expectedLastEpisode,
+                    night.getLastEpisode(),
+                    "Wrong first last ep in event " + loop
+            );
 
             expectedFirstEpisode += expectedAmount;
             expectedLastEpisode += expectedAmount;
 
             if (latest != null) {
-                Assertions.assertEquals(latest.getStartDateTime()
-                                              .plusDays(1), night.getStartDateTime(), "Wrong follow up on starting date");
+                Assertions.assertEquals(
+                        latest.getStartDateTime()
+                              .plusDays(1),
+                        night.getStartDateTime(),
+                        "Wrong follow up on starting date"
+                );
                 Assertions.assertEquals(latest.getEndDateTime()
                                               .plusDays(1), night.getEndDateTime(), "Wrong follow up on ending date");
             }
@@ -186,8 +225,8 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure weekly scheduling")
     public void testWeeklyScheduling() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
@@ -214,15 +253,27 @@ public class SchedulingTests {
         for (BookedAnimeNight night : sortedList) {
 
             Assertions.assertEquals(expectedAmount, night.getAmount(), "Wrong amount in event " + loop);
-            Assertions.assertEquals(expectedFirstEpisode, night.getFirstEpisode(), "Wrong first first ep in event " + loop);
-            Assertions.assertEquals(expectedLastEpisode, night.getLastEpisode(), "Wrong first last ep in event " + loop);
+            Assertions.assertEquals(
+                    expectedFirstEpisode,
+                    night.getFirstEpisode(),
+                    "Wrong first first ep in event " + loop
+            );
+            Assertions.assertEquals(
+                    expectedLastEpisode,
+                    night.getLastEpisode(),
+                    "Wrong first last ep in event " + loop
+            );
 
             expectedFirstEpisode += expectedAmount;
             expectedLastEpisode += expectedAmount;
 
             if (latest != null) {
-                Assertions.assertEquals(latest.getStartDateTime()
-                                              .plusDays(7), night.getStartDateTime(), "Wrong follow up on starting date");
+                Assertions.assertEquals(
+                        latest.getStartDateTime()
+                              .plusDays(7),
+                        night.getStartDateTime(),
+                        "Wrong follow up on starting date"
+                );
                 Assertions.assertEquals(latest.getEndDateTime()
                                               .plusDays(7), night.getEndDateTime(), "Wrong follow up on ending date");
             }
@@ -235,8 +286,8 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure scheduling calibration")
     public void testScheduleCalibration() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
         ZonedDateTime now        = ZonedDateTime.now();
         ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
@@ -253,9 +304,9 @@ public class SchedulingTests {
         Assertions.assertEquals(fakeAnimeOne.getTotal() - 1, events.size(), "Wrong amount of scheduled event");
 
         // Check for event date & episodes
-        scheduler = new AnimeNightScheduler<>(events);
+        scheduler = new BroadcastScheduler<>(events);
         events.clear();
-        scheduler.calibrate(fakeAnimeOne, events::add);
+        events.addAll(scheduler.calibrate(fakeAnimeOne));
 
         List<BookedAnimeNight> sortedList = events.stream()
                                                   .sorted(Comparator.comparing(BookedAnimeNight::getStartDateTime))
@@ -270,15 +321,27 @@ public class SchedulingTests {
         for (BookedAnimeNight night : sortedList) {
 
             Assertions.assertEquals(expectedAmount, night.getAmount(), "Wrong amount in event " + loop);
-            Assertions.assertEquals(expectedFirstEpisode, night.getFirstEpisode(), "Wrong first first ep in event " + loop);
-            Assertions.assertEquals(expectedLastEpisode, night.getLastEpisode(), "Wrong first last ep in event " + loop);
+            Assertions.assertEquals(
+                    expectedFirstEpisode,
+                    night.getFirstEpisode(),
+                    "Wrong first first ep in event " + loop
+            );
+            Assertions.assertEquals(
+                    expectedLastEpisode,
+                    night.getLastEpisode(),
+                    "Wrong first last ep in event " + loop
+            );
 
             expectedFirstEpisode += expectedAmount;
             expectedLastEpisode += expectedAmount;
 
             if (latest != null) {
-                Assertions.assertEquals(latest.getStartDateTime()
-                                              .plusDays(7), night.getStartDateTime(), "Wrong follow up on starting date");
+                Assertions.assertEquals(
+                        latest.getStartDateTime()
+                              .plusDays(7),
+                        night.getStartDateTime(),
+                        "Wrong follow up on starting date"
+                );
                 Assertions.assertEquals(latest.getEndDateTime()
                                               .plusDays(7), night.getEndDateTime(), "Wrong follow up on ending date");
             }
@@ -291,12 +354,12 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure scheduling delay")
     public void testScheduleDelay() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
-        ZonedDateTime  now        = ZonedDateTime.now();
-        OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
-        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
+        ZonedDateTime now        = ZonedDateTime.now();
+        ZonedDateTime delayLimit = now.plusHours(5);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
@@ -308,7 +371,11 @@ public class SchedulingTests {
 
         Set<BookedAnimeNight> delayed = new HashSet<>();
 
-        Assertions.assertDoesNotThrow(() -> scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
+        Assertions.assertDoesNotThrow(() -> delayed.addAll(scheduler.delay(
+                10,
+                TimeUnit.MINUTES,
+                item -> item.isBefore(delayLimit)
+        )));
         Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 10));
     }
 
@@ -316,12 +383,12 @@ public class SchedulingTests {
     @DisplayName("Scheduling: Ensure scheduling delay (negative)")
     public void testScheduleNegative() {
 
-        Anime                                 fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
-        AnimeNightScheduler<BookedAnimeNight> scheduler    = new AnimeNightScheduler<>(Collections.emptyList());
+        Anime                                fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
+        BroadcastScheduler<BookedAnimeNight> scheduler    = new BroadcastScheduler<>(Collections.emptyList());
 
-        ZonedDateTime  now        = ZonedDateTime.now();
-        OffsetDateTime delayLimit = now.plusHours(5).toOffsetDateTime();
-        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
+        ZonedDateTime now        = ZonedDateTime.now();
+        ZonedDateTime delayLimit = now.plusHours(5);
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
 
         Set<BookedAnimeNight> events = new HashSet<>();
         scheduler.scheduleAllStartingAt(fakeAnimeOne, 3, scheduleAt, booking -> {
@@ -332,7 +399,11 @@ public class SchedulingTests {
         Assertions.assertEquals(4, events.size(), "Wrong amount of scheduled event");
 
         Set<BookedAnimeNight> delayed = new HashSet<>();
-        Assertions.assertDoesNotThrow(() -> scheduler.delay(-10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
+        Assertions.assertDoesNotThrow(() -> delayed.addAll(scheduler.delay(
+                -10,
+                TimeUnit.MINUTES,
+                item -> item.isBefore(delayLimit)
+        )));
         Assertions.assertTrue(delayed.stream().allMatch(item -> item.getStartDateTime().getMinute() == 50));
     }
 
@@ -343,11 +414,11 @@ public class SchedulingTests {
         Anime fakeAnimeOne = FakeService.FAKE_ANIME_ONE.get();
         Anime fakeAnimeTwo = FakeService.FAKE_ANIME_TWO.get();
 
-        AnimeNightScheduler<BookedAnimeNight> scheduler = new AnimeNightScheduler<>(Collections.emptyList());
+        BroadcastScheduler<BookedAnimeNight> scheduler = new BroadcastScheduler<>(Collections.emptyList());
 
-        ZonedDateTime  now        = ZonedDateTime.now();
-        ZonedDateTime  scheduleAt = now.plusHours(1).withMinute(0);
-        OffsetDateTime delayLimit = scheduleAt.plusMinutes(5).toOffsetDateTime();
+        ZonedDateTime now        = ZonedDateTime.now();
+        ZonedDateTime scheduleAt = now.plusHours(1).withMinute(0);
+        ZonedDateTime delayLimit = scheduleAt.plusMinutes(5);
 
         Set<AnimeNightMeta> events = new HashSet<>();
 
@@ -365,7 +436,14 @@ public class SchedulingTests {
 
         Set<BookedAnimeNight> delayed = new HashSet<>();
 
-        Assertions.assertThrows(AnimeNightOverlappingException.class, () -> scheduler.delay(10, TimeUnit.MINUTES, item -> item.isBefore(delayLimit), delayed::add));
+        Assertions.assertThrows(
+                BroadcastOverlappingException.class,
+                () -> delayed.addAll(scheduler.delay(
+                        10,
+                        TimeUnit.MINUTES,
+                        item -> item.isBefore(delayLimit)
+                ))
+        );
         Assertions.assertEquals(0, delayed.size(), "The event has been delayed.");
     }
 

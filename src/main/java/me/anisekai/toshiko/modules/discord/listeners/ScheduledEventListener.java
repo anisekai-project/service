@@ -1,6 +1,7 @@
 package me.anisekai.toshiko.modules.discord.listeners;
 
-import me.anisekai.toshiko.services.AnimeNightService;
+import me.anisekai.toshiko.interfaces.entities.IBroadcast;
+import me.anisekai.toshiko.services.data.BroadcastDataService;
 import net.dv8tion.jda.api.events.guild.scheduledevent.ScheduledEventDeleteEvent;
 import net.dv8tion.jda.api.events.guild.scheduledevent.update.ScheduledEventUpdateStatusEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -13,9 +14,9 @@ public class ScheduledEventListener extends ListenerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledEventListener.class);
 
-    private final AnimeNightService service;
+    private final BroadcastDataService service;
 
-    public ScheduledEventListener(AnimeNightService service) {
+    public ScheduledEventListener(BroadcastDataService service) {
 
         this.service = service;
     }
@@ -24,7 +25,8 @@ public class ScheduledEventListener extends ListenerAdapter {
     public void onScheduledEventDelete(ScheduledEventDeleteEvent event) {
 
         LOGGER.info("onScheduledEventDelete: Event {}", event.getScheduledEvent().getIdLong());
-        this.service.cancelEvent(event.getScheduledEvent());
+        IBroadcast cancelled = this.service.cancel(event.getScheduledEvent());
+        this.service.calibrate(cancelled.getAnime());
     }
 
     @Override
@@ -38,9 +40,12 @@ public class ScheduledEventListener extends ListenerAdapter {
         );
 
         switch (event.getNewStatus()) {
-            case ACTIVE -> this.service.openEvent(event.getScheduledEvent());
-            case COMPLETED -> this.service.closeEvent(event.getScheduledEvent());
-            case CANCELED -> this.service.cancelEvent(event.getScheduledEvent());
+            case ACTIVE -> this.service.open(event.getScheduledEvent());
+            case COMPLETED -> this.service.close(event.getScheduledEvent());
+            case CANCELED -> {
+                IBroadcast cancelled = this.service.cancel(event.getScheduledEvent());
+                this.service.calibrate(cancelled.getAnime());
+            }
         }
     }
 

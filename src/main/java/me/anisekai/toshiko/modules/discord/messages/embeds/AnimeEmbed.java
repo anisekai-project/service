@@ -105,7 +105,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
         builder.addField(
                 "Ajouté le",
-                this.anime.getAddedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm:ss")),
+                this.anime.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm:ss")),
                 false
         );
 
@@ -146,7 +146,7 @@ public class AnimeEmbed implements SlashResponse, ButtonResponse {
 
     private String getButtonUrl(InterestLevel level) {
 
-        return String.format("button://anime/interest?anime=%s&interest=%s", this.anime.getId(), level.name());
+        return String.format("button://interest/set?anime=%s&interest=%s", this.anime.getId(), level.name());
     }
 
 }

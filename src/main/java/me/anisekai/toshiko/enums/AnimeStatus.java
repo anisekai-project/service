@@ -3,6 +3,7 @@ package me.anisekai.toshiko.enums;
 import java.util.Arrays;
 import java.util.List;
 
+// TODO: Transform into entity
 public enum AnimeStatus {
 
     WATCHED("✅", "Visionné"),
@@ -50,6 +51,10 @@ public enum AnimeStatus {
     public static List<AnimeStatus> getDisplayable() {
 
         return Arrays.stream(AnimeStatus.values()).filter(AnimeStatus::shouldDisplayList).sorted().toList();
+    }
+
+    public static List<AnimeStatus> getSchedulable() {
+        return Arrays.asList(WATCHING, SIMULCAST);
     }
 
     public boolean shouldDisplayList() {

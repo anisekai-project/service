@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.repositories;
 
+import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.entities.SeasonalSelection;
 import me.anisekai.toshiko.entities.SeasonalVote;
 import me.anisekai.toshiko.entities.keys.UserAnimeVoteAssocKey;
@@ -13,4 +14,5 @@ public interface SeasonalVoteRepository extends JpaRepository<SeasonalVote, User
 
     List<SeasonalVote> findAllBySeasonalSelection(SeasonalSelection seasonalSelection);
 
+    List<SeasonalVote> findAllBySeasonalSelectionAndUser(SeasonalSelection seasonalSelection, DiscordUser user);
 }

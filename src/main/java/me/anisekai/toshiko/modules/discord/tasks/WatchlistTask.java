@@ -4,9 +4,9 @@ import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import me.anisekai.toshiko.components.RankingHandler;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Watchlist;
-import me.anisekai.toshiko.enums.CronState;
+import me.anisekai.toshiko.interfaces.entities.IWatchlist;
 import me.anisekai.toshiko.modules.discord.messages.embeds.WatchlistEmbed;
-import me.anisekai.toshiko.services.WatchlistService;
+import me.anisekai.toshiko.services.data.WatchlistDataService;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
@@ -22,12 +22,12 @@ public class WatchlistTask implements Task {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchlistTask.class);
 
-    private final WatchlistService service;
-    private final RankingHandler   ranking;
-    private final Watchlist        watchlist;
-    private final TextChannel      channel;
+    private final WatchlistDataService service;
+    private final RankingHandler       ranking;
+    private final Watchlist            watchlist;
+    private final TextChannel          channel;
 
-    public WatchlistTask(WatchlistService service, RankingHandler ranking, Watchlist watchlist, TextChannel channel) {
+    public WatchlistTask(WatchlistDataService service, RankingHandler ranking, Watchlist watchlist, TextChannel channel) {
 
         this.service   = service;
         this.ranking   = ranking;
@@ -38,12 +38,12 @@ public class WatchlistTask implements Task {
     @Override
     public String getName() {
 
-        return String.format("WATCHLIST:%s", this.watchlist.getStatus().name());
+        return String.format("WATCHLIST:%s", this.watchlist.getId().name());
     }
 
     public void run() {
 
-        LOGGER.info("Running for watchlist {}", this.watchlist.getStatus().name());
+        LOGGER.info("Running for watchlist {}", this.watchlist.getId().name());
 
         boolean shouldCreateMessage = this.watchlist.getMessageId() == null;
 
@@ -61,7 +61,8 @@ public class WatchlistTask implements Task {
             message.getHandler().accept(mcb);
 
             Message discordMessage = this.channel.sendMessage(mcb.build()).complete();
-            this.watchlist.setMessageId(discordMessage.getIdLong());
+
+            this.service.mod(this.watchlist.getId(), watchlist -> watchlist.setMessageId(discordMessage.getIdLong()));
 
         } else {
             MessageEditBuilder meb = new MessageEditBuilder();
@@ -69,12 +70,9 @@ public class WatchlistTask implements Task {
 
             existingMessage.get().editMessage(meb.build()).complete();
         }
-
-        this.watchlist.setState(CronState.DONE);
-        this.service.getRepository().save(this.watchlist);
     }
 
-    private Optional<Message> findExistingMessage(Watchlist watchlist) {
+    private Optional<Message> findExistingMessage(IWatchlist watchlist) {
 
         if (watchlist.getMessageId() == null) {
             return Optional.empty();
