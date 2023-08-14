@@ -2,15 +2,20 @@ package me.anisekai.toshiko.entities;
 
 import jakarta.persistence.*;
 import me.anisekai.toshiko.enums.AnimeStatus;
-import me.anisekai.toshiko.enums.CronState;
+import me.anisekai.toshiko.interfaces.entities.IWatchlist;
+import me.anisekai.toshiko.utils.EntityUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Watchlist implements Comparable<Watchlist> {
+public class Watchlist implements IWatchlist {
+
+    // <editor-fold desc="Entity Structure">
 
     @Id
     @Enumerated(EnumType.STRING)
@@ -25,76 +30,132 @@ public class Watchlist implements Comparable<Watchlist> {
     private Set<Anime> animes;
 
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private CronState state;
+    private int order;
+
+    @Column(nullable = false)
+    private ZonedDateTime createdAt = ZonedDateTime.now();
+
+    @Column(nullable = false)
+    private ZonedDateTime updatedAt = ZonedDateTime.now();
+
+    // </editor-fold>
+
+    /**
+     * As {@link IWatchlist} primary key is always defined even when not persisted, this field is used to keep track of
+     * this entity instance state.
+     */
+    @Transient
+    private transient boolean created = true;
 
     public Watchlist() {}
 
-    public Watchlist(@NotNull AnimeStatus status) {
+    // <editor-fold desc="Getters / Setters">
 
-        this.status    = status;
-        this.messageId = null;
-        this.state     = CronState.DONE;
-    }
-
-    public @NotNull AnimeStatus getStatus() {
+    @Override
+    public AnimeStatus getId() {
 
         return this.status;
     }
 
-    public @Nullable Long getMessageId() {
+    @Override
+    public void setId(AnimeStatus id) {
+
+        throw new UnsupportedOperationException("Cannot set this id. Remove the entity and insert it again if needed.");
+    }
+
+    @Override
+    public Long getMessageId() {
 
         return this.messageId;
     }
 
-    public void setMessageId(@Nullable Long messageId) {
+    @Override
+    public void setMessageId(Long messageId) {
 
         this.messageId = messageId;
     }
 
+    @Override
     public Set<Anime> getAnimes() {
 
         return this.animes;
     }
 
+    @Override
     public void setAnimes(Set<Anime> animes) {
 
         this.animes = animes;
     }
 
-    public CronState getState() {
+    @Override
+    public int getOrder() {
 
-        return this.state;
+        return this.order;
     }
 
-    public void setState(CronState state) {
+    @Override
+    public void setOrder(int order) {
 
-        this.state = state;
+        this.order = order;
+    }
+
+    @Override
+    public ZonedDateTime getCreatedAt() {
+
+        return this.createdAt;
+    }
+
+    @Override
+    public void setCreatedAt(ZonedDateTime createdAt) {
+
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public ZonedDateTime getUpdatedAt() {
+
+        return this.updatedAt;
+    }
+
+    @Override
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+
+        this.updatedAt = updatedAt;
+    }
+
+    // </editor-fold>
+
+    @Override
+    public boolean isNew() {
+
+        return this.created;
     }
 
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) {
-            return true;
-        }
-        if (o == null || this.getClass() != o.getClass()) {
-            return false;
-        }
-        Watchlist watchlist = (Watchlist) o;
-        return this.getStatus() == watchlist.getStatus();
+        return o instanceof IWatchlist other && EntityUtils.equals(this, other);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(this.getStatus());
+        return Objects.hash(this.status);
     }
 
     @Override
-    public int compareTo(@NotNull Watchlist o) {
+    public int compareTo(@NotNull IWatchlist other) {
 
-        return this.getStatus().compareTo(o.getStatus());
+        return EntityUtils.compare(this, other, Comparator.comparing(IWatchlist::getOrder));
+    }
+
+    @PostLoad
+    @PostPersist
+    private void persisted() {
+
+        this.created   = false;
+        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 
 }

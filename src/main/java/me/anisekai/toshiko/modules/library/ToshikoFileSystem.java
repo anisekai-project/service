@@ -1,8 +1,8 @@
 package me.anisekai.toshiko.modules.library;
 
-import me.anisekai.toshiko.events.misc.FileImportedEvent;
-import me.anisekai.toshiko.events.misc.ImportStartedEvent;
-import me.anisekai.toshiko.events.misc.TorrentFinishedEvent;
+import me.anisekai.toshiko.events.FileImportedEvent;
+import me.anisekai.toshiko.events.ImportStartedEvent;
+import me.anisekai.toshiko.events.torrent.TorrentStatusUpdatedEvent;
 import me.anisekai.toshiko.modules.library.entities.DiskFile;
 import me.anisekai.toshiko.modules.library.utils.AnimeRenamer;
 import me.anisekai.toshiko.modules.library.utils.FileSystemUtils;
@@ -156,7 +156,11 @@ public class ToshikoFileSystem {
     }
 
     @EventListener
-    public void onTorrentFinished(TorrentFinishedEvent event) throws IOException {
+    public void onTorrentStatusUpdated(TorrentStatusUpdatedEvent event) throws IOException {
+
+        if (!event.getCurrent().isFinished()) {
+            return;
+        }
 
         // Try to find the file.
         File       torrentDirectory = this.diskService.getTorrentPath().toFile();
@@ -164,19 +168,19 @@ public class ToshikoFileSystem {
 
         Optional<File> optionalFile = content.stream()
                                              .filter(file -> file.getName()
-                                                                 .startsWith(event.getTorrent()
+                                                                 .startsWith(event.getEntity()
                                                                                   .getAnime()
                                                                                   .getRssMatch()))
                                              .findFirst();
 
         if (optionalFile.isEmpty()) {
-            LOGGER.warn("Could not finalize {}", event.getTorrent().getName());
+            LOGGER.warn("Could not finalize {}", event.getEntity().getName());
             return;
         }
 
         File episode     = optionalFile.get();
         File automation  = this.diskService.getAutomationPath().toFile();
-        File destination = new File(automation, event.getTorrent().getAnime().getDiskPath());
+        File destination = new File(automation, event.getEntity().getAnime().getDiskPath());
 
         AnimeRenamer.rename(episode, destination);
         this.checkForAutomation();

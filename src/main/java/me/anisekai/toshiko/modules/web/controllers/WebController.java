@@ -3,10 +3,9 @@ package me.anisekai.toshiko.modules.web.controllers;
 import jakarta.servlet.http.HttpServletRequest;
 import me.anisekai.toshiko.entities.DiscordUser;
 
-
-
 import me.anisekai.toshiko.modules.library.DiskService;
 import me.anisekai.toshiko.modules.library.entities.DiskEpisode;
+
 import me.anisekai.toshiko.modules.library.entities.DiskSubtitle;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -41,7 +40,7 @@ public class WebController {
         model.addAttribute("logged", true);
         model.addAttribute("user", user);
 
-        if (!user.isWebAccess()) {
+        if (!user.hasWebAccess()) {
             return "forbidden";
         }
         return "index";
@@ -69,8 +68,12 @@ public class WebController {
     @GetMapping("/{anime}/{episode}/video")
     public ResponseEntity<Resource> openAnimeEpisode(DiscordUser user, @PathVariable String anime, @PathVariable String episode) {
 
-        if (user == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        if (!user.isWebAccess()) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!user.isWebAccess()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         UUID animeUUID, episodeUUID;
 
@@ -82,7 +85,9 @@ public class WebController {
         }
 
         Optional<File> file = this.service.findEpisode(animeUUID, episodeUUID).map(DiskEpisode::getPath);
-        if (file.isEmpty() || !file.get().exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (file.isEmpty() || !file.get().exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("video/mp4"));
@@ -94,8 +99,12 @@ public class WebController {
     @GetMapping("/{anime}/{group}/{episode}/video")
     public ResponseEntity<Resource> openAnimeEpisode(DiscordUser user, @PathVariable String anime, @PathVariable String group, @PathVariable String episode) {
 
-        if (user == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        if (!user.isWebAccess()) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!user.isWebAccess()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         UUID animeUUID, groupUUID, episodeUUID;
 
@@ -108,7 +117,9 @@ public class WebController {
         }
 
         Optional<File> file = this.service.findEpisode(animeUUID, groupUUID, episodeUUID).map(DiskEpisode::getPath);
-        if (file.isEmpty() || !file.get().exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (file.isEmpty() || !file.get().exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("video/mp4"));
@@ -120,8 +131,12 @@ public class WebController {
     @GetMapping("/{anime}/{episode}/subs/{sub}")
     public ResponseEntity<Resource> openEpisodeSubs(DiscordUser user, @PathVariable String anime, @PathVariable String episode, @PathVariable String sub) {
 
-        if (user == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        if (!user.isWebAccess()) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!user.isWebAccess()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         UUID animeUUID, episodeUUID, subUUID;
 
@@ -134,9 +149,13 @@ public class WebController {
         }
 
         Optional<DiskEpisode> diskEpisode = this.service.findEpisode(animeUUID, episodeUUID);
-        if (diskEpisode.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (diskEpisode.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         Optional<File> file = this.service.findSubtitle(diskEpisode.get(), subUUID).map(DiskSubtitle::getPath);
-        if (file.isEmpty() || !file.get().exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (file.isEmpty() || !file.get().exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("text/plain"));
@@ -147,8 +166,12 @@ public class WebController {
     @GetMapping("/{anime}/{group}/{episode}/subs/{sub}")
     public ResponseEntity<Resource> openAnimeEpisode(DiscordUser user, @PathVariable String anime, @PathVariable String group, @PathVariable String episode, @PathVariable String sub) {
 
-        if (user == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        if (!user.isWebAccess()) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!user.isWebAccess()) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         UUID animeUUID, groupUUID, episodeUUID, subUUID;
 
@@ -162,9 +185,13 @@ public class WebController {
         }
 
         Optional<DiskEpisode> diskEpisode = this.service.findEpisode(animeUUID, groupUUID, episodeUUID);
-        if (diskEpisode.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (diskEpisode.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         Optional<File> file = this.service.findSubtitle(diskEpisode.get(), subUUID).map(DiskSubtitle::getPath);
-        if (file.isEmpty() || !file.get().exists()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (file.isEmpty() || !file.get().exists()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.valueOf("text/plain"));

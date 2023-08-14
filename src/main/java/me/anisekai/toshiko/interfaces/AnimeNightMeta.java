@@ -1,57 +1,55 @@
 package me.anisekai.toshiko.interfaces;
 
 import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.toshiko.events.broadcast.*;
+import me.anisekai.toshiko.helpers.proxy.TriggerEvent;
 
-import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 public interface AnimeNightMeta {
 
     Anime getAnime();
 
+    void setAnime(Anime anime);
+
+    long getAmount();
+
+    @TriggerEvent(BroadcastAmountUpdatedEvent.class)
+    void setAmount(long amount);
+
     long getFirstEpisode();
 
+    @TriggerEvent(BroadcastFirstEpisodeUpdatedEvent.class)
     void setFirstEpisode(long firstEpisode);
 
     long getLastEpisode();
 
+    @TriggerEvent(BroadcastLastEpisodeUpdatedEvent.class)
     void setLastEpisode(long lastEpisode);
 
-    long getAmount();
+    ZonedDateTime getStartDateTime();
 
-    OffsetDateTime getStartDateTime();
+    @TriggerEvent(BroadcastStartDateTimeUpdatedEvent.class)
+    void setStartDateTime(ZonedDateTime startDateTime);
 
-    void setStartDateTime(OffsetDateTime startDateTime);
+    ZonedDateTime getEndDateTime();
 
-    OffsetDateTime getEndDateTime();
-
-    void setEndDateTime(OffsetDateTime endDateTime);
-
-    default String asEventDescription() {
-
-        long amount = this.getAmount();
-
-        if (amount == 1) {
-            return String.format("**Épisode** %02d", this.getFirstEpisode());
-        } else if (amount == 2) {
-            return String.format("**Épisodes** %02d et %02d", this.getFirstEpisode(), this.getLastEpisode());
-        } else {
-            return String.format("**Épisodes** %02d à %02d", this.getFirstEpisode(), this.getLastEpisode());
-        }
-    }
-
-    default boolean isColliding(OffsetDateTime startTime, OffsetDateTime endTime) {
+    @TriggerEvent(BroadcastEndDateTimeUpdatedEvent.class)
+    void setEndDateTime(ZonedDateTime endDateTime);
+    
+    default boolean isColliding(ZonedDateTime startTime, ZonedDateTime endTime) {
 
         boolean isSameStart = this.getStartDateTime().isEqual(startTime);
         boolean isSameEnd   = this.getEndDateTime().isEqual(endTime);
 
         boolean isStartDuring = this.getStartDateTime().isAfter(startTime) &&
-                                this.getStartDateTime().isBefore(endTime);
+                this.getStartDateTime().isBefore(endTime);
 
         boolean isEndDuring = this.getEndDateTime().isAfter(startTime) &&
-                              this.getEndDateTime().isBefore(endTime);
+                this.getEndDateTime().isBefore(endTime);
 
         boolean isOnTop = this.getStartDateTime().isBefore(startTime) &&
-                          this.getEndDateTime().isAfter(endTime);
+                this.getEndDateTime().isAfter(endTime);
 
         return isSameStart || isSameEnd || isStartDuring || isEndDuring || isOnTop;
     }

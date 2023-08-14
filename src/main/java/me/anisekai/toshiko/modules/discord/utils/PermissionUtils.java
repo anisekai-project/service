@@ -2,6 +2,7 @@ package me.anisekai.toshiko.modules.discord.utils;
 
 import me.anisekai.toshiko.entities.DiscordUser;
 import me.anisekai.toshiko.exceptions.AdministratorRequiredException;
+import me.anisekai.toshiko.interfaces.entities.IUser;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,7 +21,7 @@ public final class PermissionUtils {
      * @throws AdministratorRequiredException
      *         Threw if {@link DiscordUser#isAdmin()} is {@code false}.
      */
-    public static void requirePrivileges(@NotNull DiscordUser requester) {
+    public static void requirePrivileges(@NotNull IUser requester) {
 
         if (!requester.isAdmin()) {
             throw new AdministratorRequiredException();

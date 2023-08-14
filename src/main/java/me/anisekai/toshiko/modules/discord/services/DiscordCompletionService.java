@@ -1,10 +1,11 @@
 package me.anisekai.toshiko.modules.discord.services;
 
 import fr.alexpado.jda.interactions.entities.DispatchEvent;
-import me.anisekai.toshiko.entities.Anime;
 import me.anisekai.toshiko.entities.SeasonalSelection;
 import me.anisekai.toshiko.enums.AnimeStatus;
+import me.anisekai.toshiko.enums.BroadcastFrequency;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.modules.discord.Texts;
 import me.anisekai.toshiko.modules.library.DiskService;
 import me.anisekai.toshiko.repositories.AnimeRepository;
 import me.anisekai.toshiko.repositories.SeasonalSelectionRepository;
@@ -60,7 +61,7 @@ public class DiscordCompletionService {
                 .stream()
                 .filter(anime -> anime.getName().toLowerCase().contains(value.toLowerCase()))
                 .sorted()
-                .map(Anime::asChoice)
+                .map(anime -> new Command.Choice(Texts.truncate(anime.getName(), 100), anime.getId()))
                 .toList();
     }
 
@@ -91,5 +92,12 @@ public class DiscordCompletionService {
                      .toList();
     }
 
+    public List<Command.Choice> frequencyCompletion(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
+
+        return Stream.of(BroadcastFrequency.values())
+                .filter(frequency -> frequency.getDisplayName().toLowerCase().contains(value.toLowerCase()))
+                .map(frequency -> new Command.Choice(frequency.getDisplayName(), frequency.name()))
+                .toList();
+    }
 
 }

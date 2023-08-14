@@ -46,7 +46,7 @@ public class WatchlistEmbed implements SlashResponse, ButtonResponse {
                                                             ))
                                                             .toList();
 
-            builder.setAuthor(String.format("%s (%s)", this.watchlist.getStatus().getDisplay(), animes.size()));
+            builder.setAuthor(String.format("%s (%s)", this.watchlist.getId().getDisplay(), animes.size()));
 
             if (animes.size() > 75) {
                 builder.setDescription("*Il faudrait ptet arrêter d'ajouter des animes à ce niveau là hein...*");

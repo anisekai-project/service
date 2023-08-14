@@ -38,4 +38,9 @@ public final class MapUtils {
         return collection.stream().collect(Collectors.groupingBy(classifier, HashMap::new, Collectors.toList()));
     }
 
+    public static <K, V> Map<K, V> mapBy(@NotNull Collection<V> collection, Function<? super V, ? extends K> classifier) {
+
+        return collection.stream().collect(Collectors.toMap(classifier, item -> item));
+    }
+
 }

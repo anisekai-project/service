@@ -1,45 +1,36 @@
 package me.anisekai.toshiko.modules.library.services;
 
 import fr.alexpado.lib.rest.exceptions.RestException;
-import me.anisekai.toshiko.configurations.AutoDownloadConfiguration;
 import me.anisekai.toshiko.configurations.ToshikoFeatureConfiguration;
 import me.anisekai.toshiko.data.RpcTorrent;
-import me.anisekai.toshiko.entities.Torrent;
-import me.anisekai.toshiko.events.misc.TorrentFinishedEvent;
+import me.anisekai.toshiko.interfaces.entities.ITorrent;
 import me.anisekai.toshiko.modules.library.lib.TransmissionDaemonClient;
-import me.anisekai.toshiko.repositories.TorrentRepository;
+import me.anisekai.toshiko.services.data.TorrentDataService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class TorrentService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TorrentService.class);
 
-    private final ApplicationEventPublisher   publisher;
+    private final TorrentDataService          service;
     private final TransmissionDaemonClient    client;
     private final ToshikoFeatureConfiguration featureConfiguration;
-    private final TorrentRepository           repository;
 
-    public TorrentService(ApplicationEventPublisher publisher, TransmissionDaemonClient client, ToshikoFeatureConfiguration featureConfiguration, AutoDownloadConfiguration configuration, TorrentRepository repository) {
+    public TorrentService(TorrentDataService service, TransmissionDaemonClient client, ToshikoFeatureConfiguration featureConfiguration) {
 
-        this.publisher = publisher;
-
-        this.client = client;
-
+        this.service              = service;
+        this.client               = client;
         this.featureConfiguration = featureConfiguration;
-        this.repository           = repository;
     }
 
     @Scheduled(cron = "0/1 * * * * *")
@@ -61,36 +52,20 @@ public class TorrentService {
             JSONObject arguments = queryResult.getJSONObject("arguments");
             JSONArray  torrents  = arguments.getJSONArray("torrents");
 
-            Map<Integer, RpcTorrent> torrentMap = new HashMap<>();
+            Map<Integer, RpcTorrent> torrentMap = torrents.toList().stream()
+                                                          .filter(JSONObject.class::isInstance)
+                                                          .map(JSONObject.class::cast)
+                                                          .map(RpcTorrent::new)
+                                                          .collect(Collectors.toMap(RpcTorrent::getId, rpc -> rpc));
 
-            for (Object torrent : torrents) {
-                RpcTorrent rpcTorrent = new RpcTorrent((JSONObject) torrent);
-                torrentMap.put(rpcTorrent.getId(), rpcTorrent);
-            }
-
-            Iterable<Integer> allIds = torrentMap.keySet();
-
-            Collection<Torrent> finished = new ArrayList<>();
-
-            for (Torrent torrent : this.repository.findAllById(allIds)) {
-
-                boolean wasFinished = torrent.getStatus().isFinished();
-                torrent.update(torrentMap.get(torrent.getId()));
-
-                this.repository.save(torrent);
-
-                if (torrent.getStatus().isFinished() && !wasFinished) {
-                    LOGGER.info("Torrent {} is now finished.", torrent.getId());
-                    finished.add(torrent);
+            this.service.getProxy().batch(torrentMap.keySet(), registeredTorrents -> {
+                for (ITorrent registeredTorrent : registeredTorrents) {
+                    RpcTorrent rpcTorrent = torrentMap.get(registeredTorrent.getId());
+                    registeredTorrent.setStatus(rpcTorrent.getStatus());
+                    registeredTorrent.setDownloadDir(rpcTorrent.getDownloadDir());
+                    registeredTorrent.setPercentDone(rpcTorrent.getPercentDone());
                 }
-            }
-
-            for (Torrent torrent : finished) {
-                this.publisher.publishEvent(new TorrentFinishedEvent(
-                        this,
-                        torrent
-                ));
-            }
+            });
         } catch (Exception e) {
             if (e instanceof RestException restException) {
                 LOGGER.warn(new String(restException.getBody(), StandardCharsets.UTF_8));

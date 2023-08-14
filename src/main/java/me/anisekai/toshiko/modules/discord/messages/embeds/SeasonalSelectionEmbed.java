@@ -3,9 +3,9 @@ package me.anisekai.toshiko.modules.discord.messages.embeds;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.entities.SeasonalSelection;
 import me.anisekai.toshiko.entities.SeasonalVote;
 import me.anisekai.toshiko.entities.SeasonalVoter;
+import me.anisekai.toshiko.interfaces.entities.ISeasonalSelection;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 
 public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
-    private final SeasonalSelection  seasonalSelection;
+    private final ISeasonalSelection  seasonalSelection;
     private final Set<SeasonalVote>  votes;
     private final Set<SeasonalVoter> voters;
 
-    public SeasonalSelectionEmbed(SeasonalSelection seasonalSelection) {
+    public SeasonalSelectionEmbed(ISeasonalSelection seasonalSelection) {
 
         this.seasonalSelection = seasonalSelection;
         this.votes             = seasonalSelection.getVotes()

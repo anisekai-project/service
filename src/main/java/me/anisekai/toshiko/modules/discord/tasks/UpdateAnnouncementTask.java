@@ -1,5 +1,6 @@
 package me.anisekai.toshiko.modules.discord.tasks;
 
+import me.anisekai.toshiko.interfaces.entities.IAnime;
 import me.anisekai.toshiko.modules.discord.JdaStore;
 import me.anisekai.toshiko.data.Task;
 import me.anisekai.toshiko.entities.Anime;
@@ -71,7 +72,7 @@ public class UpdateAnnouncementTask implements Task {
 
     }
 
-    private Optional<Message> findExistingMessage(Anime anime) {
+    private Optional<Message> findExistingMessage(IAnime anime) {
 
         if (anime.getAnnounceMessage() == null || anime.getAnnounceMessage() == -1) {
             return Optional.empty();

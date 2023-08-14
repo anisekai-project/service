@@ -3,14 +3,19 @@ package me.anisekai.toshiko.entities;
 import jakarta.persistence.*;
 import me.anisekai.toshiko.entities.keys.UserAnimeAssocKey;
 import me.anisekai.toshiko.enums.InterestLevel;
+import me.anisekai.toshiko.interfaces.entities.IInterest;
+import me.anisekai.toshiko.utils.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
 @IdClass(UserAnimeAssocKey.class)
-public class Interest {
+public class Interest implements IInterest {
+
+    // <editor-fold desc="Entity Structure">
 
     @Id
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
@@ -23,6 +28,21 @@ public class Interest {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterestLevel level;
+
+    @Column(nullable = false)
+    private ZonedDateTime createdAt = ZonedDateTime.now();
+
+    @Column(nullable = false)
+    private ZonedDateTime updatedAt = ZonedDateTime.now();
+
+    // </editor-fold>
+
+    /**
+     * As {@link IInterest} primary key is a composite key with defined value even when not persisted, this field is
+     * used to keep track of this entity instance state.
+     */
+    @Transient
+    private transient boolean created = true;
 
     public Interest() {}
 
@@ -38,51 +58,107 @@ public class Interest {
         this.level = level;
     }
 
-    public @NotNull Anime getAnime() {
+    // <editor-fold desc="Getters / Setters">
+
+    @Override
+    public UserAnimeAssocKey getId() {
+
+        return new UserAnimeAssocKey(this.anime, this.user);
+    }
+
+    @Override
+    public void setId(UserAnimeAssocKey id) {
+
+        throw new UnsupportedOperationException("Cannot set a composite key.");
+    }
+
+    @Override
+    public Anime getAnime() {
 
         return this.anime;
     }
 
-    public @NotNull DiscordUser getUser() {
+    @Override
+    public void setAnime(Anime anime) {
+
+        this.anime = anime;
+    }
+
+    @Override
+    public DiscordUser getUser() {
 
         return this.user;
     }
 
-    public @NotNull InterestLevel getLevel() {
+    @Override
+    public void setUser(DiscordUser user) {
+
+        this.user = user;
+    }
+
+    @Override
+    public InterestLevel getLevel() {
 
         return this.level;
     }
 
-    public void setLevel(@NotNull InterestLevel level) {
+    @Override
+    public void setLevel(InterestLevel level) {
 
         this.level = level;
     }
 
-    public double getValue(Map<DiscordUser, Double> powerMap) {
+    @Override
+    public ZonedDateTime getCreatedAt() {
 
-        return powerMap.getOrDefault(this.getUser(), 0.0) * this.getLevel().getPowerModifier();
+        return this.createdAt;
+    }
+
+    @Override
+    public void setCreatedAt(ZonedDateTime createdAt) {
+
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public ZonedDateTime getUpdatedAt() {
+
+        return this.updatedAt;
+    }
+
+    @Override
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+
+        this.updatedAt = updatedAt;
+    }
+
+    // </editor-fold>
+
+    @Override
+    public boolean isNew() {
+
+        return this.created;
     }
 
     @Override
     public boolean equals(Object o) {
 
-        if (this == o) {
-            return true;
-        }
-        if (o == null || this.getClass() != o.getClass()) {
-            return false;
-        }
-        Interest interest = (Interest) o;
-        return Objects.equals(this.getAnime(), interest.getAnime()) && Objects.equals(
-                this.getUser(),
-                interest.getUser()
-        );
+        return o instanceof IInterest other && EntityUtils.equals(this, other);
     }
 
     @Override
     public int hashCode() {
 
         return Objects.hash(this.getAnime(), this.getUser());
+    }
+
+    @PostLoad
+    @PostPersist
+    private void persisted() {
+
+        this.created   = false;
+        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 
 }

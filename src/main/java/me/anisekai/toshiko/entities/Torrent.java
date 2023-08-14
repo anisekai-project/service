@@ -3,9 +3,18 @@ package me.anisekai.toshiko.entities;
 import jakarta.persistence.*;
 import me.anisekai.toshiko.data.RpcTorrent;
 import me.anisekai.toshiko.enums.TorrentStatus;
+import me.anisekai.toshiko.interfaces.entities.ITorrent;
+import me.anisekai.toshiko.utils.EntityUtils;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Objects;
+
+// TODO: Find a better way to store torrent reference to avoid id mix-up
 @Entity
-public class Torrent {
+public class Torrent implements ITorrent {
+
+    // <editor-fold desc="Entity Structure">
 
     @Id
     private int id;
@@ -32,6 +41,21 @@ public class Torrent {
     @Column(nullable = false)
     private String infoHash;
 
+    @Column(nullable = false)
+    private ZonedDateTime createdAt = ZonedDateTime.now();
+
+    @Column(nullable = false)
+    private ZonedDateTime updatedAt = ZonedDateTime.now();
+
+    // </editor-fold>
+
+    /**
+     * As {@link ITorrent} primary key depend on an external service even when not persisted, this field is used to keep
+     * track of this entity instance state.
+     */
+    @Transient
+    private transient boolean created = true;
+
     public Torrent() {
 
     }
@@ -48,91 +72,155 @@ public class Torrent {
         this.infoHash    = infoHash;
     }
 
-    public void update(RpcTorrent torrent) {
+    // <editor-fold desc="Getters / Setters">
 
-        this.status      = torrent.getStatus();
-        this.downloadDir = torrent.getDownloadDir();
-        this.percentDone = torrent.getPercentDone();
-    }
-
-    public int getId() {
+    @Override
+    public Integer getId() {
 
         return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
 
         this.id = id;
     }
 
+    @Override
     public Anime getAnime() {
 
         return this.anime;
     }
 
+    @Override
     public void setAnime(Anime anime) {
 
         this.anime = anime;
     }
 
-    public String getName() {
-
-        return this.name;
-    }
-
-    public void setName(String name) {
-
-        this.name = name;
-    }
-
+    @Override
     public String getLink() {
 
         return this.link;
     }
 
+    @Override
     public void setLink(String link) {
 
         this.link = link;
     }
 
+    @Override
+    public String getName() {
+
+        return this.name;
+    }
+
+    @Override
+    public void setName(String name) {
+
+        this.name = name;
+    }
+
+    @Override
     public TorrentStatus getStatus() {
 
         return this.status;
     }
 
+    @Override
     public void setStatus(TorrentStatus status) {
 
         this.status = status;
     }
 
+    @Override
     public String getDownloadDir() {
 
         return this.downloadDir;
     }
 
+    @Override
     public void setDownloadDir(String downloadDir) {
 
         this.downloadDir = downloadDir;
     }
 
+    @Override
     public double getPercentDone() {
 
         return this.percentDone;
     }
 
+    @Override
     public void setPercentDone(double percentDone) {
 
         this.percentDone = percentDone;
     }
 
+    @Override
     public String getInfoHash() {
 
         return this.infoHash;
     }
 
+    @Override
     public void setInfoHash(String infoHash) {
 
         this.infoHash = infoHash;
+    }
+
+    @Override
+    public ZonedDateTime getCreatedAt() {
+
+        return this.createdAt;
+    }
+
+    @Override
+    public void setCreatedAt(ZonedDateTime createdAt) {
+
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public ZonedDateTime getUpdatedAt() {
+
+        return this.updatedAt;
+    }
+
+    @Override
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+
+        this.updatedAt = updatedAt;
+    }
+
+    // </editor-fold>
+
+
+    @Override
+    public boolean isNew() {
+
+        return this.created;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        return o instanceof ITorrent other && EntityUtils.equals(this, other);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(this.id);
+    }
+
+    @PostLoad
+    @PostPersist
+    private void persisted() {
+
+        this.created   = false;
+        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 
 }

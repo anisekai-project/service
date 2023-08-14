@@ -10,12 +10,28 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ToshikoErrorHandler implements InteractionErrorHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ToshikoErrorHandler.class);
+
+    @NotNull
+    private static <T extends Interaction> EmbedBuilder buildEmbed(DispatchEvent<T> event, SentryId sentryId) {
+
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle("Une erreur est survenue.");
+        builder.setDescription("""
+                                       Une erreur est survenue lors du traitement de cette action. Merci de réessayer.
+                                                                          
+                                       Si l'erreur persiste, merci de dire à <@149279150648066048> que c'est un mauvais développeur.
+                                       """);
+
+        builder.setFooter(String.format("I-Path: %s • ID: %s", event.getPath().toString(), sentryId));
+        return builder;
+    }
 
     /**
      * Called when an exception occurs during the execution of an {@link Interaction}.
@@ -41,18 +57,9 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
                 return;
             }
 
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.setTitle("Une erreur est survenue.");
-            builder.setDescription("""
-                                           Une erreur est survenue lors du traitement de cette action. Merci de réessayer.
-                                                                              
-                                           Si l'erreur persiste, merci de dire à <@149279150648066048> que c'est un mauvais développeur.
-                                           """);
-
-            builder.setFooter(String.format("I-Path: %s • ID: %s", event.getPath().toString(), sentryId));
+            EmbedBuilder builder = buildEmbed(event, sentryId);
             this.answer(callback, builder.build(), true);
         }
-
     }
 
     /**
