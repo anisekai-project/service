@@ -138,6 +138,7 @@ public class TransmissionDaemonClient {
                                         .put("status")
                                         .put("downloadDir")
                                         .put("percentDone")
+                                        .put("files")
                                 )
                         )
                 , false);

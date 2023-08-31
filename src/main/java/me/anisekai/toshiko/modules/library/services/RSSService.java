@@ -19,7 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,7 +78,6 @@ public class RSSService {
                                                                                                                         "(CUSTOM)"));
 
             LOGGER.info("Analyzing entries...");
-            List<Torrent> startedTorrents = new ArrayList<>();
             for (NyaaRssItem rssItem : rssItems) {
 
                 // Do we have a match ?

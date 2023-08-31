@@ -1,7 +1,6 @@
 package me.anisekai.toshiko.entities;
 
 import jakarta.persistence.*;
-import me.anisekai.toshiko.data.RpcTorrent;
 import me.anisekai.toshiko.enums.TorrentStatus;
 import me.anisekai.toshiko.interfaces.entities.ITorrent;
 import me.anisekai.toshiko.utils.EntityUtils;
@@ -41,6 +40,9 @@ public class Torrent implements ITorrent {
     @Column(nullable = false)
     private String infoHash;
 
+    @Column
+    private String file;
+
     @Column(nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
 
@@ -70,6 +72,7 @@ public class Torrent implements ITorrent {
         this.downloadDir = null;
         this.percentDone = 0;
         this.infoHash    = infoHash;
+        this.file        = null;
     }
 
     // <editor-fold desc="Getters / Setters">
@@ -167,6 +170,18 @@ public class Torrent implements ITorrent {
     public void setInfoHash(String infoHash) {
 
         this.infoHash = infoHash;
+    }
+
+    @Override
+    public String getFile() {
+
+        return this.file;
+    }
+
+    @Override
+    public void setFile(String file) {
+
+        this.file = file;
     }
 
     @Override

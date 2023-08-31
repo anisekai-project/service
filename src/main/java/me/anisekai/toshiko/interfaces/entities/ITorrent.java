@@ -39,4 +39,8 @@ public interface ITorrent extends IEntity<Integer> {
 
     void setInfoHash(String infoHash);
 
+    String getFile();
+
+    void setFile(String file);
+
 }

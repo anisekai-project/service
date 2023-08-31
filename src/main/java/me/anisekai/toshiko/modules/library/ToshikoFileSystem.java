@@ -167,10 +167,7 @@ public class ToshikoFileSystem {
         List<File> content          = FileSystemUtils.files(torrentDirectory);
 
         Optional<File> optionalFile = content.stream()
-                                             .filter(file -> file.getName()
-                                                                 .startsWith(event.getEntity()
-                                                                                  .getAnime()
-                                                                                  .getRssMatch()))
+                                             .filter(file -> file.getName().equals(event.getEntity().getFile()))
                                              .findFirst();
 
         if (optionalFile.isEmpty()) {

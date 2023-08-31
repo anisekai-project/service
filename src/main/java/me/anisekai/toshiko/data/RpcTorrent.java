@@ -1,6 +1,7 @@
 package me.anisekai.toshiko.data;
 
 import me.anisekai.toshiko.enums.TorrentStatus;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class RpcTorrent {
@@ -9,6 +10,7 @@ public class RpcTorrent {
     private final TorrentStatus status;
     private final String        downloadDir;
     private final double        percentDone;
+    private final String        file;
 
     public RpcTorrent(JSONObject source) {
 
@@ -16,6 +18,10 @@ public class RpcTorrent {
         this.status      = TorrentStatus.from(source.getInt("status"));
         this.downloadDir = source.getString("downloadDir");
         this.percentDone = source.getDouble("percentDone");
+
+        JSONArray  files = source.getJSONArray("files");
+        JSONObject json  = files.getJSONObject(0);
+        this.file = json.getString("name");
     }
 
     public int getId() {
@@ -36,6 +42,11 @@ public class RpcTorrent {
     public double getPercentDone() {
 
         return this.percentDone;
+    }
+
+    public String getFile() {
+
+        return this.file;
     }
 
 }

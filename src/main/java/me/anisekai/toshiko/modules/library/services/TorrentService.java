@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -52,11 +53,12 @@ public class TorrentService {
             JSONObject arguments = queryResult.getJSONObject("arguments");
             JSONArray  torrents  = arguments.getJSONArray("torrents");
 
-            Map<Integer, RpcTorrent> torrentMap = torrents.toList().stream()
-                                                          .filter(JSONObject.class::isInstance)
-                                                          .map(JSONObject.class::cast)
-                                                          .map(RpcTorrent::new)
-                                                          .collect(Collectors.toMap(RpcTorrent::getId, rpc -> rpc));
+            Map<Integer, RpcTorrent> torrentMap = new HashMap<>();
+            for (int i = 0; i < torrents.length(); i++) {
+                JSONObject object = torrents.getJSONObject(i);
+                RpcTorrent torrent = new RpcTorrent(object);
+                torrentMap.put(torrent.getId(), torrent);
+            }
 
             this.service.getProxy().batch(torrentMap.keySet(), registeredTorrents -> {
                 for (ITorrent registeredTorrent : registeredTorrents) {
@@ -64,6 +66,7 @@ public class TorrentService {
                     registeredTorrent.setStatus(rpcTorrent.getStatus());
                     registeredTorrent.setDownloadDir(rpcTorrent.getDownloadDir());
                     registeredTorrent.setPercentDone(rpcTorrent.getPercentDone());
+                    registeredTorrent.setFile(rpcTorrent.getFile());
                 }
             });
         } catch (Exception e) {

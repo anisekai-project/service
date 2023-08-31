@@ -1,0 +1,1 @@
+ALTER TABLE `torrent` ADD COLUMN `file` VARCHAR(255) DEFAULT NULL AFTER `info_hash`;
