@@ -1,49 +1,35 @@
 package me.anisekai.toshiko.events;
 
-import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
+import me.anisekai.toshiko.interfaces.LoggableEvent;
+import me.anisekai.toshiko.modules.library.entities.DiskFile;
+import me.anisekai.toshiko.utils.Embedding;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.springframework.context.ApplicationEvent;
 
 import java.awt.*;
 import java.time.OffsetDateTime;
 
-public class FileImportedEvent extends ApplicationEvent implements DiscordEmbeddable {
+public class FileImportedEvent extends ApplicationEvent implements LoggableEvent {
 
-    private final String path;
+    private final DiskFile file;
 
-    public FileImportedEvent(Object source, String path) {
+    public FileImportedEvent(Object source, DiskFile file) {
 
         super(source);
-        this.path = path;
+        this.file = file;
     }
 
 
-    /**
-     * Retrieve an {@link EmbedBuilder} representing this {@link DiscordEmbeddable}.
-     *
-     * @return An {@link EmbedBuilder}.
-     */
     @Override
     public EmbedBuilder asEmbed() {
 
-        return new EmbedBuilder()
-                .setTitle("Un fichier a été importé")
-                .setDescription(String.format("Le fichier `%s` a été importé.", this.path))
-                .setFooter(this.getSource().getClass().getName())
-                .setTimestamp(OffsetDateTime.now())
-                .setColor(Color.MAGENTA);
-    }
-
-    /**
-     * In case this {@link DiscordEmbeddable} is an {@link Exception}, check if the message should be displayed to
-     * everyone. If {@code false}, the message will be ephemeral.
-     *
-     * @return True if public, false otherwise.
-     */
-    @Override
-    public boolean showToEveryone() {
-
-        return true;
+        return Embedding.event(this)
+                        .setTitle("Un import a été terminé")
+                        .setDescription(String.format(
+                                "Le fichier %s a été importé.",
+                                this.file.getName()
+                        ))
+                        .setColor(Color.GREEN);
     }
 
 }

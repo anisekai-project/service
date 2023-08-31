@@ -97,7 +97,6 @@ public class ToshikoFileSystem {
 
         LOGGER.info("Queuing {} file(s) in automation directory.", supportedFiles.size());
 
-        this.publisher.publishEvent(new ImportStartedEvent(this, supportedFiles.size()));
         supportedFiles.forEach(diskFile -> {
             LOGGER.debug(" > Queuing '{}'...", this.getRelativeFsPath(diskFile.getFile()));
             this.diskFileLocking.add(diskFile);
@@ -120,6 +119,8 @@ public class ToshikoFileSystem {
             return;
         }
 
+        this.publisher.publishEvent(new ImportStartedEvent(this, diskFile));
+
         try {
             LOGGER.info("Reading video data...");
             VideoFile videoData = this.fileManagerService.getVideoData(diskFile.getPath());
@@ -137,7 +138,7 @@ public class ToshikoFileSystem {
             subtitles.forEach(subtitle -> subtitle.getFile().delete());
             this.diskFileLocking.remove(diskFile);
             LOGGER.info("The file '{}' was imported with success.", this.getRelativeFsPath(diskFile.getFile()));
-            this.publisher.publishEvent(new FileImportedEvent(this, this.getRelativeFsPath(diskFile.getFile())));
+            this.publisher.publishEvent(new FileImportedEvent(this, diskFile));
 
             if (!this.hasFileWaiting && this.automationQueue.isEmpty()) {
                 LOGGER.info("Automation folder is empty, rebuilding cache...");
