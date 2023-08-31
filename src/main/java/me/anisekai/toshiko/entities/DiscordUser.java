@@ -132,7 +132,7 @@ public class DiscordUser implements IUser, Comparable<DiscordUser> {
     @Override
     public boolean hasWebAccess() {
 
-        return false;
+        return this.webAccess;
     }
 
     /**
