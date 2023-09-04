@@ -8,23 +8,30 @@ plugins {
     id 'org.ajoberstar.reckon' version '0.18.0'
 }
 
-
 def generalCharset = StandardCharsets.UTF_8.name()
+static def isNonStable(String version) {
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
 
 group = 'me.anisekai.toshiko'
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
 
 compileJava.options.encoding = generalCharset
 compileTestJava.options.encoding = generalCharset
 javadoc.options.encoding = generalCharset
 
 reckon {
+    defaultInferredScope = 'patch'
     stages('dev', 'beta', 'rc', 'final')
 
     scopeCalc = calcScopeFromProp() | calcScopeFromCommitMessages()
     stageCalc = calcStageFromProp()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -71,17 +78,11 @@ dependencies {
     implementation group: 'rome', name: 'rome', version: '1.0'
 }
 
-tasks.named('test') {
+test {
     useJUnitPlatform()
 }
 
-static def isNonStable(String version) {
-    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
-    def regex = /^[0-9,.v-]+(-r)?$/
-    return !stableKeyword && !(version ==~ regex)
-}
-
-tasks.named("dependencyUpdates").configure {
+dependencyUpdates {
     rejectVersionIf {
         isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
     }
