@@ -87,3 +87,14 @@ dependencyUpdates {
         isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
     }
 }
+
+tasks.register('generateJava', Copy) {
+    def context = [version: project.version.toString()]
+    inputs.properties context
+    from 'src/template/java'
+    into "$buildDir/generated/java"
+    expand context
+}
+
+sourceSets.main.java.srcDir "$buildDir/generated/java"
+compileJava.dependsOn 'generateJava'

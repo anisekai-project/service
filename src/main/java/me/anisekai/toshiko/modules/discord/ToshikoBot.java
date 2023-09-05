@@ -2,10 +2,12 @@ package me.anisekai.toshiko.modules.discord;
 
 import io.sentry.Sentry;
 import io.sentry.SentryLevel;
+import me.anisekai.toshiko.BuildInfo;
 import me.anisekai.toshiko.modules.discord.configurations.DiscordConfiguration;
 import me.anisekai.toshiko.modules.discord.listeners.ScheduledEventListener;
 import me.anisekai.toshiko.modules.discord.services.DiscordService;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -70,6 +72,7 @@ public class ToshikoBot extends ListenerAdapter {
         this.wrapper.hook(guild);
         LOGGER.info("Successfully hooked to server '{} ({})'", guild.getName(), guild.getId());
         LOGGER.info("== == == == == == == == == == == == == == == == == ==");
+        event.getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.PLAYING, BuildInfo.getVersion()));
     }
 
 
