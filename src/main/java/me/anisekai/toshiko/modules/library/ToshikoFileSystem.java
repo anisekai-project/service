@@ -179,6 +179,9 @@ public class ToshikoFileSystem {
         File episode     = optionalFile.get();
         File automation  = this.diskService.getAutomationPath().toFile();
         File destination = new File(automation, event.getEntity().getAnime().getDiskPath());
+        if (!destination.mkdirs()) {
+            LOGGER.warn("Unable to create destination folder for anime {}. Further file management could lead to errors.", event.getEntity().getAnime().getName());
+        }
 
         AnimeRenamer.rename(episode, destination);
         this.checkForAutomation();
