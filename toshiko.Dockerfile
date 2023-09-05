@@ -10,7 +10,7 @@ LABEL authors="akio"
 
 RUN apt-get update  \
     && apt-get install -y ffmpeg mkvtoolnix  \
-    && rm -rf /var/lib/apt/lists/* /tmp /var/tmp
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /app
 COPY --from=build /source/build/libs/* ./
