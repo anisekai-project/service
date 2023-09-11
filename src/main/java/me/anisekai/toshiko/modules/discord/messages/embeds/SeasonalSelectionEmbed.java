@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
 
-    private final ISeasonalSelection  seasonalSelection;
+    private final ISeasonalSelection seasonalSelection;
     private final Set<SeasonalVote>  votes;
     private final Set<SeasonalVoter> voters;
 
@@ -153,36 +153,38 @@ public class SeasonalSelectionEmbed implements SlashResponse, ButtonResponse {
             mr.setEmbeds(this.getIntroduction().build(), this.getAnimeList().build());
 
             // Buttons time ! yay !
-            List<Button> buttons = this.seasonalSelection.getAnimes().stream().map(anime ->
-                                                                                           this.getVoteFor(anime)
-                                                                                               .map(vote -> Button.of(
-                                                                                                       ButtonStyle.SECONDARY,
-                                                                                                       String.format(
-                                                                                                               "button://season/cast?seasonal=%s&anime=%s",
-                                                                                                               this.seasonalSelection.getId(),
-                                                                                                               anime.getId()
-                                                                                                       ),
-                                                                                                       String.format(
-                                                                                                               "Anime %s",
-                                                                                                               anime.getId()
-                                                                                                       ),
-                                                                                                       Emoji.fromUnicode(
-                                                                                                               Objects.requireNonNull(
-                                                                                                                       vote.getUser()
-                                                                                                                           .getEmote()))
-                                                                                               ))
-                                                                                               .orElseGet(() -> Button.of(
-                                                                                                       ButtonStyle.PRIMARY,
-                                                                                                       String.format(
-                                                                                                               "button://season/cast?seasonal=%s&anime=%s",
-                                                                                                               this.seasonalSelection.getId(),
-                                                                                                               anime.getId()
-                                                                                                       ),
-                                                                                                       String.format(
-                                                                                                               "Anime %s",
-                                                                                                               anime.getId()
-                                                                                                       )
-                                                                                               ))).toList();
+            List<Button> buttons = this.seasonalSelection.getAnimes().stream()
+                                                         .sorted(Comparator.comparing(Anime::getId))
+                                                         .map(anime ->
+                                                                      this.getVoteFor(anime)
+                                                                          .map(vote -> Button.of(
+                                                                                  ButtonStyle.SECONDARY,
+                                                                                  String.format(
+                                                                                          "button://season/cast?seasonal=%s&anime=%s",
+                                                                                          this.seasonalSelection.getId(),
+                                                                                          anime.getId()
+                                                                                  ),
+                                                                                  String.format(
+                                                                                          "Anime %s",
+                                                                                          anime.getId()
+                                                                                  ),
+                                                                                  Emoji.fromUnicode(
+                                                                                          Objects.requireNonNull(
+                                                                                                  vote.getUser()
+                                                                                                      .getEmote()))
+                                                                          ))
+                                                                          .orElseGet(() -> Button.of(
+                                                                                  ButtonStyle.PRIMARY,
+                                                                                  String.format(
+                                                                                          "button://season/cast?seasonal=%s&anime=%s",
+                                                                                          this.seasonalSelection.getId(),
+                                                                                          anime.getId()
+                                                                                  ),
+                                                                                  String.format(
+                                                                                          "Anime %s",
+                                                                                          anime.getId()
+                                                                                  )
+                                                                          ))).toList();
 
             Collection<ActionRow> rows = new ArrayList<>(ActionRow.partitionOf(buttons));
             rows.add(ActionRow.of(Button.danger(String.format(
