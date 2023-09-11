@@ -72,4 +72,8 @@ public enum AnimeStatus {
         return String.format("%s %s", this.icon, this.label);
     }
 
+    public String getIcon() {
+
+        return this.icon;
+    }
 }

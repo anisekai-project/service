@@ -61,7 +61,7 @@ public class DiscordCompletionService {
                 .stream()
                 .filter(anime -> anime.getName().toLowerCase().contains(value.toLowerCase()))
                 .sorted()
-                .map(anime -> new Command.Choice(Texts.truncate(anime.getName(), 100), anime.getId()))
+                .map(anime -> new Command.Choice(Texts.truncate(String.format("%s %s", anime.getStatus().getIcon(), anime.getName()), 100), anime.getId()))
                 .toList();
     }
 
