@@ -4,6 +4,7 @@ package me.anisekai.toshiko.listeners;
 import me.anisekai.toshiko.entities.SeasonalVote;
 import me.anisekai.toshiko.enums.AnimeStatus;
 import me.anisekai.toshiko.events.broadcast.BroadcastStatusUpdatedEvent;
+import me.anisekai.toshiko.events.interest.InterestCreatedEvent;
 import me.anisekai.toshiko.events.interest.InterestLevelUpdatedEvent;
 import me.anisekai.toshiko.events.seasonalselection.SeasonalSelectionClosedUpdatedEvent;
 import me.anisekai.toshiko.interfaces.persistence.IEntity;
@@ -54,6 +55,12 @@ public class AnimeListener {
 
     @EventListener
     public void onInterestLevelUpdated(InterestLevelUpdatedEvent event) {
+
+        this.service.announce(event.getEntity().getAnime());
+    }
+
+    @EventListener
+    public void onInterestCreated(InterestCreatedEvent event) {
 
         this.service.announce(event.getEntity().getAnime());
     }
