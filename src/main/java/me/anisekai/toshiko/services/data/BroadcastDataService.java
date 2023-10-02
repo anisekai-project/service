@@ -26,7 +26,8 @@ public class BroadcastDataService extends AbstractDataService<Broadcast, Long, I
 
     private static final List<ScheduledEvent.Status> WATCHABLE = Arrays.asList(
             ScheduledEvent.Status.ACTIVE,
-            ScheduledEvent.Status.SCHEDULED
+            ScheduledEvent.Status.SCHEDULED,
+            ScheduledEvent.Status.UNKNOWN
     );
 
     private final TaskService taskService;
