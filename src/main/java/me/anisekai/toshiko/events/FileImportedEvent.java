@@ -25,8 +25,9 @@ public class FileImportedEvent extends ApplicationEvent implements LoggableEvent
         return Embedding.event(this)
                         .setTitle("Un import a été terminé")
                         .setDescription(String.format(
-                                "Le fichier %s a été importé.",
-                                this.file.getName()
+                                "L'épisode %s a été importé.\nFichier: `%s`",
+                                this.file.getName(),
+                                this.file.getPath()
                         ))
                         .setFooter(this.file.getPath().toString())
                         .setColor(Color.GREEN);
