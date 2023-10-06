@@ -27,6 +27,7 @@ public class ImportStartedEvent extends ApplicationEvent implements LoggableEven
                                 "Le fichier %s est en cours d'import.",
                                 this.file.getName()
                         ))
+                        .setFooter(this.file.getPath().toString())
                         .setColor(Color.ORANGE);
     }
 

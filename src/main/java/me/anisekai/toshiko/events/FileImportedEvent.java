@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import org.springframework.context.ApplicationEvent;
 
 import java.awt.*;
-import java.time.OffsetDateTime;
 
 public class FileImportedEvent extends ApplicationEvent implements LoggableEvent {
 
@@ -29,6 +28,7 @@ public class FileImportedEvent extends ApplicationEvent implements LoggableEvent
                                 "Le fichier %s a été importé.",
                                 this.file.getName()
                         ))
+                        .setFooter(this.file.getPath().toString())
                         .setColor(Color.GREEN);
     }
 
