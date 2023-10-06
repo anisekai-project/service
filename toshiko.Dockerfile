@@ -3,13 +3,19 @@ LABEL authors="akio"
 
 WORKDIR /source
 ADD . .
-RUN gradle clean build
+RUN gradle clean build --no-daemon
 
-FROM debian:12.1-slim as service
+FROM openjdk:17.0.2-slim as service
 LABEL authors="akio"
 
-RUN apt-get update && apt-get install -y wget openjdk-17-jre xz-utils && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN wget -O /usr/bin/mkvmerge https://mkvtoolnix.download/appimage/MKVToolNix_GUI-79.0-x86_64.AppImage && chmod +x /usr/bin/mkvmerge
+RUN apt-get update && apt-get install -y wget xz-utils
+
+RUN wget -O /usr/share/keyrings/gpg-pub-moritzbunkus.gpg https://mkvtoolnix.download/gpg-pub-moritzbunkus.gpg
+
+RUN echo "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ bullseye main" >> /etc/apt/sources.list.d/mkvtoolnix.list
+RUN echo "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ bullseye main" >> /etc/apt/sources.list.d/mkvtoolnix.list
+
+RUN apt-get install -y mkvtoolnix && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
     tar xvf 'ffmpeg-release-amd64-static.tar.xz' && \
