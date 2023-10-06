@@ -24,10 +24,10 @@ public class ImportStartedEvent extends ApplicationEvent implements LoggableEven
         return Embedding.event(this)
                         .setTitle("Un import a été démarré")
                         .setDescription(String.format(
-                                "Le fichier %s est en cours d'import.",
-                                this.file.getName()
+                                "L'épisode %s est en cours d'import.\nFichier: `%s`",
+                                this.file.getName(),
+                                this.file.getPath()
                         ))
-                        .setFooter(this.file.getPath().toString())
                         .setColor(Color.ORANGE);
     }
 
