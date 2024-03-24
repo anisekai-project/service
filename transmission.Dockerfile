@@ -1,7 +1,7 @@
 FROM debian:12.1-slim
 LABEL authors="akio"
 
-ARG TRANSMISSION_VERSION="4.0.4"
+ARG TRANSMISSION_VERSION="4.0.5"
 
 RUN apt-get update \
     && apt-get install -y wget build-essential cmake libcurl4-openssl-dev libssl-dev python3 \
