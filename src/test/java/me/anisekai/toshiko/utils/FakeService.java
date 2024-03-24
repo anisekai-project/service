@@ -1,6 +1,6 @@
 package me.anisekai.toshiko.utils;
 
-import me.anisekai.toshiko.entities.Anime;
+import me.anisekai.modules.linn.entities.Anime;
 
 import java.util.function.Supplier;
 

@@ -9,7 +9,7 @@ WHERE `u`.`id` = `i`.`user_id`
   AND `a`.`id` = `i`.`anime_id`
   AND `i`.`level` != 'NEUTRAL'
   AND `a`.`status` IN ('SIMULCAST_AVAILABLE', 'DOWNLOADED')
-  AND `u`.`banned` = FALSE
+  AND `u`.`active` = TRUE
 GROUP BY `u`.`id`;
 
 -- Vote power per user (% of vote)

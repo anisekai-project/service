@@ -1,9 +1,9 @@
 package me.anisekai.toshiko;
 
-import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.events.EntityUpdatedEvent;
-import me.anisekai.toshiko.helpers.proxy.EventProxy;
-import me.anisekai.toshiko.interfaces.entities.IAnime;
+import me.anisekai.modules.linn.entities.Anime;
+import me.anisekai.api.persistence.events.EntityUpdatedEvent;
+import me.anisekai.api.persistence.EventProxy;
+import me.anisekai.modules.linn.interfaces.IAnime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

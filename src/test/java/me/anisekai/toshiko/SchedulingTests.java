@@ -1,10 +1,10 @@
 package me.anisekai.toshiko;
 
-import me.anisekai.toshiko.data.BookedAnimeNight;
-import me.anisekai.toshiko.entities.Anime;
-import me.anisekai.toshiko.exceptions.broadcast.BroadcastOverlappingException;
-import me.anisekai.toshiko.helpers.BroadcastScheduler;
-import me.anisekai.toshiko.interfaces.AnimeNightMeta;
+import me.anisekai.modules.shizue.data.BookedAnimeNight;
+import me.anisekai.modules.linn.entities.Anime;
+import me.anisekai.modules.shizue.exceptions.broadcast.BroadcastOverlappingException;
+import me.anisekai.modules.shizue.helpers.BroadcastScheduler;
+import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
 import me.anisekai.toshiko.utils.FakeService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
