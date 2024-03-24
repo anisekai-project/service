@@ -12,7 +12,7 @@ public class UserNotFoundException extends RuntimeException implements DiscordEm
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setColor(Color.RED);
-        builder.setDescription("Le torrent demandé n'a pas été trouvé.");
+        builder.setDescription("L'utilisateur demandé n'a pas été trouvé.");
 
         return builder;
     }
