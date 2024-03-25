@@ -40,7 +40,11 @@ public class UpdateAnnouncementTask implements Task {
     @Override
     public void run() {
 
-        LOGGER.info("Handling announcement task for anime {}...", this.anime.getId());
+        if (this.anime.getAnnounceMessage() == null) {
+            LOGGER.info("Ignored update announcement task for anime {}. Reason: This anime hasn't been announced.", this.anime.getId());
+        }
+
+        LOGGER.info("Handling update announcement task for anime {}...", this.anime.getId());
 
         LOGGER.debug("Retrieving announcement discord message...");
         Optional<Message> existingMessage = this.findExistingMessage(this.anime);

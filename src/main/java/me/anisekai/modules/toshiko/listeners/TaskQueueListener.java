@@ -37,7 +37,10 @@ public class TaskQueueListener {
     @EventListener
     public void onAnimeCreated(AnimeCreatedEvent event) {
 
-        this.service.queue(new SendAnnouncementTask(this.animeService, this.store, event.getEntity()));
+        if (event.getEntity().getStatus().shouldDisplayList()) { // Only announce visible anime
+            this.service.queue(new SendAnnouncementTask(this.animeService, this.store, event.getEntity()));
+        }
+
         this.service.queue(new AnimeCountTask(this.animeService, this.store.getWatchlistChannel()));
     }
 
