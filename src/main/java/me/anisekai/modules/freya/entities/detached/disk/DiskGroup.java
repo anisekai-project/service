@@ -12,14 +12,21 @@ import java.util.UUID;
 public class DiskGroup {
 
     private final UUID             uuid;
+    private final File             file;
     private final String           name;
     private final Set<DiskEpisode> episodes;
 
     public DiskGroup(File file) {
 
         this.uuid     = UUID.randomUUID();
+        this.file     = file;
         this.name     = Texts.unslugify(file.getName());
         this.episodes = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
+    }
+
+    public File getFile() {
+
+        return this.file;
     }
 
     public UUID getUuid() {

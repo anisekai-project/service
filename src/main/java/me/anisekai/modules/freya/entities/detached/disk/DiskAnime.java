@@ -2,6 +2,7 @@ package me.anisekai.modules.freya.entities.detached.disk;
 
 
 import me.anisekai.modules.toshiko.Texts;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Comparator;
@@ -9,9 +10,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-public class DiskAnime {
+public class DiskAnime implements Comparable<DiskAnime> {
 
     private final UUID             uuid;
+    private final File             file;
     private final String           name;
     private final Set<DiskGroup>   groups;
     private final Set<DiskEpisode> episodes;
@@ -19,9 +21,15 @@ public class DiskAnime {
     public DiskAnime(File file) {
 
         this.uuid     = UUID.randomUUID();
+        this.file     = file;
         this.name     = Texts.unslugify(file.getName());
         this.groups   = new TreeSet<>(Comparator.comparing(DiskGroup::getName));
         this.episodes = new TreeSet<>(Comparator.comparing(DiskEpisode::getName));
+    }
+
+    public File getFile() {
+
+        return this.file;
     }
 
     public UUID getUuid() {
@@ -58,6 +66,12 @@ public class DiskAnime {
 
         this.groups.forEach(g -> g.finalize(animeFsRoot, subtitleFsRoot));
         this.episodes.forEach(f -> f.finalize(animeFsRoot, subtitleFsRoot));
+    }
+
+    @Override
+    public int compareTo(@NotNull DiskAnime o) {
+
+        return this.getName().compareTo(o.getName());
     }
 
 }

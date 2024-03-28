@@ -206,4 +206,9 @@ public class ToshikoFileSystem {
         this.checkForAutomation();
     }
 
+    public DiskService getDiskService() {
+
+        return this.diskService;
+    }
+
 }

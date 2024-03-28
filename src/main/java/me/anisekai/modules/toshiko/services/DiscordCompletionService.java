@@ -47,10 +47,10 @@ public class DiscordCompletionService {
         return this.diskService
                 .getDatabase()
                 .stream()
+                .sorted()
                 .flatMap(diskAnime -> diskAnime.getGroups().stream())
                 .filter(diskGroup -> diskGroup.getName().toLowerCase().contains(value.toLowerCase()))
-                .sorted()
-                .map(diskAnime -> new Command.Choice(diskAnime.getName(), diskAnime.getUuid().toString()))
+                .map(diskGroup -> new Command.Choice(diskGroup.getName(), diskGroup.getUuid().toString()))
                 .toList();
     }
 
