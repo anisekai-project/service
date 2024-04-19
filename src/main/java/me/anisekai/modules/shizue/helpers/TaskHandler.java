@@ -5,7 +5,7 @@ import org.springframework.scheduling.support.CronExpression;
 
 import java.time.ZonedDateTime;
 
-public abstract class TaskHandler {
+public abstract class TaskHandler<T> {
 
     private final String         name;
     private final CronExpression expression;
@@ -36,7 +36,7 @@ public abstract class TaskHandler {
         }
     }
 
-    protected abstract void execute();
+    protected abstract T execute();
 
     public final String getName() {
 

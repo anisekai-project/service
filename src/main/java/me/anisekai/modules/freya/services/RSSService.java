@@ -18,11 +18,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class RSSService extends TaskHandler {
+public class RSSService extends TaskHandler<List<NyaaRssEntry>> {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RSSService.class);
 
@@ -48,18 +49,18 @@ public class RSSService extends TaskHandler {
     }
 
     @Override
-    public void execute() {
+    public List<NyaaRssEntry> execute() {
 
         if (!this.configuration.isAutoDownloadEnabled()) {
             LOGGER.debug("Auto-download disabled due to configuration policy.");
-            return;
+            return Collections.emptyList();
         }
 
         List<Anime> downloadableAnime = this.animeRepository.findAllAutoDownloadReady();
 
         if (downloadableAnime.isEmpty()) {
             LOGGER.info("No anime to download auto-magically.");
-            return;
+            return Collections.emptyList();
         }
 
         try {
@@ -131,9 +132,11 @@ public class RSSService extends TaskHandler {
             }
 
             LOGGER.info("Task finished.");
+            return rssItems;
         } catch (Exception e) {
             LOGGER.error("Failure", e);
         }
+        return Collections.emptyList();
     }
 
 }
