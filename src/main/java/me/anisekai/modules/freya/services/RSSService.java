@@ -32,6 +32,8 @@ public class RSSService extends TaskHandler<List<NyaaRssEntry>> {
     private final TransmissionDaemonClient client;
     private final TorrentDataService       service;
 
+    private String urlOverride = null;
+
     public RSSService(FreyaConfiguration configuration, AnimeRepository animeRepository, TransmissionDaemonClient client, TorrentDataService service) {
 
         // TODO: Move the cron expression in settings
@@ -40,6 +42,16 @@ public class RSSService extends TaskHandler<List<NyaaRssEntry>> {
         this.animeRepository = animeRepository;
         this.client          = client;
         this.service         = service;
+    }
+
+    public void setUrlOverride(String urlOverride) {
+
+        this.urlOverride = urlOverride;
+    }
+
+    public String getEffectiveRssLink() {
+
+        return Optional.ofNullable(this.urlOverride).orElse(this.configuration.getRss());
     }
 
     @Scheduled(cron = "* * * * * *")
@@ -66,10 +78,11 @@ public class RSSService extends TaskHandler<List<NyaaRssEntry>> {
         try {
 
             LOGGER.info("Reading RSS feed...");
-            URI                       uri      = new URI(this.configuration.getRss());
+            URI                       uri      = new URI(this.getEffectiveRssLink());
             RSSAnalyzer<NyaaRssEntry> rss      = new RSSAnalyzer<>(uri, NyaaRssEntry::new);
             List<NyaaRssEntry>        rssItems = rss.analyze();
 
+            this.urlOverride = null;
 
             LOGGER.info("Filtering results...");
             List<String> hashes = this.service.fetchAll().stream().map(Torrent::getInfoHash).toList();
