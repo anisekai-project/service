@@ -3,6 +3,8 @@ package me.anisekai.globals.utils;
 import jakarta.annotation.Nullable;
 
 import java.time.*;
+import java.time.chrono.ChronoLocalDate;
+import java.time.chrono.ChronoZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -175,5 +177,15 @@ public final class DateTimeUtils {
                        .plusHours(hours)
                        .plusMinutes(minutes);
     }
+
+    public static <D extends ChronoLocalDate> boolean isBeforeOrEquals(ChronoZonedDateTime<D> one, ChronoZonedDateTime<D> two) {
+        return one.isBefore(two) || one.isEqual(two);
+    }
+
+    public static <D extends ChronoLocalDate> boolean isAfterOrEquals(ChronoZonedDateTime<D> one, ChronoZonedDateTime<D> two) {
+        return one.isAfter(two) || one.isEqual(two);
+    }
+
+
 
 }

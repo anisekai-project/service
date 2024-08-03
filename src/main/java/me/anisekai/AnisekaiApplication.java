@@ -11,6 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 public class AnisekaiApplication {
 
+    public static boolean enableDetailedOutput = false;
+
     AnisekaiApplication(ToshikoBot bot) {
 
         bot.login();
