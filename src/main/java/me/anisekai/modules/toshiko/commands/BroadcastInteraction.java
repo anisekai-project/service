@@ -4,15 +4,17 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.api.plannifier.data.CalibrationResult;
+import me.anisekai.globals.utils.DateTimeUtils;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.chiya.interfaces.IUser;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.enums.AnimeStatus;
+import me.anisekai.modules.linn.services.data.AnimeDataService;
+import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.enums.BroadcastFrequency;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
-import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
-import me.anisekai.globals.utils.DateTimeUtils;
 import me.anisekai.modules.toshiko.Texts;
 import me.anisekai.modules.toshiko.annotations.InteractionBean;
 import me.anisekai.modules.toshiko.messages.responses.SimpleResponse;
@@ -93,7 +95,7 @@ public class BroadcastInteraction {
 
         int scheduledAmount;
         if (frequency.hasDateModifier()) {
-            List<IBroadcast> broadcasts = this.service.schedule(anime, scheduleAt, amount, frequency.getDateModifier());
+            List<Broadcast> broadcasts = this.service.schedule(anime, scheduleAt, amount, frequency.getDateModifier());
             scheduledAmount = broadcasts.size();
         } else {
             this.service.schedule(anime, scheduleAt, amount);
@@ -133,20 +135,23 @@ public class BroadcastInteraction {
 
         PermissionUtils.requirePrivileges(sender);
 
-        List<Anime>      animes     = this.animeService.fetchAll(repository -> repository.findAllByStatusIn(AnimeStatus.getSchedulable()));
-        List<IBroadcast> calibrated = this.service.calibrate(animes);
+        CalibrationResult result = this.service.createScheduler().calibrate();
 
-        if (calibrated.isEmpty()) {
-            return new SimpleResponse("Aucune séance n'a été modifiée.", false, false);
-        } else if (calibrated.size() == 1) {
-            return new SimpleResponse("**1** séance a été modifiée.", false, false);
-        } else {
-            return new SimpleResponse(
-                    String.format(
-                            "**%s** séances ont été modifiées.",
-                            calibrated.size()
-                    ), false, false);
-        }
+        String report = String.format(
+                """
+                              ```
+                              \s
+                              ———————【 Schedule Calibration Report 】———————
+                        
+                                Updated  %s
+                                Deleted  %s
+                              \s
+                              ```
+                        """,
+                result.getUpdateCount(),
+                result.getDeleteCount()
+        );
+        return new SimpleResponse(report, false, true);
     }
     // </editor-fold>
 
@@ -183,7 +188,7 @@ public class BroadcastInteraction {
         Duration delay = DateTimeUtils.toDuration(delayParam);
         Duration range = DateTimeUtils.toDuration(rangeString);
 
-        List<IBroadcast> delayed = this.service.delay(range, delay);
+        List<Broadcast> delayed = this.service.createScheduler().delay(DateTimeUtils.now(), range, delay);
 
         if (delayed.isEmpty()) {
             return new SimpleResponse("Aucune séance n'a été reprogrammée.", false, false);
@@ -209,8 +214,19 @@ public class BroadcastInteraction {
     public SlashResponse runBroadcastRefresh(DiscordUser sender) {
 
         PermissionUtils.requirePrivileges(sender);
-        this.service.askBroadcastRefresh();
-        return new SimpleResponse("Les évènements serveur vont être actualisés sous peu.", false, false);
+        int count = this.service.refresh();
+
+        if (count == 0) {
+            return new SimpleResponse("Aucun évènement serveur n'a été actualisé.", false, false);
+        } else if (count == 1) {
+            return new SimpleResponse("**1** évènement serveur va être actualisé.", false, false);
+        } else {
+            return new SimpleResponse(
+                    String.format(
+                            "**%s** évènements serveur vont être actualisés.",
+                            count
+                    ), false, false);
+        }
     }
 
     // </editor-fold>

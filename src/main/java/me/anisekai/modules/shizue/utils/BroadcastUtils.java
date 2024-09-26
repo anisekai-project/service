@@ -19,7 +19,7 @@ public final class BroadcastUtils {
 
     public static String asEpisodeDescription(AnimeNightMeta meta, boolean emphasize) {
 
-        long amount = meta.getAmount();
+        long amount = meta.getEpisodeCount();
 
         if (amount == 1) {
             String prefix = emphasize ? "**Épisode**" : "épisode";
@@ -41,7 +41,7 @@ public final class BroadcastUtils {
 
                 return (mr) -> {
                     EmbedBuilder builder = new EmbedBuilder();
-                    builder.setTitle(meta.getAnime().getName(), meta.getAnime().getLink());
+                    builder.setTitle(meta.getWatchTarget().getName(), meta.getWatchTarget().getLink());
                     builder.setDescription("La séance a bien été programmée.");
                     builder.addField("Épisode(s)", asEpisodeDescription(meta), true);
 

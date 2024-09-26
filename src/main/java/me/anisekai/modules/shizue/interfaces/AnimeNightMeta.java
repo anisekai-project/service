@@ -1,62 +1,79 @@
 package me.anisekai.modules.shizue.interfaces;
 
 import me.anisekai.api.persistence.TriggerEvent;
+import me.anisekai.api.plannifier.interfaces.Plannifiable;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.events.broadcast.*;
 
 import java.time.ZonedDateTime;
 
-public interface AnimeNightMeta {
+public interface AnimeNightMeta extends Plannifiable<Anime> {
 
-    Anime getAnime();
+    // <editor-fold desc="Trigger Overrides — @TriggerEvent applied to superclass(es)">
 
-    void setAnime(Anime anime);
-
-    long getAmount();
-
+    @Override
     @TriggerEvent(BroadcastAmountUpdatedEvent.class)
-    void setAmount(long amount);
+    void setEpisodeCount(long episodeCount);
 
-    long getFirstEpisode();
-
+    @Override
     @TriggerEvent(BroadcastFirstEpisodeUpdatedEvent.class)
     void setFirstEpisode(long firstEpisode);
 
-    long getLastEpisode();
-
-    @TriggerEvent(BroadcastLastEpisodeUpdatedEvent.class)
-    void setLastEpisode(long lastEpisode);
-
-    ZonedDateTime getStartDateTime();
-
+    @Override
     @TriggerEvent(BroadcastStartDateTimeUpdatedEvent.class)
-    void setStartDateTime(ZonedDateTime startDateTime);
+    void setStartingAt(ZonedDateTime time);
 
-    ZonedDateTime getEndDateTime();
+    // </editor-fold>
 
-    @TriggerEvent(BroadcastEndDateTimeUpdatedEvent.class)
-    void setEndDateTime(ZonedDateTime endDateTime);
+    /**
+     * Check if the current {@link AnimeNightMeta} collides with the provided {@link ZonedDateTime}s.
+     *
+     * @param otherStartingAt
+     *         The {@link ZonedDateTime} at which the other event may be scheduled.
+     * @param otherEndingAt
+     *         The {@link ZonedDateTime} at which the other event ends.
+     *
+     * @return True if it collides with the current {@link AnimeNightMeta}, false otherwise.
+     *
+     * @deprecated This is used in the now deprecated scheduler v1, {@link BroadcastScheduler}. Please use
+     *         {@link AdvancedScheduler} now.
+     */
+    @Deprecated
+    default boolean isColliding(ZonedDateTime otherStartingAt, ZonedDateTime otherEndingAt) {
 
-    default boolean isColliding(ZonedDateTime startTime, ZonedDateTime endTime) {
+        ZonedDateTime currentStartingAt = this.getStartingAt();
+        ZonedDateTime currentEndingAt   = this.getEndingAt();
 
-        boolean isSameStart = this.getStartDateTime().isEqual(startTime);
-        boolean isSameEnd   = this.getEndDateTime().isEqual(endTime);
+        boolean isSameStart = currentStartingAt.isEqual(otherStartingAt);
+        boolean isSameEnd   = currentEndingAt.isEqual(otherEndingAt);
 
-        boolean isStartDuring = this.getStartDateTime().isAfter(startTime) &&
-                this.getStartDateTime().isBefore(endTime);
+        boolean isStartDuring = currentStartingAt.isAfter(otherStartingAt) &&
+                currentEndingAt.isBefore(otherEndingAt);
 
-        boolean isEndDuring = this.getEndDateTime().isAfter(startTime) &&
-                this.getEndDateTime().isBefore(endTime);
+        boolean isEndDuring = currentEndingAt.isAfter(otherStartingAt) &&
+                currentEndingAt.isBefore(otherEndingAt);
 
-        boolean isOnTop = this.getStartDateTime().isBefore(startTime) &&
-                this.getEndDateTime().isAfter(endTime);
+        boolean isOnTop = currentStartingAt.isBefore(otherStartingAt) &&
+                currentEndingAt.isAfter(otherEndingAt);
 
         return isSameStart || isSameEnd || isStartDuring || isEndDuring || isOnTop;
     }
 
+    /**
+     * Check if the current {@link AnimeNightMeta} collides with the provided {@link AnimeNightMeta}.
+     *
+     * @param meta
+     *         The {@link AnimeNightMeta} which may be scheduled.
+     *
+     * @return True if it collides with the current {@link AnimeNightMeta}, false otherwise.
+     *
+     * @deprecated This is used in the now deprecated scheduler v1, {@link BroadcastScheduler}. Please use
+     *         {@link AdvancedScheduler} now.
+     */
+    @Deprecated
     default boolean isColliding(AnimeNightMeta meta) {
 
-        return this.isColliding(meta.getStartDateTime(), meta.getEndDateTime());
+        return this.isColliding(meta.getStartingAt(), meta.getEndingAt());
     }
 
 }

@@ -10,7 +10,7 @@ import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.entities.SeasonalSelection;
 import me.anisekai.modules.shizue.enums.InteractionType;
 import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
-import me.anisekai.modules.shizue.services.ToshikoService;
+import me.anisekai.modules.shizue.services.ShizueService;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.services.data.SeasonalSelectionDataService;
 import me.anisekai.modules.shizue.services.data.SeasonalVoteDataService;
@@ -27,16 +27,16 @@ import org.springframework.stereotype.Component;
 public class SeasonalSelectionInteractions {
 
     private final SeasonalSelectionDataService service;
-    private final SeasonalVoteDataService      voteService;
-    private final ToshikoService               toshikoService;
-    private final AnimeDataService             animeService;
+    private final SeasonalVoteDataService voteService;
+    private final ShizueService           shizueService;
+    private final AnimeDataService        animeService;
 
-    public SeasonalSelectionInteractions(SeasonalSelectionDataService service, SeasonalVoteDataService voteService, ToshikoService toshikoService, AnimeDataService animeService) {
+    public SeasonalSelectionInteractions(SeasonalSelectionDataService service, SeasonalVoteDataService voteService, ShizueService shizueService, AnimeDataService animeService) {
 
-        this.service        = service;
-        this.voteService    = voteService;
-        this.toshikoService = toshikoService;
-        this.animeService   = animeService;
+        this.service       = service;
+        this.voteService   = voteService;
+        this.shizueService = shizueService;
+        this.animeService  = animeService;
     }
 
 
@@ -55,7 +55,7 @@ public class SeasonalSelectionInteractions {
     public SlashResponse runSeasonStart(IUser user, @Param("name") String name) {
 
         PermissionUtils.requirePrivileges(user);
-        ISeasonalSelection selection = this.toshikoService.createNewSelection(name);
+        ISeasonalSelection selection = this.shizueService.createNewSelection(name);
         return new SeasonalSelectionEmbed(selection);
     }
     // </editor-fold>

@@ -2,6 +2,7 @@ package me.anisekai.modules.shizue.interfaces.entities;
 
 import me.anisekai.api.persistence.IEntity;
 import me.anisekai.api.persistence.TriggerEvent;
+import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.events.broadcast.BroadcastImageUrlUpdatedEvent;
 import me.anisekai.modules.shizue.events.broadcast.BroadcastStatusUpdatedEvent;
 import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
@@ -23,4 +24,5 @@ public interface IBroadcast extends IEntity<Long>, AnimeNightMeta, Comparable<An
     @TriggerEvent(BroadcastImageUrlUpdatedEvent.class)
     void setImageUrl(String imageUrl);
 
+    void setWatchTarget(Anime anime);
 }

@@ -1,10 +1,10 @@
 package me.anisekai.modules.shizue.entities;
 
 import jakarta.persistence.*;
+import me.anisekai.api.persistence.EntityUtils;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
-import me.anisekai.api.persistence.EntityUtils;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,13 +28,10 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     private Anime anime;
 
     @Column(nullable = false)
-    private long amount;
+    private long episodeCount;
 
     @Column(nullable = false)
     private long firstEpisode;
-
-    @Column(nullable = false)
-    private long lastEpisode;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -43,10 +40,14 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     private String imageUrl;
 
     @Column(nullable = false)
-    private ZonedDateTime startDateTime;
+    private ZonedDateTime startingAt;
 
+    /**
+     * This value cannot be written to or read by in the code, nor should it be. It is merely used as visual indicator
+     * in the database as the event duration is not stored too.
+     */
     @Column(nullable = false)
-    private ZonedDateTime endDateTime;
+    private ZonedDateTime endingAt;
 
     @Column(nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
@@ -109,27 +110,26 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     }
 
     @Override
-    public Anime getAnime() {
+    public Anime getWatchTarget() {
 
-        return this.anime;
+        return this.getAnime();
     }
 
     @Override
-    public void setAnime(Anime anime) {
-
+    public void setWatchTarget(Anime anime) {
         this.anime = anime;
     }
 
     @Override
-    public long getAmount() {
+    public long getEpisodeCount() {
 
-        return this.amount;
+        return this.episodeCount;
     }
 
     @Override
-    public void setAmount(long amount) {
+    public void setEpisodeCount(long episodeCount) {
 
-        this.amount = amount;
+        this.episodeCount = episodeCount;
     }
 
     @Override
@@ -142,18 +142,6 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     public void setFirstEpisode(long firstEpisode) {
 
         this.firstEpisode = firstEpisode;
-    }
-
-    @Override
-    public long getLastEpisode() {
-
-        return this.lastEpisode;
-    }
-
-    @Override
-    public void setLastEpisode(long lastEpisode) {
-
-        this.lastEpisode = lastEpisode;
     }
 
     @Override
@@ -181,29 +169,38 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     }
 
     @Override
-    public ZonedDateTime getStartDateTime() {
+    public ZonedDateTime getStartingAt() {
 
-        return this.startDateTime;
+        return this.startingAt;
     }
 
     @Override
-    public void setStartDateTime(ZonedDateTime startDateTime) {
+    public void setStartingAt(ZonedDateTime time) {
 
-        this.startDateTime = startDateTime;
+        this.startingAt = time;
     }
 
     @Override
-    public ZonedDateTime getEndDateTime() {
+    public boolean isSkipEnabled() {
 
-        return this.endDateTime;
+        return true; // for now, it won't change the previous behavior.
     }
 
     @Override
-    public void setEndDateTime(ZonedDateTime endDateTime) {
+    public void setSkipEnabled(boolean skipEnabled) {
 
-        this.endDateTime = endDateTime;
+        // NO-OP
     }
 
+    public Anime getAnime() {
+
+        return this.anime;
+    }
+
+    public void setAnime(Anime anime) {
+
+        this.anime = anime;
+    }
     // </editor-fold>
 
     @Override
@@ -228,22 +225,24 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     @PrePersist
     private void updated() {
 
+        // Ensure our value in database is up-to-date.
+        this.endingAt = this.startingAt.plus(this.getDuration());
         this.setUpdatedAt(ZonedDateTime.now());
     }
 
     @Override
     public int compareTo(@NotNull AnimeNightMeta other) {
 
-        return this.getStartDateTime().compareTo(other.getStartDateTime());
+        return this.getStartingAt().compareTo(other.getStartingAt());
     }
 
     @PostLoad
     public void onLoad() {
 
-        this.startDateTime = this.startDateTime.withZoneSameInstant(ZoneId.systemDefault());
-        this.endDateTime   = this.endDateTime.withZoneSameInstant(ZoneId.systemDefault());
-        this.createdAt     = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
-        this.updatedAt     = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.startingAt = this.startingAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.endingAt   = this.startingAt.plus(this.getDuration());
+        this.createdAt  = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
+        this.updatedAt  = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 
 }

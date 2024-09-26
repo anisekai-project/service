@@ -60,8 +60,8 @@ public class UpdateBroadcastTask implements Task {
 
         ScheduledEventManager manager = event.getManager()
                                              .setName(name)
-                                             .setStartTime(this.broadcast.getStartDateTime())
-                                             .setEndTime(this.broadcast.getEndDateTime())
+                                             .setStartTime(this.broadcast.getStartingAt())
+                                             .setEndTime(this.broadcast.getEndingAt())
                                              .setDescription(BroadcastUtils.asEpisodeDescription(this.broadcast));
 
         try {

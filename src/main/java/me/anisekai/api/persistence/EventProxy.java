@@ -4,6 +4,7 @@ import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.globals.utils.ReflectionUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -94,21 +95,18 @@ public class EventProxy<I extends IEntity<?>, E extends I> implements Invocation
             } else {
                 TriggerEvent trigger = method.getAnnotation(TriggerEvent.class);
 
-                this.events.put(method, (EntityUpdatedEvent<E, ?>) trigger
-                        .value()
-                        .getConstructor(
-                                Object.class,
-                                this.entity.getClass(),
-                                type,
-                                type
-                        )
-                        .newInstance(
-                                this,
-                                this.entity,
-                                previous,
-                                next
-                        )
-                );
+                try {
+                    this.events.put(method, (EntityUpdatedEvent<E, ?>) trigger
+                            .value()
+                            .getConstructor(Object.class, this.entity.getClass(), type, type)
+                            .newInstance(this, this.entity, previous, next)
+                    );
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalStateException(String.format(
+                            "Could not create event '%s': Unable to find suitable constructor (make sure you didn't used the interface)",
+                            trigger.value().getName()
+                    ));
+                }
             }
         }
 

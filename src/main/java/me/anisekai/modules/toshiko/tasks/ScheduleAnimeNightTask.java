@@ -51,8 +51,8 @@ public class ScheduleAnimeNightTask implements Task {
         ScheduledEvent scheduledEvent = this.guild.createScheduledEvent(
                                                     name,
                                                     "Discord",
-                                                    this.broadcast.getStartDateTime().toOffsetDateTime(),
-                                                    this.broadcast.getEndDateTime().toOffsetDateTime()
+                                                    this.broadcast.getStartingAt().toOffsetDateTime(),
+                                                    this.broadcast.getEndingAt().toOffsetDateTime()
                                             )
                                                   .setDescription(BroadcastUtils.asEpisodeDescription(this.broadcast))
                                                   .setImage(icon).complete();

@@ -2,6 +2,7 @@ package me.anisekai.modules.linn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import me.anisekai.api.plannifier.interfaces.WatchTarget;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.linn.interfaces.IAnime;
@@ -17,7 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Anime implements IAnime, Comparable<Anime> {
+public class Anime implements IAnime, WatchTarget, Comparable<Anime> {
 
     // <editor-fold desc="Entity Structure">
 
@@ -228,6 +229,52 @@ public class Anime implements IAnime, Comparable<Anime> {
     public void setTotal(long total) {
 
         this.total = total;
+    }
+
+    /**
+     * Retrieve the number of episode watched.
+     *
+     * @return Number of episode watched.
+     */
+    @Override
+    public long getEpisodeWatched() {
+
+        return this.watched;
+    }
+
+    /**
+     * Define the number of episode watched.
+     *
+     * @param episodeWatched
+     *         Number of episode watched.
+     */
+    @Override
+    public void setEpisodeWatched(long episodeWatched) {
+
+        this.watched = episodeWatched;
+    }
+
+    /**
+     * Retrieve the number of episode in total.
+     *
+     * @return Number of episode in total
+     */
+    @Override
+    public long getEpisodeCount() {
+
+        return this.total;
+    }
+
+    /**
+     * Define the number of episode in total.
+     *
+     * @param episodeCount
+     *         Number of episode in total
+     */
+    @Override
+    public void setEpisodeCount(long episodeCount) {
+
+        this.total = episodeCount;
     }
 
     @Override

@@ -18,7 +18,7 @@ public class BroadcastListener {
     @EventListener
     public void onAnimeWatchedUpdated(AnimeWatchedUpdatedEvent event) {
 
-        this.service.calibrate(event.getEntity());
+        this.service.createScheduler().calibrate(); // TODO: Send report to admin channel
     }
 
 }

@@ -1,103 +1,31 @@
 package me.anisekai.api.plannifier.interfaces;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
-
-/**
- * Interface representing an object that can be plannified.
- */
-public interface Plannifiable {
-
-    static Plannifiable of(ZonedDateTime time, Duration duration) {
-
-        return new Plannifiable() {
-            @Override
-            public ZonedDateTime getStartingAt() {
-
-                return time;
-            }
-
-            @Override
-            public void setStartingAt(ZonedDateTime time) {
-
-                throw new UnsupportedOperationException("This value is read-only.");
-            }
-
-            @Override
-            public Duration getDuration() {
-
-                return duration;
-            }
-
-            @Override
-            public void setDuration(Duration duration) {
-
-                throw new UnsupportedOperationException("This value is read-only.");
-            }
-        };
-    }
+public interface Plannifiable<T extends WatchTarget> extends ScheduleSpotData<T> {
 
     /**
-     * Retrieve the {@link ZonedDateTime} at which this {@link Plannifiable} will take place.
+     * Get the first episode number that will be watched in this {@link Plannifiable}.
      *
-     * @return A {@link ZonedDateTime}
+     * @return The first episode number.
      */
-    ZonedDateTime getStartingAt();
+    long getFirstEpisode();
 
     /**
-     * Define the {@link ZonedDateTime} at which this {@link Plannifiable} will take place.
+     * Set the first episode number that will be watched in this {@link Plannifiable}.
      *
-     * @param time
-     *         A {@link ZonedDateTime}
+     * @param firstEpisode
+     *         The first episode number.
      */
-    void setStartingAt(ZonedDateTime time);
+    void setFirstEpisode(long firstEpisode);
 
     /**
-     * Retrieve the total {@link Duration} of this {@link Plannifiable}.
+     * Get the last episode number that will be watched in this {@link Plannifiable}. There is no setter counterpart as
+     * this value is processed using {@link #getFirstEpisode()} and {@link #getEpisodeCount()}.
      *
-     * @return A {@link Duration}
+     * @return The last episode number.
      */
-    Duration getDuration();
+    default long getLastEpisode() {
 
-    /**
-     * Set the total {@link Duration} of this {@link Plannifiable}.
-     *
-     * @param duration
-     *         A {@link Duration}
-     */
-    void setDuration(Duration duration);
-
-    /**
-     * Delay the starting date of this {@link Plannifiable} by the provided {@link Duration}.
-     *
-     * @param modBy
-     *         The {@link Duration} to delay
-     */
-    default void delayBy(Duration modBy) {
-
-        this.setStartingAt(this.getStartingAt().plus(modBy));
-    }
-
-    /**
-     * Extends the duration of this {@link Plannifiable} by the provided {@link Duration}.
-     *
-     * @param modBy
-     *         The {@link Duration} to delay
-     */
-    default void extendsBy(Duration modBy) {
-
-        this.setDuration(this.getDuration().plus(modBy));
-    }
-
-    /**
-     * Retrieve the {@link ZonedDateTime} at which this {@link Plannifiable} will end. This is merely a shorthand for
-     * {@link #getStartingAt()} + {@link #getDuration()}.
-     *
-     * @return A {@link ZonedDateTime}
-     */
-    default ZonedDateTime getEndingAt() {
-
-        return this.getStartingAt().plus(this.getDuration());
+        return this.getFirstEpisode() + (this.getEpisodeCount() - 1);
     }
 
 }

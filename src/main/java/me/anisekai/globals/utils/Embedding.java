@@ -6,6 +6,9 @@ import org.springframework.context.ApplicationEvent;
 
 import java.time.OffsetDateTime;
 
+/**
+ * Utility class containing various method for Discord formatting
+ */
 public final class Embedding {
 
     private Embedding() {}

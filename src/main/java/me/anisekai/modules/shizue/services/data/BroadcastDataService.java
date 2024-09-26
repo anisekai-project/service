@@ -1,10 +1,13 @@
 package me.anisekai.modules.shizue.services.data;
 
 import me.anisekai.api.persistence.helpers.DataService;
+import me.anisekai.api.plannifier.EventScheduler;
+import me.anisekai.api.plannifier.data.BookedSpot;
+import me.anisekai.api.plannifier.exceptions.GroupedScheduleException;
+import me.anisekai.api.plannifier.interfaces.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.SchedulerManager;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.entities.Broadcast;
-import me.anisekai.modules.shizue.helpers.BroadcastScheduler;
-import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
 import me.anisekai.modules.shizue.repositories.BroadcastRepository;
 import me.anisekai.modules.shizue.services.RateLimitedTaskService;
@@ -15,16 +18,17 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
-public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcast, BroadcastRepository, BroadcastProxyService> {
+public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcast, BroadcastRepository, BroadcastProxyService> implements SchedulerManager<Anime, IBroadcast, Broadcast> {
 
     private static final List<ScheduledEvent.Status> WATCHABLE = Arrays.asList(
             ScheduledEvent.Status.ACTIVE,
@@ -32,126 +36,185 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
             ScheduledEvent.Status.UNKNOWN
     );
 
-    private final RateLimitedTaskService rateLimitedTaskService;
-    private final JdaStore               jdaStore;
+    private final RateLimitedTaskService task;
+    private final JdaStore               store;
 
-    public BroadcastDataService(BroadcastProxyService proxy, RateLimitedTaskService rateLimitedTaskService, JdaStore jdaStore) {
+    public BroadcastDataService(BroadcastProxyService proxy, RateLimitedTaskService task, JdaStore store) {
 
         super(proxy);
-        this.rateLimitedTaskService = rateLimitedTaskService;
-        this.jdaStore               = jdaStore;
+        this.task  = task;
+        this.store = store;
     }
 
-    public Broadcast create(AnimeNightMeta meta) {
+    public EventScheduler<Anime, IBroadcast, Broadcast> createScheduler() {
+
+        return new EventScheduler<>(
+                this,
+                this.fetchAll(r -> r.findAllByStatusIn(WATCHABLE))
+        );
+    }
+
+    @Override
+    public Broadcast create(Plannifiable<Anime> plannifiable) {
 
         return this.getProxy().create(broadcast -> {
-            broadcast.setAnime(meta.getAnime());
-            broadcast.setStatus(ScheduledEvent.Status.UNKNOWN);
-            broadcast.setAmount(meta.getAmount());
-            broadcast.setFirstEpisode(meta.getFirstEpisode());
-            broadcast.setLastEpisode(meta.getLastEpisode());
-            broadcast.setStartDateTime(meta.getStartDateTime());
-            broadcast.setEndDateTime(meta.getEndDateTime());
+            broadcast.setWatchTarget(plannifiable.getWatchTarget());
+            broadcast.setStartingAt(plannifiable.getStartingAt());
+            broadcast.setEpisodeCount(plannifiable.getEpisodeCount());
+            broadcast.setSkipEnabled(plannifiable.isSkipEnabled());
+            broadcast.setFirstEpisode(plannifiable.getFirstEpisode());
         });
     }
 
-    public void askBroadcastRefresh() {
+    @Override
+    public Broadcast update(Broadcast entity, Consumer<IBroadcast> updateHook) {
 
-        Guild guild = this.jdaStore.getBotGuild();
-
-        this.fetchAll(repository -> repository.findAllByStatus(ScheduledEvent.Status.SCHEDULED)).
-            stream()
-            .map(broadcast -> new UpdateBroadcastTask(guild, broadcast))
-            .forEach(this.rateLimitedTaskService::queue);
+        return this.getProxy().modify(entity, updateHook);
     }
 
-    public IBroadcast schedule(Anime anime, ZonedDateTime time, long amount) {
+    @Override
+    public List<Broadcast> update(List<Broadcast> entities, Consumer<IBroadcast> updateHook) {
 
-        return this.getProxy().batch(
-                repository -> repository.findAllByStatusIn(WATCHABLE),
-                broadcasts -> {
-                    return new BroadcastScheduler<>(broadcasts).scheduleAt(anime, amount, time, this::create);
-                }
+        return entities.stream()
+                       .map(broadcast -> this.update(broadcast, updateHook))
+                       .toList();
+    }
+
+    @Override
+    public boolean delete(Broadcast entity) {
+
+        this.getProxy().modify(entity, broadcast -> broadcast.setStatus(ScheduledEvent.Status.CANCELED));
+        return true;
+    }
+
+    /**
+     * Schedule one {@link Broadcast} with the provided information.
+     *
+     * @param anime
+     *         The {@link Anime} that will be watched.
+     * @param time
+     *         The {@link ZonedDateTime} at which the {@link Broadcast} should happen.
+     * @param amount
+     *         The amount of episode that will be watched during the {@link Broadcast}.
+     *
+     * @return The scheduled {@link Broadcast}.
+     */
+    public Broadcast schedule(Anime anime, ZonedDateTime time, long amount) {
+
+        return this.createScheduler().schedule(new BookedSpot<>(anime, time, amount));
+    }
+
+    /**
+     * Schedule multiple {@link Broadcast} with the provided information, until no episode can be scheduled anymore.
+     *
+     * @param anime
+     *         The {@link Anime} that will be watched.
+     * @param time
+     *         The {@link ZonedDateTime} at which the first {@link Broadcast} should happen.
+     * @param amount
+     *         The amount of episode that will be watched during each {@link Broadcast}.
+     * @param timeSlider
+     *         {@link Function} that will modify the time for the next {@link Broadcast} once one has been scheduled.
+     *         Usually, methods like {@link ZonedDateTime#plus(TemporalAmount)} are used here.
+     *
+     * @return All scheduled {@link Broadcast}.
+     */
+    public List<Broadcast> schedule(Anime anime, ZonedDateTime time, long amount, Function<ZonedDateTime, ZonedDateTime> timeSlider) {
+
+        if (anime.getEpisodeCount() <= 0) { // We can't reliably schedule without knowing the max value.
+            return Collections.emptyList();
+        }
+
+        EventScheduler<Anime, IBroadcast, Broadcast> scheduler     = this.createScheduler();
+        ZonedDateTime                    startingAt    = time;
+        List<BookedSpot<Anime>>          spots         = new ArrayList<>();
+        long                             scheduleCount = anime.getEpisodeCount() - anime.getEpisodeWatched();
+
+        while (scheduleCount > 0) {
+
+            long              spotAmount = scheduleCount - amount < 0 ? scheduleCount : amount;
+            BookedSpot<Anime> spot       = new BookedSpot<>(anime, startingAt, spotAmount);
+
+            if (!scheduler.canSchedule(spot)) {
+                throw new GroupedScheduleException("Encountered conflict at " + startingAt.toString());
+            }
+
+            spots.add(spot);
+            startingAt = timeSlider.apply(startingAt);
+            scheduleCount -= spotAmount;
+        }
+
+        return spots.stream()
+                    .map(scheduler::schedule)
+                    .toList();
+    }
+
+    /**
+     * Queue {@link UpdateBroadcastTask} for each upcoming {@link Broadcast}, allowing to synchronize events on
+     * Discord.
+     *
+     * @return The number of generated {@link UpdateBroadcastTask}.
+     */
+    public int refresh() {
+
+        Guild guild = this.store.getBotGuild();
+
+        List<Broadcast> broadcasts = this.fetchAll(
+                repository -> repository.findAllByStatus(ScheduledEvent.Status.SCHEDULED)
         );
+
+        broadcasts.stream()
+                  .map(broadcast -> new UpdateBroadcastTask(guild, broadcast))
+                  .forEach(this.task::queue);
+
+        return broadcasts.size();
     }
 
-    public List<IBroadcast> schedule(Anime anime, ZonedDateTime time, long amount, Function<ZonedDateTime, ZonedDateTime> timeFunction) {
-
-        return this.getProxy().batch(
-                repository -> repository.findAllByStatusIn(WATCHABLE),
-                broadcasts -> {
-                    return new BroadcastScheduler<>(broadcasts).scheduleAllStartingAt(
-                            anime,
-                            amount,
-                            time,
-                            this::create,
-                            timeFunction
-                    );
-                }
-        );
-    }
-
-    public List<IBroadcast> delay(TemporalAmount limit, TemporalAmount duration) {
-
-        return this.getProxy().batch(
-                repository -> repository.findAllByStatus(ScheduledEvent.Status.SCHEDULED),
-                broadcasts -> {
-                    ZonedDateTime timeLimit = ZonedDateTime.now().plus(limit);
-                    return new BroadcastScheduler<>(broadcasts).delay(
-                            duration,
-                            time -> time.isBefore(timeLimit)
-                    );
-                }
-        );
-    }
-
-    public List<IBroadcast> delay(long limit, long minutes) {
-
-        return this.delay(Duration.ofMinutes(limit), Duration.ofMinutes(minutes));
-    }
-
-    public List<IBroadcast> calibrate(Anime anime) {
-
-        return this.getProxy().batch(
-                repository -> repository.findAllByStatusIn(WATCHABLE),
-                broadcasts -> {
-                    return new BroadcastScheduler<>(broadcasts).calibrate(anime);
-                }
-        );
-    }
-
-    public List<IBroadcast> calibrate(Iterable<Anime> animes) {
-
-        return this.getProxy().batch(
-                repository -> repository.findAllByStatusIn(WATCHABLE),
-                broadcasts -> {
-                    return new BroadcastScheduler<>(broadcasts).calibrate(animes);
-                }
-        );
-    }
-
-    public IBroadcast cancel(ScheduledEvent event) {
+    private Broadcast setBroadcastStatus(ScheduledEvent event, ScheduledEvent.Status status) {
 
         return this.getProxy().modify(
                 repository -> repository.findByEventId(event.getIdLong()),
-                broadcast -> broadcast.setStatus(ScheduledEvent.Status.CANCELED)
+                broadcast -> broadcast.setStatus(status)
         );
     }
 
+    /**
+     * Mark the {@link Broadcast} associated to the provided {@link ScheduledEvent} as canceled.
+     *
+     * @param event
+     *         The discord {@link ScheduledEvent}
+     *
+     * @return The updated {@link IBroadcast}
+     */
+    public Broadcast cancel(ScheduledEvent event) {
+
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.CANCELED);
+    }
+
+    /**
+     * Mark the {@link Broadcast} associated to the provided {@link ScheduledEvent} as completed.
+     *
+     * @param event
+     *         The discord {@link ScheduledEvent}
+     *
+     * @return The updated {@link IBroadcast}
+     */
     public IBroadcast close(ScheduledEvent event) {
 
-        return this.getProxy().modify(
-                repository -> repository.findByEventId(event.getIdLong()),
-                broadcast -> broadcast.setStatus(ScheduledEvent.Status.COMPLETED)
-        );
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.COMPLETED);
     }
 
+    /**
+     * Mark the {@link Broadcast} associated to the provided {@link ScheduledEvent} as ongoing.
+     *
+     * @param event
+     *         The discord {@link ScheduledEvent}
+     *
+     * @return The updated {@link IBroadcast}
+     */
     public IBroadcast open(ScheduledEvent event) {
 
-        return this.getProxy().modify(
-                repository -> repository.findByEventId(event.getIdLong()),
-                broadcast -> broadcast.setStatus(ScheduledEvent.Status.ACTIVE)
-        );
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.ACTIVE);
     }
 
 }

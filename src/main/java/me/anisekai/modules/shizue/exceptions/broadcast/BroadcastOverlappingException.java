@@ -35,10 +35,10 @@ public class BroadcastOverlappingException extends RuntimeException implements D
                         "Impossible de planifier la séance pour l'anime **%s** le **%s** car cela enterait en conflit avec la séance de de l'anime **%s** (%s) programmée le **%s** et se terminant le **%s**",
                         this.anime.getName(),
                         this.starting.format(dtf),
-                        this.conflictWith.getAnime().getName(),
+                        this.conflictWith.getWatchTarget().getName(),
                         BroadcastUtils.asEpisodeDescription(this.conflictWith, false),
-                        this.conflictWith.getStartDateTime().format(dtf),
-                        this.conflictWith.getEndDateTime().format(dtf)
+                        this.conflictWith.getStartingAt().format(dtf),
+                        this.conflictWith.getEndingAt().format(dtf)
                 ))
                 .setColor(Color.ORANGE);
     }

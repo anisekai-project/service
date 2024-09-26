@@ -7,12 +7,12 @@ import me.anisekai.modules.shizue.services.data.SeasonalVoterDataService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ToshikoService {
+public class ShizueService {
 
     private final SeasonalSelectionDataService seasonalSelectionService;
     private final SeasonalVoterDataService     seasonalVoterService;
 
-    public ToshikoService(SeasonalSelectionDataService seasonalSelectionService, SeasonalVoterDataService seasonalVoterService) {
+    public ShizueService(SeasonalSelectionDataService seasonalSelectionService, SeasonalVoterDataService seasonalVoterService) {
 
         this.seasonalSelectionService = seasonalSelectionService;
         this.seasonalVoterService     = seasonalVoterService;
