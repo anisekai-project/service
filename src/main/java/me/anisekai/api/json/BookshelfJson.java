@@ -4,7 +4,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.awt.print.Book;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +11,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+@SuppressWarnings("ChainOfInstanceofChecks")
 public class BookshelfJson extends JSONObject {
 
     public static final String EMPTY_JSON_STRING = "{}";
