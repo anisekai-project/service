@@ -4,7 +4,7 @@ import me.anisekai.globals.events.LoggableEvent;
 import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.modules.freya.entities.Torrent;
 import me.anisekai.modules.freya.enums.TorrentStatus;
-import me.anisekai.globals.utils.Embedding;
+import me.anisekai.globals.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -19,12 +19,12 @@ public class TorrentStatusUpdatedEvent extends EntityUpdatedEvent<Torrent, Torre
     @Override
     public EmbedBuilder asEmbed() {
 
-        return Embedding.event(this)
-                        .setDescription(String.format(
-                                "Le torrent %s a été mis à jour",
-                                Embedding.link(this.getEntity().getName(), this.getEntity().getLink())
+        return DiscordUtils.event(this)
+                           .setDescription(String.format(
+                                   "Le torrent %s a été mis à jour",
+                                   DiscordUtils.link(this.getEntity().getName(), this.getEntity().getLink())
                         ))
-                        .addField(
+                           .addField(
                                 "Changement de status",
                                 String.format("**%s** ► **%s**", this.getPrevious().name(), this.getCurrent().name()),
                                 false

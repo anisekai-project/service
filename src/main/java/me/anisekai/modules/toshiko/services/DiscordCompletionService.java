@@ -1,6 +1,7 @@
 package me.anisekai.modules.toshiko.services;
 
 import fr.alexpado.jda.interactions.entities.DispatchEvent;
+import me.anisekai.globals.utils.DiscordUtils;
 import me.anisekai.modules.freya.services.DiskService;
 import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.linn.repositories.AnimeRepository;
@@ -76,7 +77,7 @@ public class DiscordCompletionService {
                 .stream()
                 .filter(ss -> ss.getName().toLowerCase().contains(value.toLowerCase()))
                 .sorted(Comparator.comparingLong(SeasonalSelection::getId))
-                .map(SeasonalSelection::asChoice)
+                .map(DiscordUtils::asChoice)
                 .toList();
     }
 

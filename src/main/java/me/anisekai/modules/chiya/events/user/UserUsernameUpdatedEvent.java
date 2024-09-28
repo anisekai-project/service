@@ -3,7 +3,7 @@ package me.anisekai.modules.chiya.events.user;
 import me.anisekai.globals.events.LoggableEvent;
 import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.modules.chiya.entities.DiscordUser;
-import me.anisekai.globals.utils.Embedding;
+import me.anisekai.globals.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -18,9 +18,9 @@ public class UserUsernameUpdatedEvent extends EntityUpdatedEvent<DiscordUser, St
     @Override
     public EmbedBuilder asEmbed() {
 
-        return Embedding.event(this)
-                        .setDescription("Un utilisateur a été mis à jour")
-                        .addField(
+        return DiscordUtils.event(this)
+                           .setDescription("Un utilisateur a été mis à jour")
+                           .addField(
                                 "Changement de nom",
                                 String.format("**%s** ► **%s**", this.getPrevious(), this.getCurrent()),
                                 false

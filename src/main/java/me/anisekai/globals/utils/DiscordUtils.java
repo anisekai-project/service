@@ -1,7 +1,9 @@
 package me.anisekai.globals.utils;
 
 import me.anisekai.modules.linn.interfaces.IAnime;
+import me.anisekai.modules.shizue.entities.SeasonalSelection;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.OffsetDateTime;
@@ -9,9 +11,9 @@ import java.time.OffsetDateTime;
 /**
  * Utility class containing various method for Discord formatting
  */
-public final class Embedding {
+public final class DiscordUtils {
 
-    private Embedding() {}
+    private DiscordUtils() {}
 
     /**
      * Creates a Markdown link with the provided name and link.
@@ -55,6 +57,38 @@ public final class Embedding {
         return new EmbedBuilder()
                 .setFooter(event.getSource().getClass().getName())
                 .setTimestamp(OffsetDateTime.now());
+    }
+
+    /**
+     * Create a command choice with the provided id and name. If the name is longer than 100 characters, the string will
+     * be cut and '...' will be appended.
+     *
+     * @param id
+     *         The choice's id
+     * @param name
+     *         The choice's name
+     *
+     * @return A command choice
+     */
+    public static Command.Choice asChoice(long id, String name) {
+
+        if (name.length() > 100) {
+            return new Command.Choice(String.format("%s...", name.substring(0, 90)), id);
+        }
+        return new Command.Choice(name, id);
+    }
+
+    /**
+     * Transform the provided {@link SeasonalSelection} into a command choice.
+     *
+     * @param selection
+     *         The {@link SeasonalSelection} to transform
+     *
+     * @return A command choice
+     */
+    public static Command.Choice asChoice(SeasonalSelection selection) {
+
+        return asChoice(selection.getId(), selection.getName());
     }
 
 }

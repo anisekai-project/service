@@ -161,16 +161,6 @@ public class SeasonalSelection implements ISeasonalSelection {
         return Objects.hash(this.getId());
     }
 
-    // TODO: Move this elsewhere.
-    @Deprecated
-    public Command.Choice asChoice() {
-
-        if (this.getName().length() > 100) {
-            return new Command.Choice(String.format("%s...", this.getName().substring(0, 90)), this.getId());
-        }
-        return new Command.Choice(this.getName(), this.getId());
-    }
-
     @PostLoad
     public void onLoad() {
 

@@ -82,8 +82,8 @@ public class DiskService {
 
     public void cache() {
 
-        // TODO: As everything will be in the database in the future, this method should be used only to check the disk
-        //  rather than caching its content.
+        // As everything will be in the database in the future, this method should be used only to check the disk
+        // rather than caching its content.
 
 
         // Build the cache.

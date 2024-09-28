@@ -4,7 +4,7 @@ import me.anisekai.globals.events.LoggableEvent;
 import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.enums.AnimeStatus;
-import me.anisekai.globals.utils.Embedding;
+import me.anisekai.globals.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -19,9 +19,9 @@ public class AnimeStatusUpdatedEvent extends EntityUpdatedEvent<Anime, AnimeStat
     @Override
     public EmbedBuilder asEmbed() {
 
-        return Embedding.event(this)
-                        .setDescription(Embedding.link(this.getEntity()))
-                        .addField(
+        return DiscordUtils.event(this)
+                           .setDescription(DiscordUtils.link(this.getEntity()))
+                           .addField(
                                 "Changement de status",
                                 String.format(
                                         "**%s** ► **%s**",
