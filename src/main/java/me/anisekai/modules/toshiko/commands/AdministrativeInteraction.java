@@ -100,7 +100,7 @@ public class AdministrativeInteraction {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ admin/anime/link [anime: integer, diskGroup: string, diskAnime: string]">
+    // <editor-fold desc="@ admin/anime/link [anime: integer, diskgroup: string, diskanime: string]">
     @Interact(
             name = "admin/anime/link",
             description = "\uD83D\uDD12 Associe un anime à un dossier existant sur le disque",
@@ -114,20 +114,20 @@ public class AdministrativeInteraction {
                             autoComplete = true
                     ),
                     @Option(
-                            name = "diskAnime",
+                            name = "diskanime",
                             description = "Groupe de dossier de l'anime (généralement le nom de l'anime)",
                             type = OptionType.STRING,
                             autoComplete = true
                     ),
                     @Option(
-                            name = "diskGroup",
+                            name = "diskgroup",
                             description = "Dossier de l'anime (généralement le nom de la saison)",
                             type = OptionType.STRING,
                             autoComplete = true
                     )
             }
     )
-    public SlashResponse adminAnimeLink(DiscordUser user, @Param("anime") long animeId, @Param("diskAnime") String diskAnimeUuid, @Param("diskGroup") String diskGroupUuid) {
+    public SlashResponse adminAnimeLink(DiscordUser user, @Param("anime") long animeId, @Param("diskanime") String diskAnimeUuid, @Param("diskgroup") String diskGroupUuid) {
 
         if (!user.isAdmin()) return this.notEnoughPermission();
         UUID diskAnimeIdentifier = UUID.fromString(diskAnimeUuid);
