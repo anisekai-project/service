@@ -57,9 +57,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'io.sentry:sentry-spring-boot:8.0.0-alpha.4'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.14.0'
 
     runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.4.1'
     implementation group: 'org.flywaydb', name: 'flyway-core', version: '10.18.2'
