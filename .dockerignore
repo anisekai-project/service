@@ -1,7 +1,3 @@
-.docker/
 .gradle/
-anisekai-alpha/.env
 build/
-
-anisekai-alpha/.env
-anisekai-alpha/data
+.docker/alpha
