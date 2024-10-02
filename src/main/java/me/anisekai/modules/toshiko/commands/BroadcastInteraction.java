@@ -4,6 +4,7 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import me.anisekai.api.plannifier.EventScheduler;
 import me.anisekai.api.plannifier.data.CalibrationResult;
 import me.anisekai.globals.utils.DateTimeUtils;
 import me.anisekai.modules.chiya.entities.DiscordUser;
@@ -92,6 +93,10 @@ public class BroadcastInteraction {
         Anime              anime      = this.animeService.fetch(animeId);
         BroadcastFrequency frequency  = BroadcastFrequency.from(frequencyName);
         ZonedDateTime      scheduleAt = DateTimeUtils.of(timeParam, startingParam);
+
+        if (scheduleAt.isBefore(DateTimeUtils.now())) {
+            return new SimpleResponse("Impossible de programmer des séances dans le passé.", false, false);
+        }
 
         int scheduledAmount;
         if (frequency.hasDateModifier()) {
@@ -188,7 +193,23 @@ public class BroadcastInteraction {
         Duration delay = DateTimeUtils.toDuration(delayParam);
         Duration range = DateTimeUtils.toDuration(rangeString);
 
-        List<Broadcast> delayed = this.service.createScheduler().delay(DateTimeUtils.now(), range, delay);
+        EventScheduler<Anime, IBroadcast, Broadcast> scheduler = this.service.createScheduler();
+        ZonedDateTime                                now       = DateTimeUtils.now();
+
+        // Can we safely move the events ?
+        Optional<Broadcast> next = scheduler.findNext(now);
+
+        if (next.isPresent()) {
+            Broadcast     broadcast   = next.get();
+            ZonedDateTime minDateTime = broadcast.getStartingAt().minus(delay).minusMinutes(1);
+
+            if (minDateTime.isBefore(now)) {
+                return new SimpleResponse("Impossible d'applique ce délai: Au moins un event serait reprogrammé dans le passé.", false, false);
+            }
+        }
+
+
+        List<Broadcast> delayed = scheduler.delay(now, range, delay);
 
         if (delayed.isEmpty()) {
             return new SimpleResponse("Aucune séance n'a été reprogrammée.", false, false);
