@@ -21,7 +21,7 @@ messages intended for developers/administrators will remain in English.
 This README will be updated to include the installation process and contribution guidelines once the project is ready to
 accept contributions. However, at this stage, contributions are not being accepted to ensure stability and consistency
 in development. Feel free to clone the repository and explore the `.env.example` file. If you are familiar with Spring
-Boot and Java, it should not be too challenging to understand.
+Boot and Java, it should not be too challenging to understand how to get things started.
 
 ## About "Character" Packages in Modules
 
@@ -41,7 +41,8 @@ At this stage, the project is not open for contributions due to frequent changes
 you're welcome to open issues for feature requests, which may be considered for implementation when time permits.
 
 # Library File Structure
-
+This is not the current version of the structure, but what is the goal for the library v2 (even if the based structure 
+is very similar).
 ```
 ──/
  ├── automation/            # Root of Freya's import folder
@@ -56,14 +57,7 @@ you're welcome to open issues for feature requests, which may be considered for 
  │           └── <season>/  @ Folder of the imported season's subtitles
  └── torrents               # Temporary folder storing transmission downloads (before being moved to automation)
 ```
-*`@` means that the folder is repeated in relation to the database/disk content*
+*`@` means that the folder is mirroring the database content, meanwhile `#` represent static folders.*
 
-```
-content/<anime>/<season>/<episode>/<file>
-
-content/0082/0001/0001/video.webm
-content/0082/0001/0001/audio-fra.mp3
-content/0082/0001/0001/audio-jpn.mp3
-content/0082/0001/0001/subs-fra.ssa
-content/0082/0001/0001/subs-fra.ssa
-```
+Each mirrored folder will be named after the entity's database id, and each track will be named based on their hashes. 
+Example: `content/0082/0001/0001/8efeb535dd94ce093d6738df7656ddab.webm`
