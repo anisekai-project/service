@@ -13,9 +13,11 @@ import me.anisekai.modules.shizue.repositories.BroadcastRepository;
 import me.anisekai.modules.shizue.services.RateLimitedTaskService;
 import me.anisekai.modules.shizue.services.proxy.BroadcastProxyService;
 import me.anisekai.modules.toshiko.JdaStore;
+import me.anisekai.modules.toshiko.tasks.RemoveBroadcastTask;
 import me.anisekai.modules.toshiko.tasks.UpdateBroadcastTask;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -36,21 +38,23 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
             ScheduledEvent.Status.UNKNOWN
     );
 
-    private final RateLimitedTaskService task;
-    private final JdaStore               store;
+    private final ApplicationEventPublisher publisher;
+    private final RateLimitedTaskService    task;
+    private final JdaStore                  store;
 
-    public BroadcastDataService(BroadcastProxyService proxy, RateLimitedTaskService task, JdaStore store) {
+    public BroadcastDataService(BroadcastProxyService proxy, ApplicationEventPublisher publisher, RateLimitedTaskService task, JdaStore store) {
 
         super(proxy);
-        this.task  = task;
-        this.store = store;
+        this.publisher = publisher;
+        this.task      = task;
+        this.store     = store;
     }
 
     public EventScheduler<Anime, IBroadcast, Broadcast> createScheduler() {
 
         return new EventScheduler<>(
                 this,
-                this.fetchAll(r -> r.findAllByStatusIn(WATCHABLE))
+                this.fetchAll(r -> r.findAllByStatusInAndScheduledIsTrue(WATCHABLE))
         );
     }
 
@@ -63,6 +67,7 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
             broadcast.setEpisodeCount(plannifiable.getEpisodeCount());
             broadcast.setSkipEnabled(plannifiable.isSkipEnabled());
             broadcast.setFirstEpisode(plannifiable.getFirstEpisode());
+            broadcast.setScheduled(true);
         });
     }
 
@@ -83,7 +88,11 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
     @Override
     public boolean delete(Broadcast entity) {
 
-        this.getProxy().modify(entity, broadcast -> broadcast.setStatus(ScheduledEvent.Status.CANCELED));
+        Guild guild = this.store.getBotGuild();
+
+        // Tag the entity
+        Broadcast updated = this.getProxy().modify(entity, broadcast -> broadcast.setScheduled(false));
+        this.publisher.publishEvent(new RemoveBroadcastTask(guild, updated));
         return true;
     }
 
@@ -126,9 +135,9 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
         }
 
         EventScheduler<Anime, IBroadcast, Broadcast> scheduler     = this.createScheduler();
-        ZonedDateTime                    startingAt    = time;
-        List<BookedSpot<Anime>>          spots         = new ArrayList<>();
-        long                             scheduleCount = anime.getEpisodeCount() - anime.getEpisodeWatched();
+        ZonedDateTime                                startingAt    = time;
+        List<BookedSpot<Anime>>                      spots         = new ArrayList<>();
+        long                                         scheduleCount = anime.getEpisodeCount() - anime.getEpisodeWatched();
 
         while (scheduleCount > 0) {
 
@@ -170,11 +179,14 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
         return broadcasts.size();
     }
 
-    private Broadcast setBroadcastStatus(ScheduledEvent event, ScheduledEvent.Status status) {
+    private Broadcast setBroadcastStatus(ScheduledEvent event, ScheduledEvent.Status status, boolean scheduled) {
 
         return this.getProxy().modify(
                 repository -> repository.findByEventId(event.getIdLong()),
-                broadcast -> broadcast.setStatus(status)
+                broadcast -> {
+                    broadcast.setStatus(status);
+                    broadcast.setScheduled(scheduled);
+                }
         );
     }
 
@@ -188,7 +200,7 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
      */
     public Broadcast cancel(ScheduledEvent event) {
 
-        return this.setBroadcastStatus(event, ScheduledEvent.Status.CANCELED);
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.CANCELED, false);
     }
 
     /**
@@ -201,7 +213,7 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
      */
     public IBroadcast close(ScheduledEvent event) {
 
-        return this.setBroadcastStatus(event, ScheduledEvent.Status.COMPLETED);
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.COMPLETED, false);
     }
 
     /**
@@ -214,7 +226,7 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
      */
     public IBroadcast open(ScheduledEvent event) {
 
-        return this.setBroadcastStatus(event, ScheduledEvent.Status.ACTIVE);
+        return this.setBroadcastStatus(event, ScheduledEvent.Status.ACTIVE, true);
     }
 
 }

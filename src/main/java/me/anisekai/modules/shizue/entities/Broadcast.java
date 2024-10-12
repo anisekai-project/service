@@ -2,6 +2,7 @@ package me.anisekai.modules.shizue.entities;
 
 import jakarta.persistence.*;
 import me.anisekai.api.persistence.EntityUtils;
+import me.anisekai.api.plannifier.EventScheduler;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
@@ -36,6 +37,9 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     @Column
     @Enumerated(EnumType.STRING)
     private ScheduledEvent.Status status;
+
+    @Column
+    private boolean scheduled = true;
 
     private String imageUrl;
 
@@ -154,6 +158,31 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     public void setStatus(ScheduledEvent.Status status) {
 
         this.status = status;
+    }
+
+    /**
+     * Check if the event is in a scheduled state. Scheduled event will be used in {@link EventScheduler} as valid
+     * events.
+     *
+     * @return True if the event is in a scheduled state, false otherwise.
+     */
+    @Override
+    public boolean isScheduled() {
+
+        return this.scheduled;
+    }
+
+    /**
+     * Define if the event is in a scheduled state. Scheduled event will be used in {@link EventScheduler} as valid
+     * events.
+     *
+     * @param scheduled
+     *         True if the event is in a scheduled state, false otherwise.
+     */
+    @Override
+    public void setScheduled(boolean scheduled) {
+
+        this.scheduled = scheduled;
     }
 
     @Override

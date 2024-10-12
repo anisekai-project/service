@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface BroadcastRepository extends JpaRepository<Broadcast, Long> {
 
-    List<Broadcast> findAllByStatusIn(Collection<ScheduledEvent.@NotNull Status> status);
+    List<Broadcast> findAllByStatusInAndScheduledIsTrue(Collection<ScheduledEvent.@NotNull Status> status);
 
     List<Broadcast> findAllByStatus(ScheduledEvent.Status status);
 

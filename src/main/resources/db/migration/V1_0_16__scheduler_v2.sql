@@ -1,3 +1,9 @@
+-- -> Adding new column
+ALTER TABLE broadcast ADD COLUMN scheduled BOOLEAN NOT NULL DEFAULT FALSE AFTER status;
+
+-- -> Compute new column value
+UPDATE broadcast SET scheduled = TRUE WHERE status IN ('SCHEDULED', 'ACTIVE');
+
 -- -> Reflecting computed
 ALTER TABLE broadcast DROP COLUMN last_episode;
 
