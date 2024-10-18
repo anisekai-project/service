@@ -33,7 +33,7 @@ public class AnimeInteractions {
         this.ranking = ranking;
     }
 
-    // <editor-fold desc="@ anime/announce">
+    // <editor-fold desc="@ anime/announce [anime: integer]">
     @Interact(
             name = "anime/announce",
             description = Texts.ANIME_NOTIFY_ANNOUNCE__DESCRIPTION,
@@ -57,7 +57,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/about">
+    // <editor-fold desc="@ anime/about [anime: integer]">
     @Interact(
             name = "anime/about",
             description = Texts.ANIME_ABOUT__DESCRIPTION,
@@ -80,7 +80,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/status">
+    // <editor-fold desc="@ anime/status [anime: integer, status: string]">
     @Interact(
             name = "anime/status",
             description = Texts.ANIME_STATUS__DESCRIPTION,
@@ -115,7 +115,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/progress">
+    // <editor-fold desc="@ anime/progress [anime: integer, watched: integer, total: ?integer]">
     @Interact(
             name = "anime/progress",
             description = Texts.ANIME_PROGRESS__DESCRIPTION,
@@ -162,7 +162,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/import">
+    // <editor-fold desc="@ anime/import [json: string]">
     @Interact(
             name = "anime/import",
             description = Texts.ANIME_IMPORT__DESCRIPTION,

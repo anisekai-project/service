@@ -40,7 +40,7 @@ public class SeasonalSelectionInteractions {
     }
 
 
-    // <editor-fold desc="@ season/start">
+    // <editor-fold desc="@ season/start [name: string]">
     @Interact(
             name = "season/start",
             description = Texts.SEASON_START__DESCRIPTION,
@@ -48,7 +48,8 @@ public class SeasonalSelectionInteractions {
                     @Option(
                             name = "name",
                             description = Texts.SEASON_START__OPTION_NAME,
-                            type = OptionType.STRING
+                            type = OptionType.STRING,
+                            required = true
                     )
             }
     )
@@ -60,7 +61,7 @@ public class SeasonalSelectionInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ season/cast">
+    // <editor-fold desc="@ season/cast [seasonal: integer, anime: integer]">
     @Interact(
             name = "season/cast",
             description = "Défini un choix de simulcast",
@@ -92,7 +93,7 @@ public class SeasonalSelectionInteractions {
     // </editor-fold>
 
 
-    // <editor-fold desc="@ season/close">
+    // <editor-fold desc="@ season/close [seasonal: integer]">
     @Interact(
             name = "season/close",
             description = "Termine un vote de simulcast",

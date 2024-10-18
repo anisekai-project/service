@@ -21,6 +21,8 @@ public class WatchlistInteraction {
         this.service = service;
     }
 
+
+    // <editor-fold desc="@ watchlist/refresh">
     @Interact(
             name = "watchlist/refresh",
             description = Texts.WATCHLIST_REFRESH__DESCRIPTION
@@ -31,5 +33,6 @@ public class WatchlistInteraction {
         this.service.refreshAll();
         return new SimpleResponse("Les listes de visionnage vont être actualisées sous peu.", false, false);
     }
+    // </editor-fold>
 
 }

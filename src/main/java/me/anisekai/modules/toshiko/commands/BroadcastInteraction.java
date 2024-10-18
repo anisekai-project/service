@@ -10,7 +10,6 @@ import me.anisekai.globals.utils.DateTimeUtils;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.chiya.interfaces.IUser;
 import me.anisekai.modules.linn.entities.Anime;
-import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.enums.BroadcastFrequency;
@@ -41,7 +40,7 @@ public class BroadcastInteraction {
         this.animeService = animeService;
     }
 
-    // <editor-fold desc="@ broadcast/schedule">
+    // <editor-fold desc="@ broadcast/schedule [anime: integer, time: string, amount: string, frequency: ?string, starting: ?string]">
     @Interact(
             name = "broadcast/schedule",
             description = Texts.BROADCAST_SCHEDULE__DESCRIPTION,
@@ -126,6 +125,7 @@ public class BroadcastInteraction {
                     ), false, false);
         }
     }
+
     // </editor-fold>
 
     // <editor-fold desc="broadcast/calibrate">
@@ -160,8 +160,7 @@ public class BroadcastInteraction {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ broadcast/delay">
-
+    // <editor-fold desc="@ broadcast/delay [delay: string, range: ?string]">
     @Interact(
             name = "broadcast/delay",
             description = Texts.BROADCAST_DELAY__DESCRIPTION,
@@ -204,7 +203,11 @@ public class BroadcastInteraction {
             ZonedDateTime minDateTime = broadcast.getStartingAt().minus(delay).minusMinutes(1);
 
             if (minDateTime.isBefore(now)) {
-                return new SimpleResponse("Impossible d'applique ce délai: Au moins un event serait reprogrammé dans le passé.", false, false);
+                return new SimpleResponse(
+                        "Impossible d'applique ce délai: Au moins un event serait reprogrammé dans le passé.",
+                        false,
+                        false
+                );
             }
         }
 
@@ -227,7 +230,6 @@ public class BroadcastInteraction {
     // </editor-fold>
 
     // <editor-fold desc="@ broadcast/refresh">
-
     @Interact(
             name = "broadcast/refresh",
             description = Texts.BROADCAST_REFRESH__DESCRIPTION

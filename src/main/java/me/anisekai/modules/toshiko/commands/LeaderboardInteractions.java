@@ -33,7 +33,7 @@ public class LeaderboardInteractions {
         this.ranking = ranking;
     }
 
-    // <editor-fold desc="@ top/anime">
+    // <editor-fold desc="@ top/anime [order: string, limit: ?integer]">
     @Interact(
             name = "top/anime",
             description = Texts.TOP_ANIME__DESCRIPTION,

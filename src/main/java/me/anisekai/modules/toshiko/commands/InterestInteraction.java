@@ -7,9 +7,9 @@ import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.api.persistence.UpsertResult;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.linn.entities.Anime;
+import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.entities.Interest;
 import me.anisekai.modules.shizue.enums.InterestLevel;
-import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.services.data.InterestDataService;
 import me.anisekai.modules.toshiko.Texts;
 import me.anisekai.modules.toshiko.annotations.InteractionBean;
@@ -34,8 +34,7 @@ public class InterestInteraction {
         this.animeService = animeService;
     }
 
-
-    // <editor-fold desc="@ interest/set">
+    // <editor-fold desc="@ interest/set [anime: integer, interest: string]">
     @Interact(
             name = "interest/set",
             description = Texts.ANIME_INTEREST__DESCRIPTION,
@@ -93,4 +92,5 @@ public class InterestInteraction {
         );
     }
     // </editor-fold>
+
 }

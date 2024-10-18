@@ -27,7 +27,7 @@ public class ProfileInteraction {
         this.service = service;
     }
 
-    // <editor-fold desc="@ profile">
+    // <editor-fold desc="@ profile [user: ?user, icon: ?string, active: ?boolean, admin: ?boolean, web: ?boolean]">
     @Interact(
             name = "profile",
             description = Texts.PROFILE_DESCRIPTION,
@@ -69,9 +69,7 @@ public class ProfileInteraction {
     ) {
 
         if ((user != null || admin != null || active != null || web != null) && !sender.isAdmin()) {
-            if (!sender.isAdmin()) {
-                return new SimpleResponse("Seul un administrateur peut modifier ces informations.", false, false);
-            }
+            return new SimpleResponse("Seul un administrateur peut modifier ces informations.", false, false);
         }
 
         if (icon == null && active == null && admin == null && web == null) {
@@ -119,4 +117,5 @@ public class ProfileInteraction {
         return new SimpleResponse(embedBuilder, false, false);
     }
     // </editor-fold>
+
 }
