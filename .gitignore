@@ -1,3 +1,7 @@
+# Gradle exclusion
 .gradle/
 build/
-.docker/alpha
+
+# Runtime exclusion
+data/
+.env
