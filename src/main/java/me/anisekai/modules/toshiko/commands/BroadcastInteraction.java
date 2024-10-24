@@ -162,7 +162,7 @@ public class BroadcastInteraction {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ broadcast/delay [delay: string, range: ?string]">
+    // <editor-fold desc="@ broadcast/delay [delay: string, range: ?string, starting: ?string]">
     @Interact(
             name = "broadcast/delay",
             description = Texts.BROADCAST_DELAY__DESCRIPTION,
@@ -178,27 +178,34 @@ public class BroadcastInteraction {
                             name = "range",
                             description = Texts.BROADCAST_DELAY__OPTION_RANGE,
                             type = OptionType.STRING
+                    ),
+                    @Option(
+                            name = "starting",
+                            description = Texts.BROADCAST_DELAY__OPTION_STARTING,
+                            type = OptionType.STRING
                     )
             }
     )
     public SlashResponse runBroadcastDelay(
             IUser sender,
             @Param("delay") String delayParam,
-            @Param("range") String rangeParam
+            @Param("range") String rangeParam,
+            @Param("starting") String startingParam
     ) {
 
         PermissionUtils.requirePrivileges(sender);
 
         String rangeString = Optional.ofNullable(rangeParam).orElse("6h");
 
-        Duration delay = DateTimeUtils.toDuration(delayParam);
-        Duration range = DateTimeUtils.toDuration(rangeString);
+        Duration      delay    = DateTimeUtils.toDuration(delayParam);
+        Duration      range    = DateTimeUtils.toDuration(rangeString);
+        ZonedDateTime starting = DateTimeUtils.of(null, startingParam);
+        ZonedDateTime now      = DateTimeUtils.now();
 
         EventScheduler<Anime, IBroadcast, Broadcast> scheduler = this.service.createScheduler();
-        ZonedDateTime                                now       = DateTimeUtils.now();
 
         // Can we safely move the events ?
-        Optional<Broadcast> next = scheduler.findNext(now);
+        Optional<Broadcast> next = scheduler.findNext(starting);
 
         if (next.isPresent()) {
             Broadcast     broadcast   = next.get();
@@ -214,7 +221,7 @@ public class BroadcastInteraction {
         }
 
 
-        List<Broadcast> delayed = scheduler.delay(now, range, delay);
+        List<Broadcast> delayed = scheduler.delay(starting, range, delay);
 
         if (delayed.isEmpty()) {
             return new SimpleResponse("Aucune séance n'a été reprogrammée.", false, false);
