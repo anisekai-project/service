@@ -202,7 +202,7 @@ public class BroadcastInteraction {
 
         if (next.isPresent()) {
             Broadcast     broadcast   = next.get();
-            ZonedDateTime minDateTime = broadcast.getStartingAt().minus(delay).minusMinutes(1);
+            ZonedDateTime minDateTime = broadcast.getStartingAt().plus(delay).minusMinutes(1);
 
             if (minDateTime.isBefore(now)) {
                 return new SimpleResponse(
