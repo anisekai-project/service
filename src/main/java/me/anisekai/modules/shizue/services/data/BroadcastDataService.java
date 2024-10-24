@@ -91,7 +91,10 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
         Guild guild = this.store.getBotGuild();
 
         // Tag the entity
-        Broadcast updated = this.getProxy().modify(entity, broadcast -> broadcast.setScheduled(false));
+        Broadcast updated = this.getProxy().modify(entity, broadcast -> {
+            broadcast.setScheduled(false);
+            broadcast.setProgress(false);
+        });
         this.publisher.publishEvent(new RemoveBroadcastTask(guild, updated));
         return true;
     }

@@ -41,6 +41,9 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     @Column
     private boolean scheduled = true;
 
+    @Column
+    private boolean progress = true;
+
     private String imageUrl;
 
     @Column(nullable = false)
@@ -121,6 +124,7 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
 
     @Override
     public void setWatchTarget(Anime anime) {
+
         this.anime = anime;
     }
 
@@ -183,6 +187,29 @@ public class Broadcast implements IBroadcast, AnimeNightMeta {
     public void setScheduled(boolean scheduled) {
 
         this.scheduled = scheduled;
+    }
+
+    /**
+     * Check if the event will change the progress of the associated {@link Anime}.
+     *
+     * @return True if the event change the progress, false otherwise.
+     */
+    @Override
+    public boolean isProgress() {
+
+        return this.progress;
+    }
+
+    /**
+     * Define if the event will change the progress of the associated {@link Anime}.
+     *
+     * @param progress
+     *         True if the event change the progress, false otherwise.
+     */
+    @Override
+    public void setProgress(boolean progress) {
+
+        this.progress = progress;
     }
 
     @Override

@@ -2,7 +2,6 @@ package me.anisekai.modules.toshiko.tasks;
 
 import me.anisekai.modules.shizue.data.Task;
 import me.anisekai.modules.shizue.entities.Broadcast;
-import me.anisekai.modules.shizue.services.data.BroadcastDataService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
@@ -44,7 +43,11 @@ public class RemoveBroadcastTask implements Task {
             return;
         }
 
-        event.getManager().setStatus(ScheduledEvent.Status.CANCELED).complete();
+        if (event.getStatus() == ScheduledEvent.Status.ACTIVE) {
+            event.getManager().setStatus(ScheduledEvent.Status.COMPLETED).complete();
+        } else {
+            event.getManager().setStatus(ScheduledEvent.Status.CANCELED).complete();
+        }
     }
 
 }

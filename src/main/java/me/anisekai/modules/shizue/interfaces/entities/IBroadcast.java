@@ -44,4 +44,19 @@ public interface IBroadcast extends IEntity<Long>, AnimeNightMeta, Comparable<An
      */
     void setScheduled(boolean scheduled);
 
+    /**
+     * Check if the event will change the progress of the associated {@link Anime}.
+     *
+     * @return True if the event change the progress, false otherwise.
+     */
+    boolean isProgress();
+
+    /**
+     * Define if the event will change the progress of the associated {@link Anime}.
+     *
+     * @param progress
+     *         True if the event change the progress, false otherwise.
+     */
+    void setProgress(boolean progress);
+
 }

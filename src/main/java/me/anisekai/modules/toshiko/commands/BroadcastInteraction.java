@@ -19,6 +19,8 @@ import me.anisekai.modules.toshiko.Texts;
 import me.anisekai.modules.toshiko.annotations.InteractionBean;
 import me.anisekai.modules.toshiko.messages.responses.SimpleResponse;
 import me.anisekai.modules.toshiko.utils.PermissionUtils;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.ScheduledEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
@@ -227,6 +229,23 @@ public class BroadcastInteraction {
         }
     }
 
+    // </editor-fold>
+
+    // <editor-fold desc="@ broadcast/cancel">
+
+    @Interact(
+            name = "broadcast/cancel",
+            description = Texts.BROADCAST_CANCEL__DESCRIPTION,
+            defer = true
+    )
+    public SlashResponse cancelRunningBroadcast(IUser sender, Guild guild) {
+
+        PermissionUtils.requirePrivileges(sender);
+        List<Broadcast> broadcasts = this.service.fetchAll(r -> r.findAllByStatus(ScheduledEvent.Status.ACTIVE));
+        broadcasts.forEach(this.service::delete);
+
+        return new SimpleResponse(String.format("**%s** séances ont été annulées", broadcasts.size()), false, false);
+    }
     // </editor-fold>
 
     // <editor-fold desc="@ broadcast/refresh">

@@ -71,6 +71,11 @@ public final class Texts {
     public static final String BROADCAST_DELAY__OPTION_RANGE = "Intervale de temps dans lequel les évènements seront décalés. (ex: 1h20m, 2d5h) [Defaut: 6h]";
     // </editor-fold>
 
+    // <editor-fold desc="@ broadcast/cancel">
+    public static final String BROADCAST_CANCEL__DESCRIPTION = "\uD83D\uDD12 Annule les évènements actifs.";
+    // </editor-fold>
+
+
     // <editor-fold desc="@ broadcast/refresh">
     public static final String BROADCAST_REFRESH__DESCRIPTION = "\uD83D\uDD12 Actualise les évènements serveur";
     // </editor-fold>
