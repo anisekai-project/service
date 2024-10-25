@@ -38,9 +38,37 @@ public class DiskService {
     @PostConstruct
     private void initialize() {
 
-        this.contentPath    = this.getContentDirectory().toPath();
-        this.automationPath = this.getAutomationDirectory().toPath();
-        this.torrentPath    = this.getTorrentsDirectory().toPath();
+        File contentFile    = this.getContentDirectory();
+        File automationFile = this.getAutomationDirectory();
+        File torrentFile    = this.getTorrentsDirectory();
+
+        this.contentPath    = contentFile.toPath();
+        this.automationPath = automationFile.toPath();
+        this.torrentPath    = torrentFile.toPath();
+
+        if (!contentFile.exists()) {
+            if (contentFile.mkdirs()) {
+                LOGGER.info("Created content directory: {}", contentFile.getAbsolutePath());
+            } else {
+                LOGGER.warn("Failed to create content directory: {}", contentFile.getAbsolutePath());
+            }
+        }
+
+        if (!automationFile.exists()) {
+            if (automationFile.mkdirs()) {
+                LOGGER.info("Created automation directory: {}", automationFile.getAbsolutePath());
+            } else {
+                LOGGER.warn("Failed to create automation directory: {}", automationFile.getAbsolutePath());
+            }
+        }
+
+        if (!torrentFile.exists()) {
+            if (torrentFile.mkdirs()) {
+                LOGGER.info("Created torrent directory: {}", torrentFile.getAbsolutePath());
+            } else {
+                LOGGER.warn("Failed to create torrent directory: {}", torrentFile.getAbsolutePath());
+            }
+        }
 
         this.cache();
     }
