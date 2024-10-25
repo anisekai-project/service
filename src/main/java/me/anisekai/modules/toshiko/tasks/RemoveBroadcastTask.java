@@ -43,9 +43,12 @@ public class RemoveBroadcastTask implements Task {
             return;
         }
 
+        LOGGER.info("Canceling event {} with current status {}", event.getIdLong(), event.getStatus());
         if (event.getStatus() == ScheduledEvent.Status.ACTIVE) {
+            LOGGER.info(" -> Completing event...");
             event.getManager().setStatus(ScheduledEvent.Status.COMPLETED).complete();
         } else {
+            LOGGER.info(" -> Canceling event...");
             event.getManager().setStatus(ScheduledEvent.Status.CANCELED).complete();
         }
     }
