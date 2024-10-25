@@ -197,10 +197,14 @@ public class BroadcastInteraction {
 
         String rangeString = Optional.ofNullable(rangeParam).orElse("6h");
 
-        Duration      delay    = DateTimeUtils.toDuration(delayParam);
-        Duration      range    = DateTimeUtils.toDuration(rangeString);
-        ZonedDateTime starting = DateTimeUtils.of(null, startingParam);
-        ZonedDateTime now      = DateTimeUtils.now();
+        Duration      delay = DateTimeUtils.toDuration(delayParam);
+        Duration      range = DateTimeUtils.toDuration(rangeString);
+        ZonedDateTime now   = DateTimeUtils.now();
+
+        ZonedDateTime starting = DateTimeUtils.of(startingParam, null);
+        if (starting.isBefore(now)) {
+            starting = starting.plusDays(1);
+        }
 
         EventScheduler<Anime, IBroadcast, Broadcast> scheduler = this.service.createScheduler();
 
