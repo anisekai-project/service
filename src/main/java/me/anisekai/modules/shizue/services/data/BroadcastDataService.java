@@ -80,8 +80,11 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
     @Override
     public List<Broadcast> update(List<Broadcast> entities, Consumer<IBroadcast> updateHook) {
 
+        Guild guild = this.store.getBotGuild();
+
         return entities.stream()
                        .map(broadcast -> this.update(broadcast, updateHook))
+                       .peek(broadcast -> this.task.queue(new UpdateBroadcastTask(guild, broadcast)))
                        .toList();
     }
 
