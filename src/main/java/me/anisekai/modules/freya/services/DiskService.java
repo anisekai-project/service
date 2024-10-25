@@ -125,6 +125,21 @@ public class DiskService {
         File animeDirectory     = new File(content, "animes");
         File subtitlesDirectory = new File(content, "subtitles");
 
+        if (!animeDirectory.exists()) {
+            if (animeDirectory.mkdirs()) {
+                LOGGER.info("Created anime directory: {}", animeDirectory.getAbsolutePath());
+            } else {
+                LOGGER.warn("Failed to create anime directory: {}", animeDirectory.getAbsolutePath());
+            }
+        }
+
+        if (!subtitlesDirectory.exists()) {
+            if (subtitlesDirectory.mkdirs()) {
+                LOGGER.info("Created subtitles directory: {}", subtitlesDirectory.getAbsolutePath());
+            } else {
+                LOGGER.warn("Failed to create subtitles directory: {}", subtitlesDirectory.getAbsolutePath());
+            }
+        }
 
         for (File anime : FileSystemUtils.files(animeDirectory)) {
 
