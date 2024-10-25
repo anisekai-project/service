@@ -17,7 +17,12 @@ RUN echo "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https
 
 RUN apt-get install -y mkvtoolnix && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=alexpado/ffmpeg:7.0.1 /var/opt/ffmpeg/binaries/ffmpeg /usr/bin/ffmpeg
+RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    tar xvf 'ffmpeg-release-amd64-static.tar.xz' && \
+    mv ffmpeg-7.0.2-amd64-static /var/opt/ffmpeg && \
+    ln -s /var/opt/ffmpeg/ffmpeg /usr/bin/ffmpeg && \
+    rm 'ffmpeg-release-amd64-static.tar.xz'
+
 COPY --from=anisekai /app.jar .
 
 # Cleanup
