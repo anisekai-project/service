@@ -1,10 +1,10 @@
 package me.anisekai.modules.shizue.entities;
 
 import jakarta.persistence.*;
+import me.anisekai.api.persistence.EntityUtils;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.shizue.interfaces.entities.IWatchlist;
-import me.anisekai.api.persistence.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZoneId;
@@ -49,6 +49,12 @@ public class Watchlist implements IWatchlist {
     private transient boolean created = true;
 
     public Watchlist() {}
+
+    public Watchlist(AnimeStatus status) {
+
+        this.status = status;
+        this.order  = status.ordinal();
+    }
 
     // <editor-fold desc="Getters / Setters">
 

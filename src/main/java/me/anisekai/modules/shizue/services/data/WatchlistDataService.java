@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class WatchlistDataService extends DataService<Watchlist, AnimeStatus, IWatchlist, WatchlistRepository, WatchlistProxyService> {
@@ -45,6 +46,18 @@ public class WatchlistDataService extends DataService<Watchlist, AnimeStatus, IW
     public void refreshAll() {
 
         this.refresh(this.fetchAll());
+    }
+
+    public void createAll() {
+
+        List<AnimeStatus> displayable = AnimeStatus.getDisplayable();
+        for (AnimeStatus status : displayable) {
+            Watchlist watchlist = this.getProxy().fetchEntity(status)
+                                      .orElse(new Watchlist(status));
+
+            this.getProxy().saveReload(watchlist);
+        }
+
     }
 
     public void refresh(AnimeStatus status) {

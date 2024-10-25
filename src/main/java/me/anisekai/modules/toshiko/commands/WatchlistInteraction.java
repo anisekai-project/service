@@ -21,7 +21,6 @@ public class WatchlistInteraction {
         this.service = service;
     }
 
-
     // <editor-fold desc="@ watchlist/refresh">
     @Interact(
             name = "watchlist/refresh",
@@ -32,6 +31,23 @@ public class WatchlistInteraction {
         PermissionUtils.requirePrivileges(sender);
         this.service.refreshAll();
         return new SimpleResponse("Les listes de visionnage vont être actualisées sous peu.", false, false);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ watchlist/init">
+    @Interact(
+            name = "watchlist/init",
+            description = Texts.WATCHLIST_INIT__DESCRIPTION
+    )
+    public SlashResponse runWatchlistInit(DiscordUser sender) {
+
+        PermissionUtils.requirePrivileges(sender);
+        this.service.createAll();
+        return new SimpleResponse(
+                "Les listes de visionnage ont été crées. Utilisez `/watchlist refresh` pour les envoyer.",
+                false,
+                false
+        );
     }
     // </editor-fold>
 

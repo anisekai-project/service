@@ -115,8 +115,12 @@ public final class Texts {
 
     // <editor-fold desc="@ watchlist/refresh">
     public static final String WATCHLIST_REFRESH__DESCRIPTION = "\uD83D\uDD12 Actualise les listes de visionnage";
-
     // </editor-fold>
+
+    // <editor-fold desc="@ watchlist/init">
+    public static final String WATCHLIST_INIT__DESCRIPTION = "\uD83D\uDD12 Initialise les listes de visionnage";
+    // </editor-fold>
+
 
     private Texts() {}
 
