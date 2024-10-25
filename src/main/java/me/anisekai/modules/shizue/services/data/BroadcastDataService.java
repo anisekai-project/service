@@ -95,7 +95,7 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
             broadcast.setScheduled(false);
             broadcast.setProgress(false);
         });
-        this.publisher.publishEvent(new RemoveBroadcastTask(guild, updated));
+        this.task.queue(new RemoveBroadcastTask(guild, updated));
         return true;
     }
 
