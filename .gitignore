@@ -1,4 +1,7 @@
-.docker/
+# Gradle exclusion
 .gradle/
-.env
 build/
+
+# Runtime exclusion
+data/
+.env
