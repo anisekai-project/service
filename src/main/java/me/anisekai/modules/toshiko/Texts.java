@@ -69,7 +69,7 @@ public final class Texts {
     public static final String BROADCAST_DELAY__DESCRIPTION     = "\uD83D\uDD12 Décale les évènements d'une plage.";
     public static final String BROADCAST_DELAY__OPTION_DELAY    = "De combien de temps les évènements présent dans l'intervale seront décalés (ex: 1h20m, 2d5h)";
     public static final String BROADCAST_DELAY__OPTION_RANGE    = "Intervale de temps dans lequel les évènements seront décalés. (ex: 1h20m, 2d5h) [Defaut: 6h]";
-    public static final String BROADCAST_DELAY__OPTION_STARTING = "Heure à partir de laquelle l'interval de décalage démarre (ex: 22:30, 23:00) [Defaut: (heure actuelle)]";
+    public static final String BROADCAST_DELAY__OPTION_STARTING = "Heure à partir de laquelle l'interval démarre (ex: 22:30, 23:00) [Defaut: (heure actuelle)]";
     // </editor-fold>
 
     // <editor-fold desc="@ broadcast/cancel">
