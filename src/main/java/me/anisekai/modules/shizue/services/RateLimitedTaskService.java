@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 @Service
+@Deprecated
 public class RateLimitedTaskService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RateLimitedTaskService.class);

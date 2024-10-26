@@ -1,46 +1,35 @@
 package me.anisekai.modules.shizue.services.data;
 
 import me.anisekai.api.persistence.helpers.DataService;
+import me.anisekai.globals.tasking.TaskingService;
+import me.anisekai.globals.tasking.factories.WatchlistTaskFactory;
 import me.anisekai.modules.linn.enums.AnimeStatus;
-import me.anisekai.modules.shizue.components.RankingHandler;
 import me.anisekai.modules.shizue.entities.Watchlist;
 import me.anisekai.modules.shizue.interfaces.entities.IWatchlist;
 import me.anisekai.modules.shizue.repositories.WatchlistRepository;
-import me.anisekai.modules.shizue.services.RateLimitedTaskService;
 import me.anisekai.modules.shizue.services.proxy.WatchlistProxyService;
-import me.anisekai.modules.toshiko.JdaStore;
-import me.anisekai.modules.toshiko.tasks.WatchlistTask;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 @Service
 public class WatchlistDataService extends DataService<Watchlist, AnimeStatus, IWatchlist, WatchlistRepository, WatchlistProxyService> {
 
-    private final RateLimitedTaskService rateLimitedTaskService;
-    private final RankingHandler         rankingHandler;
-    private final JdaStore               jdaStore;
+    private final TaskingService taskingService;
 
-    public WatchlistDataService(WatchlistProxyService proxy, RateLimitedTaskService rateLimitedTaskService, RankingHandler rankingHandler, JdaStore jdaStore) {
+    public WatchlistDataService(WatchlistProxyService proxy, TaskingService taskingService) {
 
         super(proxy);
-        this.rateLimitedTaskService = rateLimitedTaskService;
-        this.rankingHandler         = rankingHandler;
-        this.jdaStore               = jdaStore;
+        this.taskingService = taskingService;
     }
 
     public void refresh(Collection<Watchlist> statusList) {
 
-        TextChannel channel = this.jdaStore.getWatchlistChannel();
-
         statusList
                 .stream()
                 .sorted()
-                .map(watchlist -> new WatchlistTask(this, this.rankingHandler, watchlist, channel))
-                .forEach(this.rateLimitedTaskService::queue);
+                .forEach(status -> WatchlistTaskFactory.queue(this.taskingService, status.getId()));
     }
 
     public void refreshAll() {
@@ -50,14 +39,11 @@ public class WatchlistDataService extends DataService<Watchlist, AnimeStatus, IW
 
     public void createAll() {
 
-        List<AnimeStatus> displayable = AnimeStatus.getDisplayable();
-        for (AnimeStatus status : displayable) {
-            Watchlist watchlist = this.getProxy().fetchEntity(status)
-                                      .orElse(new Watchlist(status));
-
-            this.getProxy().saveReload(watchlist);
-        }
-
+        AnimeStatus.getDisplayable()
+                   .stream()
+                   .map(status -> this.getProxy().fetchEntity(status).orElseGet(() -> new Watchlist(status)))
+                   .map(this.getProxy()::saveReload)
+                   .forEach(status -> WatchlistTaskFactory.queue(this.taskingService, status.getId()));
     }
 
     public void refresh(AnimeStatus status) {

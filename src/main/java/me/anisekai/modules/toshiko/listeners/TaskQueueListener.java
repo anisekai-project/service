@@ -1,16 +1,13 @@
 package me.anisekai.modules.toshiko.listeners;
 
 import me.anisekai.api.persistence.events.EntityUpdatedEvent;
+import me.anisekai.globals.tasking.TaskingService;
+import me.anisekai.globals.tasking.factories.*;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.events.anime.*;
 import me.anisekai.modules.shizue.data.Task;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.events.broadcast.*;
-import me.anisekai.modules.shizue.services.RateLimitedTaskService;
-import me.anisekai.modules.linn.services.data.AnimeDataService;
-import me.anisekai.modules.shizue.services.data.BroadcastDataService;
-import me.anisekai.modules.toshiko.JdaStore;
-import me.anisekai.modules.toshiko.tasks.*;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -20,28 +17,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class TaskQueueListener {
 
-    private final RateLimitedTaskService service;
-    private final JdaStore               store;
+    private final TaskingService service;
 
-    private final AnimeDataService     animeService;
-    private final BroadcastDataService broadcastService;
+    public TaskQueueListener(TaskingService service) {
 
-    public TaskQueueListener(RateLimitedTaskService service, JdaStore store, AnimeDataService animeService, BroadcastDataService broadcastService) {
-
-        this.service          = service;
-        this.store            = store;
-        this.animeService     = animeService;
-        this.broadcastService = broadcastService;
+        this.service = service;
     }
 
     @EventListener
     public void onAnimeCreated(AnimeCreatedEvent event) {
 
         if (event.getEntity().getStatus().shouldDisplayList()) { // Only announce visible anime
-            this.service.queue(new SendAnnouncementTask(this.animeService, this.store, event.getEntity()));
+            AnnouncementCreateTaskFactory.queue(this.service, event.getEntity());
         }
-
-        this.service.queue(new AnimeCountTask(this.animeService, this.store.getWatchlistChannel()));
+        AnimeCountTaskFactory.queue(this.service);
     }
 
     @EventListener({
@@ -52,27 +41,23 @@ public class TaskQueueListener {
     })
     public void onAnimeUpdated(EntityUpdatedEvent<Anime, ?> event) {
 
-        this.service.queue(new UpdateAnnouncementTask(this.store, event.getEntity()));
+        AnnouncementUpdateTaskFactory.queue(this.service, event.getEntity());
     }
 
     @EventListener
     public void onAnimeStatusUpdated(AnimeStatusUpdatedEvent event) {
 
-        this.service.queue(new UpdateAnnouncementTask(this.store, event.getEntity()));
+        AnnouncementUpdateTaskFactory.queue(this.service, event.getEntity());
 
         if (event.getPrevious().shouldDisplayList() != event.getCurrent().shouldDisplayList()) {
-            this.service.queue(new AnimeCountTask(this.animeService, this.store.getWatchlistChannel()));
+            AnimeCountTaskFactory.queue(this.service);
         }
     }
 
     @EventListener
     public void onAnimeNightCreated(BroadcastCreatedEvent event) {
 
-        this.service.queue(new ScheduleAnimeNightTask(
-                this.broadcastService,
-                this.store.getBotGuild(),
-                event.getEntity()
-        ));
+        BroadcastScheduleTaskFactory.queue(this.service, event.getEntity());
     }
 
     @EventListener({
@@ -84,10 +69,7 @@ public class TaskQueueListener {
     })
     public void onAnimeNightUpdated(EntityUpdatedEvent<Broadcast, ?> event) {
 
-        this.service.queue(new UpdateBroadcastTask(
-                this.store.getBotGuild(),
-                event.getEntity()
-        ));
+        BroadcastUpdateTaskFactory.queue(this.service, event.getEntity());
     }
 
 }

@@ -6,18 +6,16 @@ import me.anisekai.api.plannifier.data.BookedSpot;
 import me.anisekai.api.plannifier.exceptions.GroupedScheduleException;
 import me.anisekai.api.plannifier.interfaces.Plannifiable;
 import me.anisekai.api.plannifier.interfaces.SchedulerManager;
+import me.anisekai.globals.tasking.TaskingService;
+import me.anisekai.globals.tasking.factories.BroadcastRemoveTaskFactory;
+import me.anisekai.globals.tasking.factories.BroadcastUpdateTaskFactory;
+import me.anisekai.globals.tasking.tasks.BroadcastUpdateTaskExecutor;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
 import me.anisekai.modules.shizue.repositories.BroadcastRepository;
-import me.anisekai.modules.shizue.services.RateLimitedTaskService;
 import me.anisekai.modules.shizue.services.proxy.BroadcastProxyService;
-import me.anisekai.modules.toshiko.JdaStore;
-import me.anisekai.modules.toshiko.tasks.RemoveBroadcastTask;
-import me.anisekai.modules.toshiko.tasks.UpdateBroadcastTask;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -38,16 +36,12 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
             ScheduledEvent.Status.UNKNOWN
     );
 
-    private final ApplicationEventPublisher publisher;
-    private final RateLimitedTaskService    task;
-    private final JdaStore                  store;
+    private final TaskingService taskingService;
 
-    public BroadcastDataService(BroadcastProxyService proxy, ApplicationEventPublisher publisher, RateLimitedTaskService task, JdaStore store) {
+    public BroadcastDataService(BroadcastProxyService proxy, TaskingService taskingService) {
 
         super(proxy);
-        this.publisher = publisher;
-        this.task      = task;
-        this.store     = store;
+        this.taskingService = taskingService;
     }
 
     public EventScheduler<Anime, IBroadcast, Broadcast> createScheduler() {
@@ -80,25 +74,22 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
     @Override
     public List<Broadcast> update(List<Broadcast> entities, Consumer<IBroadcast> updateHook) {
 
-        Guild guild = this.store.getBotGuild();
-
         return entities.stream()
                        .map(broadcast -> this.update(broadcast, updateHook))
-                       .peek(broadcast -> this.task.queue(new UpdateBroadcastTask(guild, broadcast)))
+                       .peek(broadcast -> BroadcastUpdateTaskFactory.queue(this.taskingService, broadcast))
                        .toList();
     }
 
     @Override
     public boolean delete(Broadcast entity) {
 
-        Guild guild = this.store.getBotGuild();
-
         // Tag the entity
         Broadcast updated = this.getProxy().modify(entity, broadcast -> {
             broadcast.setScheduled(false);
             broadcast.setProgress(false);
         });
-        this.task.queue(new RemoveBroadcastTask(guild, updated));
+
+        BroadcastRemoveTaskFactory.queue(this.taskingService, updated);
         return true;
     }
 
@@ -165,23 +156,18 @@ public class BroadcastDataService extends DataService<Broadcast, Long, IBroadcas
     }
 
     /**
-     * Queue {@link UpdateBroadcastTask} for each upcoming {@link Broadcast}, allowing to synchronize events on
+     * Queue {@link BroadcastUpdateTaskExecutor} for each upcoming {@link Broadcast}, allowing to synchronize events on
      * Discord.
      *
-     * @return The number of generated {@link UpdateBroadcastTask}.
+     * @return The number of generated {@link BroadcastUpdateTaskExecutor}.
      */
     public int refresh() {
-
-        Guild guild = this.store.getBotGuild();
 
         List<Broadcast> broadcasts = this.fetchAll(
                 repository -> repository.findAllByStatus(ScheduledEvent.Status.SCHEDULED)
         );
 
-        broadcasts.stream()
-                  .map(broadcast -> new UpdateBroadcastTask(guild, broadcast))
-                  .forEach(this.task::queue);
-
+        broadcasts.forEach(broadcast -> BroadcastUpdateTaskFactory.queue(this.taskingService, broadcast));
         return broadcasts.size();
     }
 
