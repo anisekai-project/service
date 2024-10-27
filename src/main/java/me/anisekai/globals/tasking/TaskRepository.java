@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    @Query("SELECT t FROM Task t WHERE t.state = :state ORDER BY t.createdAt ASC")
+    @Query("SELECT t FROM Task t WHERE t.state = :state ORDER BY t.createdAt ASC LIMIT 1")
     Optional<Task> getFirst(TaskState state);
 
     boolean existsByNameAndStateIn(String name, Collection<TaskState> state);
