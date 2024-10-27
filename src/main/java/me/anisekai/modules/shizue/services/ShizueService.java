@@ -18,10 +18,10 @@ public class ShizueService {
         this.seasonalVoterService     = seasonalVoterService;
     }
 
-    public ISeasonalSelection createNewSelection(String name) {
+    public ISeasonalSelection createNewSelection(String name, long votes) {
 
         SeasonalSelection seasonalSelection = this.seasonalSelectionService.open(name);
-        this.seasonalVoterService.create(seasonalSelection);
+        this.seasonalVoterService.create(seasonalSelection, votes);
         return this.seasonalSelectionService.fetch(seasonalSelection.getId());
     }
 

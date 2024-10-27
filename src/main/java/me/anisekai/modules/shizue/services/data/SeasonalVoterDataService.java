@@ -29,17 +29,17 @@ public class SeasonalVoterDataService extends DataService<SeasonalVoter, Seasona
         this.ranking     = ranking;
     }
 
-    public Set<SeasonalVoter> create(SeasonalSelection selection) {
+    public Set<SeasonalVoter> create(SeasonalSelection selection, long votes) {
 
-        Map<DiscordUser, Integer> voteAmount = new HashMap<>(7);
+        Map<DiscordUser, Integer> voteAmount = new HashMap<>();
 
         List<DiscordUser> voters = this.userService.getActive().stream()
                                                    .sorted(Comparator.comparing(this.ranking::getUserPower).reversed())
-                                                   .limit(7)
+                                                   .limit(votes)
                                                    .peek(user -> voteAmount.put(user, 0))
                                                    .toList();
 
-        int totalVotes = Math.min(7, selection.getAnimes().size());
+        long totalVotes = Math.min(votes, selection.getAnimes().size());
 
         while (totalVotes > 0) {
             for (DiscordUser voter : voters) {
