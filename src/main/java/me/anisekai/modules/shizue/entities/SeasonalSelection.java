@@ -162,10 +162,9 @@ public class SeasonalSelection implements ISeasonalSelection {
         return Objects.hash(this.getId());
     }
 
-    @PostLoad
-    public void onLoad() {
+    @PrePersist
+    public void onPersist() {
 
-        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
         this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 
