@@ -2,18 +2,17 @@ package me.anisekai.modules.linn.services.data;
 
 import me.anisekai.api.persistence.UpsertResult;
 import me.anisekai.api.persistence.helpers.DataService;
+import me.anisekai.globals.tasking.TaskingService;
+import me.anisekai.globals.tasking.factories.AnnouncementCreateTaskFactory;
+import me.anisekai.globals.tasking.factories.AnnouncementUpdateTaskFactory;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.linn.exceptions.anime.InvalidAnimeProgressException;
 import me.anisekai.modules.linn.interfaces.IAnime;
 import me.anisekai.modules.linn.repositories.AnimeRepository;
-import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
-import me.anisekai.modules.shizue.services.RateLimitedTaskService;
 import me.anisekai.modules.linn.services.proxy.AnimeProxyService;
-import me.anisekai.modules.toshiko.JdaStore;
-import me.anisekai.modules.toshiko.tasks.SendAnnouncementTask;
-import me.anisekai.modules.toshiko.tasks.UpdateAnnouncementTask;
+import me.anisekai.modules.shizue.interfaces.AnimeNightMeta;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -26,14 +25,12 @@ import java.util.function.Consumer;
 @Service
 public class AnimeDataService extends DataService<Anime, Long, IAnime, AnimeRepository, AnimeProxyService> {
 
-    private final RateLimitedTaskService rateLimitedTaskService;
-    private final JdaStore               jdaStore;
+    private final TaskingService taskingService;
 
-    public AnimeDataService(AnimeProxyService proxy, RateLimitedTaskService rateLimitedTaskService, JdaStore jdaStore) {
+    public AnimeDataService(AnimeProxyService proxy, TaskingService taskingService) {
 
         super(proxy);
-        this.rateLimitedTaskService = rateLimitedTaskService;
-        this.jdaStore               = jdaStore;
+        this.taskingService = taskingService;
     }
 
     public List<Anime> getSimulcasts() {
@@ -44,7 +41,8 @@ public class AnimeDataService extends DataService<Anime, Long, IAnime, AnimeRepo
     public Consumer<IAnime> tagWatching() {
 
         return anime -> anime.setStatus(switch (anime.getStatus()) {
-            case CANCELLED, WATCHED, WATCHING, DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED, NO_SOURCE, UNAVAILABLE -> AnimeStatus.WATCHING;
+            case CANCELLED, WATCHED, WATCHING, DOWNLOADED, DOWNLOADING, NOT_DOWNLOADED, NO_SOURCE,
+                 UNAVAILABLE -> AnimeStatus.WATCHING;
             case SIMULCAST, SIMULCAST_AVAILABLE -> AnimeStatus.SIMULCAST;
             case STORAGE_ONLY -> AnimeStatus.STORAGE_ONLY;
         });
@@ -79,12 +77,12 @@ public class AnimeDataService extends DataService<Anime, Long, IAnime, AnimeRepo
         };
     }
 
-    public void announce(Anime anime) {
+    public void announce(IAnime anime) {
 
         if (anime.getAnnounceMessage() == null) {
-            this.rateLimitedTaskService.queue(new SendAnnouncementTask(this, this.jdaStore, anime));
+            AnnouncementCreateTaskFactory.queue(this.taskingService, anime);
         } else {
-            this.rateLimitedTaskService.queue(new UpdateAnnouncementTask(this.jdaStore, anime));
+            AnnouncementUpdateTaskFactory.queue(this.taskingService, anime);
         }
     }
 

@@ -7,12 +7,18 @@ import fr.alexpado.jda.interactions.interfaces.interactions.InteractionResponseH
 import io.sentry.Sentry;
 import io.sentry.protocol.SentryId;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ToshikoErrorHandler implements InteractionErrorHandler {
 
@@ -25,7 +31,7 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
         builder.setTitle("Une erreur est survenue.");
         builder.setDescription("""
                                        Une erreur est survenue lors du traitement de cette action. Merci de réessayer.
-                                                                          
+                                       
                                        Si l'erreur persiste, merci de dire à <@149279150648066048> que c'est un mauvais développeur.
                                        """);
 
@@ -44,20 +50,50 @@ public class ToshikoErrorHandler implements InteractionErrorHandler {
     @Override
     public <T extends Interaction> void handleException(DispatchEvent<T> event, Exception exception) {
 
-        SentryId sentryId = null;
-        //noinspection ChainOfInstanceofChecks
-        if (!(exception instanceof DiscordEmbeddable)) {
-            sentryId = Sentry.captureException(exception); // Always report these.
-            LOGGER.error(event.getPath().toString(), exception);
-        }
-
         if (event.getInteraction() instanceof IReplyCallback callback) {
             if (exception instanceof DiscordEmbeddable embeddable) {
+                LOGGER.info("Interaction '{}' threw an embeddable exception.", event.getPath());
                 this.answer(callback, embeddable.asEmbed().build(), !embeddable.showToEveryone());
                 return;
             }
 
-            EmbedBuilder builder = buildEmbed(event, sentryId);
+            LOGGER.warn("Interaction '{}' threw an exception.", event.getPath());
+
+            AtomicReference<SentryId> sentryId = new AtomicReference<>(SentryId.EMPTY_ID);
+            Sentry.withScope(scope -> {
+                Map<String, Object> discord = new HashMap<>();
+                discord.put(
+                        "path",
+                        event.getPath()
+                );
+
+                discord.put(
+                        "interaction",
+                        event.getInteraction().getId()
+                );
+
+                discord.put(
+                        "user",
+                        event.getInteraction().getUser().getId()
+                );
+
+                discord.put(
+                        "guild",
+                        Optional.ofNullable(event.getInteraction().getGuild()).map(ISnowflake::getId).orElse(null)
+                );
+
+                discord.put(
+                        "channel",
+                        Optional.ofNullable(event.getInteraction().getChannel()).map(ISnowflake::getId).orElse(null)
+                );
+
+                scope.setContexts("interaction", discord);
+                scope.setContexts("options", event.getOptions());
+
+                sentryId.set(Sentry.captureException(exception));
+            });
+
+            EmbedBuilder builder = buildEmbed(event, sentryId.get());
             this.answer(callback, builder.build(), true);
         }
     }
