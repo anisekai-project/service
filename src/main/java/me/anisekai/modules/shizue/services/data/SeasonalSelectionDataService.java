@@ -4,8 +4,8 @@ import me.anisekai.api.persistence.helpers.DataService;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.entities.SeasonalSelection;
-import me.anisekai.modules.shizue.entities.SeasonalVoter;
-import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionCreated;
+import me.anisekai.modules.shizue.enums.SeasonalSelectionState;
+import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionCreatedEvent;
 import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
 import me.anisekai.modules.shizue.repositories.SeasonalSelectionRepository;
 import me.anisekai.modules.shizue.services.proxy.SeasonalSelectionProxyService;
@@ -36,21 +36,12 @@ public class SeasonalSelectionDataService extends DataService<SeasonalSelection,
             selection.setAnimes(animes);
             selection.setVoters(Collections.emptySet());
             selection.setVotes(Collections.emptySet());
-        }, SeasonalSelectionCreated::new);
-    }
-
-    public boolean canCloseSafely(ISeasonalSelection selection) {
-
-
-        int totalVoteAmount   = selection.getVoters().stream().mapToInt(SeasonalVoter::getAmount).sum();
-        int currentVoteAmount = selection.getVotes().size();
-
-        return currentVoteAmount == totalVoteAmount;
+        }, SeasonalSelectionCreatedEvent::new);
     }
 
     public SeasonalSelection close(long id) {
 
-        return this.mod(id, selection -> selection.setClosed(true));
+        return this.mod(id, selection -> selection.setState(SeasonalSelectionState.CLOSED));
     }
 
 }

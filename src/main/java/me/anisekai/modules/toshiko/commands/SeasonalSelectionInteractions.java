@@ -63,10 +63,8 @@ public class SeasonalSelectionInteractions {
     public SlashResponse runSeasonStart(IUser user, @Param("name") String name, @Param("votes") Long votes) {
 
         PermissionUtils.requirePrivileges(user);
-        ISeasonalSelection selection = this.shizueService.createNewSelection(
-                name,
-                Optional.ofNullable(votes).orElse(7L)
-        );
+        long               totalVotes = Optional.ofNullable(votes).orElse(7L);
+        ISeasonalSelection selection  = this.shizueService.createNewSelection(name, totalVotes);
         return new SeasonalSelectionEmbed(selection);
     }
     // </editor-fold>

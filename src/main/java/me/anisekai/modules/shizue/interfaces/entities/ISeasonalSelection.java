@@ -5,7 +5,8 @@ import me.anisekai.api.persistence.TriggerEvent;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.shizue.entities.SeasonalVote;
 import me.anisekai.modules.shizue.entities.SeasonalVoter;
-import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionClosedUpdatedEvent;
+import me.anisekai.modules.shizue.enums.SeasonalSelectionState;
+import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionStateUpdatedEvent;
 
 import java.util.Set;
 
@@ -27,9 +28,9 @@ public interface ISeasonalSelection extends IEntity<Long> {
 
     void setVotes(Set<SeasonalVote> votes);
 
-    boolean isClosed();
+    SeasonalSelectionState getState();
 
-    @TriggerEvent(SeasonalSelectionClosedUpdatedEvent.class)
-    void setClosed(boolean closed);
+    @TriggerEvent(SeasonalSelectionStateUpdatedEvent.class)
+    void setState(SeasonalSelectionState state);
 
 }

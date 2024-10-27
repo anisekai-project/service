@@ -1,6 +1,7 @@
 package me.anisekai.modules.shizue.services;
 
 import me.anisekai.modules.shizue.entities.SeasonalSelection;
+import me.anisekai.modules.shizue.enums.SeasonalSelectionState;
 import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
 import me.anisekai.modules.shizue.services.data.SeasonalSelectionDataService;
 import me.anisekai.modules.shizue.services.data.SeasonalVoterDataService;
@@ -21,6 +22,14 @@ public class ShizueService {
     public ISeasonalSelection createNewSelection(String name, long votes) {
 
         SeasonalSelection seasonalSelection = this.seasonalSelectionService.open(name);
+
+        if (seasonalSelection.getAnimes().size() <= votes) {
+            return this.seasonalSelectionService.mod(
+                    seasonalSelection.getId(),
+                    item -> item.setState(SeasonalSelectionState.AUTO_CLOSED)
+            );
+        }
+
         this.seasonalVoterService.create(seasonalSelection, votes);
         return this.seasonalSelectionService.fetch(seasonalSelection.getId());
     }
