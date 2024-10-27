@@ -103,7 +103,7 @@ public class TaskingService {
         }
 
         try (ITimedAction timer = ITimedAction.create()) {
-            timer.open(task.getFactory(), task.getName(), "Execution of the task");
+            timer.open("task", task.getFactory(), "Execution of the task");
 
             timer.action("Pre-Execution Hook", "Update basic task data");
             TaskFactory<?> factory  = optionalFactory.get();
