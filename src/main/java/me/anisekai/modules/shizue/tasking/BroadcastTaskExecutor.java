@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.tasks.commons;
+package me.anisekai.modules.shizue.tasking;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.alexpado.lib.rest.exceptions.RestException;

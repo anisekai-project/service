@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.tasks.commons;
+package me.anisekai.modules.linn.tasking;
 
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.modules.linn.interfaces.IAnime;

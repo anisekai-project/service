@@ -1,11 +1,11 @@
-package me.anisekai.globals.tasking.factories;
+package me.anisekai.modules.linn.tasking.factories;
 
 import jakarta.annotation.PostConstruct;
 import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.globals.tasking.tasks.AnimeCountTaskExecutor;
+import me.anisekai.modules.linn.tasking.executors.AnimeCountTaskExecutor;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.toshiko.JdaStore;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;

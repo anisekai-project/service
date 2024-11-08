@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.factories;
+package me.anisekai.modules.shizue.tasking.factories;
 
 import jakarta.annotation.PostConstruct;
 import me.anisekai.api.json.BookshelfJson;
@@ -6,8 +6,8 @@ import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.globals.tasking.tasks.BroadcastUpdateTaskExecutor;
-import me.anisekai.globals.tasking.tasks.commons.BroadcastTaskExecutor;
+import me.anisekai.modules.shizue.tasking.executors.BroadcastUpdateTaskExecutor;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
 import me.anisekai.modules.toshiko.JdaStore;

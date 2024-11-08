@@ -2,7 +2,7 @@ package me.anisekai.modules.shizue.services.data;
 
 import me.anisekai.api.persistence.helpers.DataService;
 import me.anisekai.globals.tasking.TaskingService;
-import me.anisekai.globals.tasking.factories.WatchlistTaskFactory;
+import me.anisekai.modules.toshiko.tasking.factories.WatchlistTaskFactory;
 import me.anisekai.modules.linn.enums.AnimeStatus;
 import me.anisekai.modules.shizue.entities.Watchlist;
 import me.anisekai.modules.shizue.interfaces.entities.IWatchlist;
