@@ -2,9 +2,9 @@ package me.anisekai.modules.shizue.tasking.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.utils.BroadcastUtils;
 import me.anisekai.modules.toshiko.JdaStore;
 import me.anisekai.modules.toshiko.Texts;
@@ -17,14 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.time.OffsetDateTime;
 
 @SuppressWarnings("DuplicatedCode")
-public class BroadcastScheduleTaskExector extends BroadcastTaskExecutor {
+public class BroadcastScheduleTaskExecutor extends BroadcastTaskExecutor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastScheduleTaskExector.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastScheduleTaskExecutor.class);
 
     private final BroadcastDataService service;
     private final JdaStore             store;
 
-    public BroadcastScheduleTaskExector(BroadcastDataService service, JdaStore store) {
+    public BroadcastScheduleTaskExecutor(BroadcastDataService service, JdaStore store) {
 
         this.service = service;
         this.store   = store;

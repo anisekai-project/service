@@ -6,15 +6,15 @@ import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.modules.shizue.tasking.executors.BroadcastScheduleTaskExector;
-import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
+import me.anisekai.modules.shizue.tasking.executors.BroadcastScheduleTaskExecutor;
 import me.anisekai.modules.toshiko.JdaStore;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastScheduleTaskExector> {
+public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastScheduleTaskExecutor> {
 
     public static final String               NAME = "broadcast:schedule";
     private final       TaskingService       service;
@@ -43,9 +43,9 @@ public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastSchedu
     }
 
     @Override
-    public Class<BroadcastScheduleTaskExector> getTaskClass() {
+    public Class<BroadcastScheduleTaskExecutor> getTaskClass() {
 
-        return BroadcastScheduleTaskExector.class;
+        return BroadcastScheduleTaskExecutor.class;
     }
 
     /**
@@ -65,9 +65,9 @@ public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastSchedu
      * @return A new {@link TaskExecutor} instance.
      */
     @Override
-    public BroadcastScheduleTaskExector create() {
+    public BroadcastScheduleTaskExecutor create() {
 
-        return new BroadcastScheduleTaskExector(this.broadcastService, this.store);
+        return new BroadcastScheduleTaskExecutor(this.broadcastService, this.store);
     }
 
     @PostConstruct
