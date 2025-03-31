@@ -1,5 +1,8 @@
 package me.anisekai.api.plannifier.interfaces;
 
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
+
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
@@ -28,14 +31,16 @@ public interface ScheduleSpotData<T extends WatchTarget> {
     void setStartingAt(ZonedDateTime time);
 
     /**
-     * Get the amount of episode that will be watched during this {@link ScheduleSpotData}. If not applicable, just return 1.
+     * Get the amount of episode that will be watched during this {@link ScheduleSpotData}. If not applicable, just
+     * return 1.
      *
      * @return The amount of episode that will be watched.
      */
     long getEpisodeCount();
 
     /**
-     * Set the amount of episode that will be watched during this {@link ScheduleSpotData}. If not applicable, just set 1.
+     * Set the amount of episode that will be watched during this {@link ScheduleSpotData}. If not applicable, just set
+     * 1.
      *
      * @param episodeCount
      *         The amount of episode that will be watched.

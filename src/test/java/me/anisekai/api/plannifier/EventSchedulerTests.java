@@ -3,9 +3,9 @@ package me.anisekai.api.plannifier;
 import me.anisekai.api.plannifier.data.*;
 import me.anisekai.api.plannifier.exceptions.DelayOverlapException;
 import me.anisekai.api.plannifier.exceptions.NotSchedulableException;
-import me.anisekai.api.plannifier.interfaces.Plannifiable;
 import me.anisekai.api.plannifier.interfaces.Scheduler;
 import me.anisekai.api.plannifier.interfaces.SchedulerManager;
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
@@ -62,7 +62,7 @@ public class EventSchedulerTests {
     }
 
     private Scheduler<TestWatchTarget, TestWatchParty, TestWatchParty> scheduler;
-    private TestData                                   data;
+    private TestData                                                   data;
 
     @BeforeEach
     public void setup() {
@@ -235,11 +235,13 @@ public class EventSchedulerTests {
     @DisplayName("Scheduler | Delaying - Conflict")
     public void testDelayConflict() {
 
-        Assertions.assertThrows(DelayOverlapException.class, () -> this.scheduler.delay(
-                TestData.BASE_DATETIME,
-                Duration.ofMinutes(60),
-                Duration.between(this.data.partyA1.getStartingAt(), this.data.partyB1.getStartingAt())
-        ));
+        Assertions.assertThrows(
+                DelayOverlapException.class, () -> this.scheduler.delay(
+                        TestData.BASE_DATETIME,
+                        Duration.ofMinutes(60),
+                        Duration.between(this.data.partyA1.getStartingAt(), this.data.partyB1.getStartingAt())
+                )
+        );
     }
 
     @Test
@@ -278,7 +280,7 @@ public class EventSchedulerTests {
     @DisplayName("Scheduler | Calibration - Upstream @ Update Only")
     public void testCalibrationUpstreamUpdateOnly() {
 
-        this.data.target1.setEpisodeWatched(1);
+        this.data.target1.setWatched(1);
         CalibrationResult res = Assertions.assertDoesNotThrow(() -> this.scheduler.calibrate());
 
         Assertions.assertEquals(3, res.getUpdateCount(), "Unexpected count of updates");
@@ -299,7 +301,7 @@ public class EventSchedulerTests {
     @DisplayName("Scheduler | Calibration - Upstream @ Delete Only")
     public void testCalibrationUpstreamDeleteOnly() {
 
-        this.data.target1.setEpisodeWatched(12);
+        this.data.target1.setWatched(12);
         CalibrationResult res = Assertions.assertDoesNotThrow(() -> this.scheduler.calibrate());
 
         Assertions.assertEquals(0, res.getUpdateCount(), "Unexpected count of updates");
@@ -317,7 +319,7 @@ public class EventSchedulerTests {
     @DisplayName("Scheduler | Calibration - Upstream @ Update + Delete")
     public void testCalibrationUpstreamUpdateDelete() {
 
-        this.data.target1.setEpisodeWatched(11);
+        this.data.target1.setWatched(11);
         CalibrationResult res = Assertions.assertDoesNotThrow(() -> this.scheduler.calibrate());
 
         Assertions.assertEquals(1, res.getUpdateCount(), "Unexpected count of updates");
@@ -338,7 +340,7 @@ public class EventSchedulerTests {
     @DisplayName("Scheduler | Calibration - Upstream @ Update + Delete + Shrink")
     public void testCalibrationUpstreamUpdateDeleteShrink() {
 
-        this.data.target1.setEpisodeWatched(11);
+        this.data.target1.setWatched(11);
         CalibrationResult res = Assertions.assertDoesNotThrow(() -> this.scheduler.calibrate());
 
         Assertions.assertEquals(1, res.getUpdateCount(), "Unexpected count of updates");

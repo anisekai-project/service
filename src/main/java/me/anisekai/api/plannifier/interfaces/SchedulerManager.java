@@ -1,5 +1,8 @@
 package me.anisekai.api.plannifier.interfaces;
 
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
+
 import java.util.List;
 import java.util.function.Consumer;
 

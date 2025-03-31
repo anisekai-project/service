@@ -5,9 +5,13 @@ import me.anisekai.api.plannifier.data.CalibrationResult;
 import me.anisekai.api.plannifier.exceptions.DelayOverlapException;
 import me.anisekai.api.plannifier.exceptions.InvalidSchedulingDurationException;
 import me.anisekai.api.plannifier.exceptions.NotSchedulableException;
-import me.anisekai.api.plannifier.interfaces.*;
-import me.anisekai.globals.utils.DateTimeUtils;
-import me.anisekai.globals.utils.collectors.MapCollector;
+import me.anisekai.api.plannifier.interfaces.ScheduleSpotData;
+import me.anisekai.api.plannifier.interfaces.Scheduler;
+import me.anisekai.api.plannifier.interfaces.SchedulerManager;
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
+import me.anisekai.utils.DateTimeUtils;
+import me.anisekai.utils.MapCollector;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -84,7 +88,7 @@ public class EventScheduler<T extends WatchTarget, I extends Plannifiable<T>, E 
     }
 
     private final SchedulerManager<T, I, E> manager;
-    private final Set<E>                 state;
+    private final Set<E>                    state;
 
     /**
      * Create a new instance of {@link Scheduler} using the provided {@link SchedulerManager}.
@@ -201,7 +205,9 @@ public class EventScheduler<T extends WatchTarget, I extends Plannifiable<T>, E 
 
         Duration duration = spot.getDuration();
 
-        if (duration.isNegative() || duration.isZero()) throw new InvalidSchedulingDurationException();
+        if (duration.isNegative() || duration.isZero()) {
+            throw new InvalidSchedulingDurationException();
+        }
 
         boolean prevOverlap = this.findPrevious(spot.getStartingAt())
                                   .map(item -> this.isOverlapping(spot, item))
@@ -271,13 +277,15 @@ public class EventScheduler<T extends WatchTarget, I extends Plannifiable<T>, E 
             long newCount = next.getEpisodeCount() + spot.getEpisodeCount();
             long firstEpisode = optTargetPrev
                     .map(item -> item.getFirstEpisode() + item.getEpisodeCount())
-                    .orElseGet(() -> spot.getWatchTarget().getEpisodeWatched() + 1);
+                    .orElseGet(() -> spot.getWatchTarget().getWatched() + 1);
 
-            E updated = this.getManager().update(next, item -> {
-                item.setFirstEpisode(firstEpisode);
-                item.setEpisodeCount(newCount);
-                item.setStartingAt(spot.getStartingAt());
-            });
+            E updated = this.getManager().update(
+                    next, item -> {
+                        item.setFirstEpisode(firstEpisode);
+                        item.setEpisodeCount(newCount);
+                        item.setStartingAt(spot.getStartingAt());
+                    }
+            );
 
             // Copy to keep internal state updated.
             next.setFirstEpisode(firstEpisode);
@@ -362,14 +370,14 @@ public class EventScheduler<T extends WatchTarget, I extends Plannifiable<T>, E 
                                             .stream()
                                             .map(ScheduleSpotData::getWatchTarget)
                                             .distinct()
-                                            .collect(new MapCollector<>(WatchTarget::getEpisodeCount));
+                                            .collect(new MapCollector<>(WatchTarget::getTotal));
 
         // Store the progress for each target
         Map<T, Long> targetProgression = this.getState()
                                              .stream()
                                              .map(ScheduleSpotData::getWatchTarget)
                                              .distinct()
-                                             .collect(new MapCollector<>(WatchTarget::getEpisodeWatched));
+                                             .collect(new MapCollector<>(WatchTarget::getWatched));
 
         List<E> sorted = this.getState()
                              .stream()
@@ -398,11 +406,13 @@ public class EventScheduler<T extends WatchTarget, I extends Plannifiable<T>, E 
             // If we require at least one thing to be updated, start the update
             if (!correctEpisodeCount || !correctFirstEpisode) {
 
-                this.getManager().update(event, item -> {
+                this.getManager().update(
+                        event, item -> {
 
-                    item.setFirstEpisode(fixedFirstEpisode);
-                    item.setEpisodeCount(fixedEpisodeCount);
-                });
+                            item.setFirstEpisode(fixedFirstEpisode);
+                            item.setEpisodeCount(fixedEpisodeCount);
+                        }
+                );
 
                 event.setFirstEpisode(fixedFirstEpisode);
                 event.setEpisodeCount(fixedEpisodeCount);

@@ -1,10 +1,9 @@
 package me.anisekai.api.persistence;
 
 import me.anisekai.api.persistence.events.EntityUpdatedEvent;
-import me.anisekai.globals.utils.ReflectionUtils;
+import me.anisekai.utils.ReflectionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -96,10 +95,11 @@ public class EventProxy<I extends IEntity<?>, E extends I> implements Invocation
                 TriggerEvent trigger = method.getAnnotation(TriggerEvent.class);
 
                 try {
-                    this.events.put(method, (EntityUpdatedEvent<E, ?>) trigger
-                            .value()
-                            .getConstructor(Object.class, this.entity.getClass(), type, type)
-                            .newInstance(this, this.entity, previous, next)
+                    this.events.put(
+                            method, (EntityUpdatedEvent<E, ?>) trigger
+                                    .value()
+                                    .getConstructor(Object.class, this.entity.getClass(), type, type)
+                                    .newInstance(this, this.entity, previous, next)
                     );
                 } catch (NoSuchMethodException e) {
                     throw new IllegalStateException(String.format(

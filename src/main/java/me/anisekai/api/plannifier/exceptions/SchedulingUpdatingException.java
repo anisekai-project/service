@@ -1,6 +1,6 @@
 package me.anisekai.api.plannifier.exceptions;
 
-import me.anisekai.globals.exceptions.SilentDiscordException;
+import me.anisekai.discord.exceptions.SilentDiscordException;
 import org.jetbrains.annotations.NotNull;
 
 public class SchedulingUpdatingException extends SilentDiscordException {

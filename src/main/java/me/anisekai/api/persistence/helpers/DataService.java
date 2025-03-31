@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.ListCrudRepository;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -112,7 +113,22 @@ public class DataService<E extends I, ID extends Serializable, I extends IEntity
      */
     public E mod(ID id, Consumer<I> consumer) {
 
-        return this.proxy.modify(id, consumer);
+        return this.mod(id, Collections.singleton(consumer));
+    }
+
+    /**
+     * Modify the entity matching the id using the provided collection of consumers.
+     *
+     * @param id
+     *         The entity's id.
+     * @param consumers
+     *         Consumers allowing to modify the entity.
+     *
+     * @return The updated entity.
+     */
+    public E mod(ID id, Iterable<Consumer<I>> consumers) {
+
+        return this.proxy.modify(id, entity -> consumers.forEach(consumer -> consumer.accept(entity)));
     }
 
     /**
@@ -127,7 +143,57 @@ public class DataService<E extends I, ID extends Serializable, I extends IEntity
      */
     public E mod(Function<R, Optional<E>> selector, Consumer<I> consumer) {
 
-        return this.proxy.modify(selector, consumer);
+        return this.mod(selector, Collections.singleton(consumer));
     }
+
+    /**
+     * Modify the entity returned by the selector using the provided collection of consumer.
+     *
+     * @param selector
+     *         The repository selector.
+     * @param consumers
+     *         Consumers allowing to modify the entity.
+     *
+     * @return The updated entity.
+     */
+    public E mod(Function<R, Optional<E>> selector, Iterable<Consumer<I>> consumers) {
+
+        return this.proxy.modify(selector, entity -> consumers.forEach(consumer -> consumer.accept(entity)));
+    }
+
+    /**
+     * Modify the entities returned by the selector using the provided consumer.
+     *
+     * @param selector
+     *         The repository selector.
+     * @param consumer
+     *         Consumer allowing to modify the entity.
+     *
+     * @return The updated entity.
+     */
+    public List<E> batch(Function<R, List<E>> selector, Consumer<I> consumer) {
+
+        return this.batch(selector, Collections.singleton(consumer));
+    }
+
+    /**
+     * Modify the entities returned by the selector using the provided collection of consumer.
+     *
+     * @param selector
+     *         The repository selector.
+     * @param consumers
+     *         Consumers allowing to modify the entity.
+     *
+     * @return The updated entity.
+     */
+    public List<E> batch(Function<R, List<E>> selector, Iterable<Consumer<I>> consumers) {
+
+        return this.proxy.batch(
+                selector, entities -> {
+                    entities.forEach(entity -> consumers.forEach(consumer -> consumer.accept(entity)));
+                }
+        );
+    }
+
 
 }

@@ -5,6 +5,7 @@ import fr.alexpado.lib.rest.enums.RequestMethod;
 import fr.alexpado.lib.rest.exceptions.RestException;
 import fr.alexpado.lib.rest.interfaces.IRestAction;
 import fr.alexpado.lib.rest.interfaces.IRestResponse;
+import me.anisekai.api.json.BookshelfArray;
 import me.anisekai.api.json.BookshelfJson;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,11 +30,35 @@ public class TransmissionClient {
         this.endpoint = endpoint;
     }
 
+    /**
+     * Retrieve the RPC Endpoint for the transmission daemon server.
+     *
+     * @return An url
+     */
+    public String getEndpoint() {
+
+        return this.endpoint;
+    }
+
+    /**
+     * @return An optional session id for authenticating with transmission daemon server.
+     */
     private Optional<String> getSessionId() {
 
         return Optional.ofNullable(this.sessionId);
     }
 
+    /**
+     * Send the provided {@link BookshelfJson} to the transmission daemon server.
+     *
+     * @param data
+     *         {@link BookshelfJson} to send
+     *
+     * @return The query response
+     *
+     * @throws Exception
+     *         Thrown if the query to the server fails.
+     */
     private BookshelfJson sendPacket(BookshelfJson data) throws Exception {
 
         boolean isSessionCall = data.getString("method").equals("session-get");
@@ -92,15 +117,29 @@ public class TransmissionClient {
         }
     }
 
-    public BookshelfJson getSession() throws Exception {
+    /**
+     * Refresh, if necessary, the session to the remote transmission daemon server.
+     *
+     * @throws Exception
+     *         Thrown if the query to the server fails.
+     */
+    public void getSession() throws Exception {
 
         BookshelfJson packetData = new BookshelfJson();
         packetData.put("method", "session-get");
 
-        return this.sendPacket(packetData);
+        this.sendPacket(packetData);
     }
 
-    public BookshelfJson getTorrents() throws Exception {
+    /**
+     * Retrieve a {@link Set} of {@link TransmissionTorrent} from the remote transmission daemon server.
+     *
+     * @return A {@link Set} of {@link TransmissionTorrent}.
+     *
+     * @throws Exception
+     *         Thrown if the query to the server fails.
+     */
+    public Set<TransmissionTorrent> queryTorrents() throws Exception {
 
         if (this.getSessionId().isEmpty()) {
             this.getSession();
@@ -110,10 +149,35 @@ public class TransmissionClient {
         packetData.put("method", "torrent-get");
         packetData.put("arguments.fields", DEFAULT_TORRENT_FIELDS);
 
-        return this.sendPacket(packetData);
+        BookshelfJson response = this.sendPacket(packetData);
+        String        status   = response.getString("result");
+
+        if (!status.equals("success")) {
+            throw new IllegalStateException("Transmission failed to query torrents: Response was " + status);
+        }
+
+        BookshelfJson            arguments  = response.readBookshelfJson("arguments");
+        BookshelfArray           torrents   = arguments.readBookshelfArray("torrents");
+        Set<TransmissionTorrent> torrentSet = new HashSet<>();
+
+        torrents.forEachJson(data -> torrentSet.add(new TransmissionTorrent(data)));
+        return torrentSet;
     }
 
-    public BookshelfJson startTorrent(String source) throws Exception {
+    /**
+     * Offer the provided {@link NyaaRssEntry} to the transmission daemon server.
+     *
+     * @param nyaaRssEntry
+     *         The {@link NyaaRssEntry} to download.
+     *
+     * @return The server response.
+     *
+     * @throws Exception
+     *         Thrown if the query to the server fails.
+     * @throws IllegalStateException
+     *         Thrown if the response indicate a failure or if the response was not parsable.
+     */
+    public TransmissionTorrent offerTorrent(NyaaRssEntry nyaaRssEntry) throws Exception {
 
         if (this.getSessionId().isEmpty()) {
             this.getSession();
@@ -121,9 +185,27 @@ public class TransmissionClient {
 
         BookshelfJson packetData = new BookshelfJson();
         packetData.put("method", "torrent-add");
-        packetData.put("arguments.filename", source);
+        packetData.put("arguments.filename", nyaaRssEntry.getLink());
 
-        return this.sendPacket(packetData);
+        BookshelfJson response = this.sendPacket(packetData);
+        String        result   = response.getString("result");
+
+        if (!result.equals("success")) {
+            throw new IllegalStateException("Transmission client failed to start torrent");
+        }
+
+        BookshelfJson arguments = response.readBookshelfJson("arguments");
+        BookshelfJson torrent;
+
+        if (arguments.has("torrent-duplicate")) {
+            torrent = arguments.readBookshelfJson("torrent-duplicate");
+        } else if (arguments.has("torrent-added")) {
+            torrent = arguments.readBookshelfJson("torrent-added");
+        } else {
+            throw new IllegalStateException("Transmission client failed to read server response.");
+        }
+
+        return new TransmissionTorrent(torrent);
     }
 
 

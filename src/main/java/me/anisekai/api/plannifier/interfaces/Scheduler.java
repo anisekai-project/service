@@ -1,6 +1,8 @@
 package me.anisekai.api.plannifier.interfaces;
 
 import me.anisekai.api.plannifier.data.CalibrationResult;
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;

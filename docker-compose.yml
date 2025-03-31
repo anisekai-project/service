@@ -18,9 +18,11 @@ services:
       - mariadb
       - transmission
     volumes:
-      - './data/library:/app/library'
+      - './data/torrents:/mnt/anisekai/torrents'
+      - './data/web:/mnt/anisekai/web'
   mariadb:
-    image: 'mariadb:10.8'
+    image: 'mariadb:lts-ubi'
+    user: '1000:1000'
     ports:
       - '10001:${DB_PORT}'
     environment:
@@ -37,6 +39,18 @@ services:
       test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
       retries: 3
       timeout: 5s
+  flood:
+    hostname: flood
+    image: jesec/flood
+    user: '1000:1000'
+    restart: unless-stopped
+    volumes:
+      - 'anisekai:/home/node/.local/share/flood'
+      - './data/torrents:/data'
+    ports:
+      - '10002:3000'
+    networks:
+      - anisekai
   transmission:
     build:
       context: .
@@ -50,7 +64,7 @@ services:
       - anisekai
     volumes:
       - './data/transmission:/app/data'
-      - './data/library/downloads:/app/downloads'
+      - './data/torrents:/app/downloads'
 networks:
   anisekai:
     driver: bridge

@@ -120,6 +120,56 @@ public abstract class ProxyService<E extends I, ID extends Serializable, I exten
     }
 
     /**
+     * Retrieve an entity that has been updated or created using the consumer provided.
+     *
+     * @param id
+     *         Id of the entity to "upsert"
+     * @param eventCreator
+     *         BiFunction to use to instantiate a creation event to publish
+     * @param upsert
+     *         Consumer used when an entity is created or updated
+     *
+     * @return An up-to-date entity, whether it has been created or only updated.
+     */
+    public E upsertEntity(ID id, BiFunction<Object, E, ? extends EntityCreatedEvent<E>> eventCreator, Consumer<I> upsert) {
+
+        return this.upsertEntity(id, eventCreator, upsert, upsert);
+    }
+
+    public E upsertEntity(Function<R, Optional<E>> retriever, BiFunction<Object, E, ? extends EntityCreatedEvent<E>> eventCreator, Consumer<I> upsert) {
+
+        return this.upsertEntity(retriever, eventCreator, upsert, upsert);
+    }
+
+    /**
+     * Retrieve an entity that has been updated using the updater consumer or an entity created using the initializer if
+     * no entity of the provided id was found.
+     *
+     * @param id
+     *         Id of the entity to "upsert"
+     * @param eventCreator
+     *         BiFunction to use to instantiate a creation event to publish
+     * @param initializer
+     *         Consumer used when an entity is created
+     * @param updater
+     *         Consumer used when an entity is updated
+     *
+     * @return An up-to-date entity, whether it has been created or only updated.
+     */
+    public E upsertEntity(ID id, BiFunction<Object, E, ? extends EntityCreatedEvent<E>> eventCreator, Consumer<I> initializer, Consumer<I> updater) {
+
+        return this.upsertEntity(repo -> repo.findById(id), eventCreator, initializer, updater);
+    }
+
+    public E upsertEntity(Function<R, Optional<E>> retriever, BiFunction<Object, E, ? extends EntityCreatedEvent<E>> eventCreator, Consumer<I> initializer, Consumer<I> updater) {
+
+        return this.fetchEntity(retriever)
+                   .map(entity -> this.modify(entity, updater))
+                   .orElseGet(() -> this.create(initializer, eventCreator));
+    }
+
+
+    /**
      * Retrieve an optional entity from the provided repository selector.
      *
      * @param selector

@@ -1,0 +1,89 @@
+package me.anisekai.discord.tasks.broadcast.schedule;
+
+import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import me.anisekai.api.json.BookshelfJson;
+import me.anisekai.discord.JDAStore;
+import me.anisekai.discord.tasks.broadcast.BroadcastTask;
+import me.anisekai.server.entities.Broadcast;
+import me.anisekai.server.enums.BroadcastStatus;
+import me.anisekai.server.services.BroadcastService;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.ScheduledEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class BroadcastScheduleTask extends BroadcastTask {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastScheduleTask.class);
+
+    public BroadcastScheduleTask(JDAStore store, BroadcastService service) {
+
+        super(store, service);
+    }
+
+    /**
+     * Run this task.
+     *
+     * @param timer
+     *         The timer to use to mesure performance of the task.
+     * @param params
+     *         The parameters of this task.
+     *
+     * @throws Exception
+     *         Thew if something happens.
+     */
+    @Override
+    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+
+        Broadcast broadcast = this.getService().fetch(params.getLong(OPT_BROADCAST));
+        EventData data      = this.getEventData(broadcast);
+        Guild     guild     = this.getGuild();
+
+        if (broadcast.getStatus() == BroadcastStatus.ACTIVE) {
+            throw new IllegalStateException("Can't update or schedule an active broadcast.");
+        }
+
+        if (broadcast.getStatus() == BroadcastStatus.COMPLETED) {
+            throw new IllegalStateException("Can't update or schedule an completed broadcast.");
+        }
+
+        if (broadcast.getStatus() == BroadcastStatus.CANCELED) {
+            throw new IllegalStateException("Can't update or schedule an canceled broadcast.");
+        }
+
+        if (broadcast.getEventId() != null) {
+            // Just refresh the existing event.
+            ScheduledEvent event = guild.getScheduledEventById(broadcast.getEventId());
+
+            if (event == null) {
+                throw new IllegalStateException("Could not find the associated scheduled event.");
+            }
+
+            event.getManager()
+                 .setName(data.title)
+                 .setLocation("Anisekai")
+                 .setDescription(data.description)
+                 .setStartTime(data.startTime)
+                 .setEndTime(data.endTime)
+                 .setImage(data.icon)
+                 .complete();
+
+            return;
+        }
+
+        ScheduledEvent event = guild
+                .createScheduledEvent(data.title, "Anisekai", data.startTime, data.endTime)
+                .setDescription(data.description)
+                .setImage(data.icon)
+                .complete();
+
+        this.getService().mod(
+                broadcast.getId(),
+                entity -> {
+                    entity.setEventId(event.getIdLong());
+                    entity.setStatus(BroadcastStatus.SCHEDULED);
+                }
+        );
+    }
+
+}

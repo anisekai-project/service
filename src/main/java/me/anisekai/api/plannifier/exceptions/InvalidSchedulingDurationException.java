@@ -1,18 +1,42 @@
 package me.anisekai.api.plannifier.exceptions;
 
-import me.anisekai.globals.exceptions.SilentDiscordException;
-import org.jetbrains.annotations.NotNull;
+import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
+import net.dv8tion.jda.api.EmbedBuilder;
 
-public class InvalidSchedulingDurationException extends SilentDiscordException {
+import java.awt.*;
+
+public class InvalidSchedulingDurationException extends RuntimeException implements DiscordEmbeddable {
 
     public InvalidSchedulingDurationException() {
+
         super("Unable to schedule an event with an invalid duration.");
     }
 
+    /**
+     * Retrieve an {@link EmbedBuilder} representing this {@link DiscordEmbeddable}.
+     *
+     * @return An {@link EmbedBuilder}.
+     */
     @Override
-    public @NotNull String getFriendlyMessage() {
+    public EmbedBuilder asEmbed() {
 
-        return "Impossible de plannifier un évènement avec une durée invalide.";
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setDescription("Impossible de plannifier un évènement avec une durée invalide.");
+        embed.setColor(Color.RED);
+
+        return embed;
+    }
+
+    /**
+     * In case this {@link DiscordEmbeddable} is an {@link Exception}, check if the message should be displayed to
+     * everyone. If {@code false}, the message will be ephemeral.
+     *
+     * @return True if public, false otherwise.
+     */
+    @Override
+    public boolean showToEveryone() {
+
+        return true;
     }
 
 }

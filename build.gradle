@@ -1,11 +1,11 @@
 import java.nio.charset.StandardCharsets
 
 plugins {
-    id 'org.springframework.boot' version '3.3.5'
-    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
-    id 'com.github.ben-manes.versions' version '0.51.0'
-    id 'org.ajoberstar.reckon' version '0.18.3'
+    id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'org.ajoberstar.reckon' version '0.19.1'
 }
 
 def generalCharset = StandardCharsets.UTF_8.name()
@@ -46,13 +46,10 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set('sentryVersion', "7.6.0")
-}
-
 dependencies {
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -60,13 +57,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.18.0'
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.5.0'
 
-    runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.0'
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '10.21.0'
-    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '10.21.0'
+    runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.3'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.5.0'
+    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.5.0'
 
-    implementation group: 'net.dv8tion', name: 'JDA', version: '5.2.1'
+    implementation group: 'net.dv8tion', name: 'JDA', version: '5.3.1'
 
     implementation group: 'fr.alexpado', name: 'simple-http-client', version: '1.1.2'
     implementation(group: 'fr.alexpado', name: 'jda-interactions-extension', version: '1.0.0-rc.2') {
@@ -74,18 +71,12 @@ dependencies {
     }
 
     implementation group: 'com.github.slugify', name: 'slugify', version: '3.0.7'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.18.1'
-    implementation group: 'org.json', name: 'json', version: '20240303'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.19.1'
+    implementation group: 'org.json', name: 'json', version: '20250107'
 
-    implementation group: 'org.jetbrains', name: 'annotations', version: '26.0.1'
+    implementation group: 'org.jetbrains', name: 'annotations', version: '26.0.2'
 
     implementation group: 'rome', name: 'rome', version: '1.0'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "io.sentry:sentry-bom:${sentryVersion}"
-    }
 }
 
 test {

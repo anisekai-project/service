@@ -1,2 +1,0 @@
-ALTER TABLE `anime_night`
-    ADD `status` VARCHAR(255) NOT NULL DEFAULT 'COMPLETED';

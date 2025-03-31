@@ -19,7 +19,7 @@ public final class MkvExtract {
         exec(Arrays.asList(params));
     }
 
-    private static void exec(List<String> params) throws Exception {
+    private static void exec(Collection<String> params) throws Exception {
 
         Runtime      runtime = Runtime.getRuntime();
         List<String> args    = new ArrayList<>();
@@ -30,7 +30,7 @@ public final class MkvExtract {
         process.waitFor(5, TimeUnit.MINUTES);
     }
 
-    public static Map<MediaTrack, File> extractTracks(MediaFile media, Set<MediaTrack> tracks) throws Exception {
+    public static Map<MediaTrack, File> extractTracks(MediaFile media, Collection<MediaTrack> tracks) throws Exception {
 
         if (!media.getTracks().containsAll(tracks)) {
             throw new IllegalArgumentException("One or more tracks provided are not part of the media file.");
@@ -53,14 +53,16 @@ public final class MkvExtract {
             throw new IllegalArgumentException("Unable to extract some tracks (" + report + ")");
         }
 
-        List<String> params = new ArrayList<>();
+        Collection<String> params = new ArrayList<>();
         params.add(media.getFile().getAbsolutePath());
         params.add("tracks");
 
         Map<MediaTrack, File> mapping         = new HashMap<>();
         String                mediaName       = media.getFile().getName();
         String                mediaNameNoExt  = mediaName.substring(0, mediaName.lastIndexOf('.'));
-        File                  outputDirectory = media.getFile().getParentFile();
+        File                  outputDirectory = new File(media.getFile().getParentFile(), mediaNameNoExt);
+
+        outputDirectory.mkdirs();
 
         for (MediaTrack track : tracks) {
             // Output file (ex: 08.0.audio.jpn.aac)

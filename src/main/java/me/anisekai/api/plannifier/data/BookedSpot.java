@@ -1,7 +1,7 @@
 package me.anisekai.api.plannifier.data;
 
 import me.anisekai.api.plannifier.interfaces.ScheduleSpotData;
-import me.anisekai.api.plannifier.interfaces.WatchTarget;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
 
 import java.time.ZonedDateTime;
 
@@ -54,8 +54,7 @@ public class BookedSpot<T extends WatchTarget> implements ScheduleSpotData<T> {
 
     /**
      * Get the amount of episode that will be watched during this {@link ScheduleSpotData}. If not applicable, just
-     * return
-     * 1.
+     * return 1.
      *
      * @return The amount of episode that will be watched.
      */

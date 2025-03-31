@@ -1,8 +1,8 @@
 package me.anisekai.api.plannifier.data;
 
-import me.anisekai.api.plannifier.interfaces.Plannifiable;
 import me.anisekai.api.plannifier.interfaces.ScheduleSpotData;
-import me.anisekai.api.plannifier.interfaces.WatchTarget;
+import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
 
 import java.time.ZonedDateTime;
 
@@ -16,7 +16,7 @@ public class BookedPlannifiable<T extends WatchTarget> implements Plannifiable<T
 
     public BookedPlannifiable(ScheduleSpotData<T> scheduleSpotData) {
 
-        this(scheduleSpotData, scheduleSpotData.getWatchTarget().getEpisodeWatched() + 1);
+        this(scheduleSpotData, scheduleSpotData.getWatchTarget().getWatched() + 1);
     }
 
     public BookedPlannifiable(ScheduleSpotData<T> scheduleSpotData, long firstEpisode) {

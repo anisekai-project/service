@@ -24,7 +24,10 @@ public interface IEntity<PK extends Serializable> {
      * @param id
      *         The primary key.
      */
-    void setId(PK id);
+    default void setId(PK id) {
+
+        throw new UnsupportedOperationException("Cannot change ID of an entity");
+    }
 
     /**
      * Retrieve this {@link IEntity} creation date.
@@ -39,7 +42,10 @@ public interface IEntity<PK extends Serializable> {
      * @param createdAt
      *         The creation date.
      */
-    void setCreatedAt(ZonedDateTime createdAt);
+    default void setCreatedAt(ZonedDateTime createdAt) {
+
+        throw new UnsupportedOperationException("Cannot change creation date of an entity");
+    }
 
     /**
      * Retrieve this {@link IEntity} last update date.
@@ -54,13 +60,19 @@ public interface IEntity<PK extends Serializable> {
      * @param updatedAt
      *         The last update date.
      */
-    void setUpdatedAt(ZonedDateTime updatedAt);
+    default void setUpdatedAt(ZonedDateTime updatedAt) {
+
+        throw new UnsupportedOperationException("Cannot change update date of an entity");
+    }
 
     /**
      * Check if this {@link IEntity} has been persisted yet.
      *
      * @return True if not persisted, false otherwise.
      */
-    boolean isNew();
+    default boolean isNew() {
+
+        return this.getId() == null;
+    }
 
 }

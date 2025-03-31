@@ -1,86 +1,53 @@
 package me.anisekai.api.plannifier.data;
 
-import me.anisekai.api.plannifier.interfaces.WatchTarget;
+import me.anisekai.api.plannifier.interfaces.entities.WatchTarget;
 
 import java.util.Objects;
 
 public class TestWatchTarget implements WatchTarget {
 
     private final long id;
-    private long episodeWatched;
-    private long episodeCount;
-    private long episodeDuration = TestData.EPISODE_DURATION_MINUTES;
+    private       long watched;
+    private       long total;
+    private       long episodeDuration = TestData.EPISODE_DURATION_MINUTES;
 
-    public TestWatchTarget(long id, long episodeWatched, long episodeCount) {
+    public TestWatchTarget(long id, long watched, long total) {
 
-        this.id             = id;
-        this.episodeWatched = episodeWatched;
-        this.episodeCount   = episodeCount;
+        this.id      = id;
+        this.watched = watched;
+        this.total   = total;
     }
 
-    /**
-     * Retrieve the number of episode watched.
-     *
-     * @return Number of episode watched.
-     */
     @Override
-    public long getEpisodeWatched() {
+    public long getWatched() {
 
-        return this.episodeWatched;
+        return this.watched;
     }
 
-    /**
-     * Define the number of episode watched.
-     *
-     * @param episodeWatched
-     *         Number of episode watched.
-     */
     @Override
-    public void setEpisodeWatched(long episodeWatched) {
+    public void setWatched(long watched) {
 
-        this.episodeWatched = episodeWatched;
+        this.watched = watched;
     }
 
-    /**
-     * Retrieve the number of episode in total.
-     *
-     * @return Number of episode in total
-     */
     @Override
-    public long getEpisodeCount() {
+    public long getTotal() {
 
-        return this.episodeCount;
+        return this.total;
     }
 
-    /**
-     * Define the number of episode in total.
-     *
-     * @param episodeCount
-     *         Number of episode in total
-     */
     @Override
-    public void setEpisodeCount(long episodeCount) {
+    public void setTotal(long total) {
 
-        this.episodeCount = episodeCount;
+        this.total = total;
     }
 
-    /**
-     * Retrieve the duration of one episode.
-     *
-     * @return Duration of one episode.
-     */
     @Override
     public long getEpisodeDuration() {
 
         return this.episodeDuration;
     }
 
-    /**
-     * Retrieve the duration of one episode.
-     *
-     * @param episodeDuration
-     *         Duration of one episode.
-     */
     @Override
     public void setEpisodeDuration(long episodeDuration) {
 
@@ -107,8 +74,8 @@ public class TestWatchTarget implements WatchTarget {
 
         return "TestWatchTarget{" +
                 "id=" + this.id +
-                ", episodeWatched=" + this.episodeWatched +
-                ", episodeCount=" + this.episodeCount +
+                ", episodeWatched=" + this.watched +
+                ", episodeCount=" + this.total +
                 ", episodeDuration=" + this.episodeDuration +
                 '}';
     }
