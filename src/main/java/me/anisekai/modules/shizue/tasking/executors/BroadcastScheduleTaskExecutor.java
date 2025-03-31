@@ -1,10 +1,10 @@
-package me.anisekai.globals.tasking.tasks;
+package me.anisekai.modules.shizue.tasking.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.globals.tasking.tasks.commons.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.utils.BroadcastUtils;
 import me.anisekai.modules.toshiko.JdaStore;
 import me.anisekai.modules.toshiko.Texts;
@@ -17,14 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.time.OffsetDateTime;
 
 @SuppressWarnings("DuplicatedCode")
-public class BroadcastUpdateTaskExecutor extends BroadcastTaskExecutor {
+public class BroadcastScheduleTaskExecutor extends BroadcastTaskExecutor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastUpdateTaskExecutor.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastScheduleTaskExecutor.class);
 
     private final BroadcastDataService service;
     private final JdaStore             store;
 
-    public BroadcastUpdateTaskExecutor(BroadcastDataService service, JdaStore store) {
+    public BroadcastScheduleTaskExecutor(BroadcastDataService service, JdaStore store) {
 
         this.service = service;
         this.store   = store;
@@ -60,10 +60,12 @@ public class BroadcastUpdateTaskExecutor extends BroadcastTaskExecutor {
 
         timer.action("load-data", "Loading task data");
         LOGGER.info("Loading task data");
-        Guild          guild     = this.store.getBotGuild();
-        Broadcast      broadcast = this.service.fetch(params.getLong(OPT_BROADCAST));
-        ScheduledEvent event     = this.requireEvent(guild, broadcast);
-        Icon           icon      = this.getBroadcastImage(timer, broadcast);
+        Guild     guild     = this.store.getBotGuild();
+        Broadcast broadcast = this.service.fetch(params.getLong(OPT_BROADCAST));
+        if (broadcast.getEventId() != null) {
+            throw new IllegalStateException("Broadcast is already scheduled on Discord.");
+        }
+        Icon icon = this.getBroadcastImage(timer, broadcast);
         timer.endAction();
 
         timer.action("prepare", "Generating data for the event");
@@ -74,14 +76,19 @@ public class BroadcastUpdateTaskExecutor extends BroadcastTaskExecutor {
         OffsetDateTime endingAt    = broadcast.getEndingAt().toOffsetDateTime();
         timer.endAction();
 
-        timer.action("updating", "Updating the event on Discord");
-        event.getManager()
-             .setName(name)
-             .setDescription(description)
-             .setImage(icon)
-             .setStartTime(startingAt)
-             .setEndTime(endingAt)
-             .complete();
+        timer.action("scheduling", "Scheduling the event on Discord");
+        ScheduledEvent event = guild
+                .createScheduledEvent(name, "Discord", startingAt, endingAt)
+                .setDescription(description)
+                .setImage(icon)
+                .complete();
+        timer.endAction();
+
+        timer.action("commit", "Commit data to the database");
+        this.service.mod(broadcast.getId(), item -> {
+            item.setEventId(event.getIdLong());
+            item.setStatus(event.getStatus());
+        });
         timer.endAction();
     }
 

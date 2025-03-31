@@ -1,10 +1,10 @@
 package me.anisekai.modules.shizue.entities;
 
 import jakarta.persistence.*;
-import me.anisekai.modules.linn.entities.Anime;
-import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
 import me.anisekai.api.persistence.EntityUtils;
-import net.dv8tion.jda.api.interactions.commands.Command;
+import me.anisekai.modules.linn.entities.Anime;
+import me.anisekai.modules.shizue.enums.SeasonalSelectionState;
+import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -33,7 +33,8 @@ public class SeasonalSelection implements ISeasonalSelection {
     private Set<SeasonalVote> votes;
 
     @Column(nullable = false)
-    private boolean closed;
+    @Enumerated(EnumType.STRING)
+    private SeasonalSelectionState state = SeasonalSelectionState.OPENED;
 
     @Column(nullable = false)
     private ZonedDateTime createdAt = ZonedDateTime.now();
@@ -106,15 +107,15 @@ public class SeasonalSelection implements ISeasonalSelection {
     }
 
     @Override
-    public boolean isClosed() {
+    public SeasonalSelectionState getState() {
 
-        return this.closed;
+        return this.state;
     }
 
     @Override
-    public void setClosed(boolean closed) {
+    public void setState(SeasonalSelectionState state) {
 
-        this.closed = closed;
+        this.state = state;
     }
 
     @Override
@@ -161,10 +162,9 @@ public class SeasonalSelection implements ISeasonalSelection {
         return Objects.hash(this.getId());
     }
 
-    @PostLoad
-    public void onLoad() {
+    @PrePersist
+    public void onPersist() {
 
-        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
         this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 

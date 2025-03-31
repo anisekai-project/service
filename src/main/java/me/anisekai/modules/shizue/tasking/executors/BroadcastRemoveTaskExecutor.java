@@ -1,24 +1,24 @@
-package me.anisekai.globals.tasking.tasks;
+package me.anisekai.modules.shizue.tasking.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.globals.tasking.tasks.commons.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.entities.Broadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
 import me.anisekai.modules.toshiko.JdaStore;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BroadcastRemoveTaskExector extends BroadcastTaskExecutor {
+public class BroadcastRemoveTaskExecutor extends BroadcastTaskExecutor {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastRemoveTaskExector.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastRemoveTaskExecutor.class);
 
     private final BroadcastDataService broadcastService;
     private final JdaStore             store;
 
-    public BroadcastRemoveTaskExector(BroadcastDataService broadcastService, JdaStore store) {
+    public BroadcastRemoveTaskExecutor(BroadcastDataService broadcastService, JdaStore store) {
 
         this.broadcastService = broadcastService;
         this.store            = store;

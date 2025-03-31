@@ -1,8 +1,8 @@
-package me.anisekai.globals.tasking.tasks;
+package me.anisekai.modules.linn.tasking.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.globals.tasking.tasks.commons.AnnouncementTaskExecutor;
+import me.anisekai.modules.linn.tasking.AnnouncementTaskExecutor;
 import me.anisekai.modules.linn.entities.Anime;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.toshiko.JdaStore;
@@ -10,18 +10,20 @@ import me.anisekai.modules.toshiko.messages.embeds.AnimeEmbed;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("DuplicatedCode")
-public class AnnouncementUpdateTaskExecutor extends AnnouncementTaskExecutor {
+import java.util.Optional;
 
-    private static final Logger           LOGGER = LoggerFactory.getLogger(AnnouncementUpdateTaskExecutor.class);
+@SuppressWarnings("DuplicatedCode")
+public class AnnouncementCreateTaskExecutor extends AnnouncementTaskExecutor {
+
+    private static final Logger           LOGGER = LoggerFactory.getLogger(AnnouncementCreateTaskExecutor.class);
     private final        JdaStore         store;
     private final        AnimeDataService service;
 
-    public AnnouncementUpdateTaskExecutor(AnimeDataService service, JdaStore store) {
+    public AnnouncementCreateTaskExecutor(AnimeDataService service, JdaStore store) {
 
         this.service = service;
         this.store   = store;
@@ -57,17 +59,20 @@ public class AnnouncementUpdateTaskExecutor extends AnnouncementTaskExecutor {
 
         timer.action("load-data", "Loading task data");
         LOGGER.info("Loading task data");
-        Anime          anime   = this.service.fetch(params.getLong(OPT_ANIME));
-        MessageChannel channel = this.store.getAnnouncementChannel();
-        Role           role    = this.store.getAnnouncementRole();
-        Message message = this.findExistingMessage(channel, anime)
-                              .orElseThrow(() -> new IllegalStateException("No announcement message."));
+        Anime             anime           = this.service.fetch(params.getLong(OPT_ANIME));
+        MessageChannel    channel         = this.store.getAnnouncementChannel();
+        Role              role            = this.store.getAnnouncementRole();
+        Optional<Message> optionalMessage = this.findExistingMessage(channel, anime);
+
+        if (optionalMessage.isPresent()) {
+            throw new IllegalStateException("A message already exists.");
+        }
         timer.endAction();
 
         timer.action("prepare", "Preparing message");
         LOGGER.info("Preparing message");
-        MessageEditBuilder meb   = new MessageEditBuilder();
-        AnimeEmbed         embed = new AnimeEmbed(anime, 0);
+        MessageCreateBuilder mcb   = new MessageCreateBuilder();
+        AnimeEmbed           embed = new AnimeEmbed(anime, 0);
 
         embed.setContent(String.format(
                 "Hey %s ! Un anime est désormais disponible !",
@@ -75,12 +80,17 @@ public class AnnouncementUpdateTaskExecutor extends AnnouncementTaskExecutor {
         ));
 
         embed.setShowButtons(true);
-        embed.getHandler().accept(meb);
+        embed.getHandler().accept(mcb);
         timer.endAction();
 
-        timer.action("update", "Updating message");
-        LOGGER.info("Updating message");
-        message.editMessage(meb.build()).complete();
+        timer.action("send", "Sending message");
+        LOGGER.info("Sending message");
+        Message message = channel.sendMessage(mcb.build()).complete();
+        timer.endAction();
+
+        timer.action("commit", "Commit data to the database");
+        LOGGER.info("Commit data to the database");
+        this.service.mod(anime.getId(), item -> item.setAnnounceMessage(message.getIdLong()));
         timer.endAction();
     }
 

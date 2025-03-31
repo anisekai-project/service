@@ -205,7 +205,6 @@ public class Task implements IEntity<Long> {
     @PrePersist
     private void beforePersist() {
 
-        this.createdAt = this.createdAt.withZoneSameInstant(ZoneId.systemDefault());
         this.updatedAt = this.updatedAt.withZoneSameInstant(ZoneId.systemDefault());
     }
 

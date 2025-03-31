@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.tasks;
+package me.anisekai.modules.toshiko.tasking.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import me.anisekai.api.json.BookshelfJson;

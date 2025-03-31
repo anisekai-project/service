@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.factories;
+package me.anisekai.modules.toshiko.tasking.factories;
 
 import jakarta.annotation.PostConstruct;
 import me.anisekai.api.json.BookshelfJson;
@@ -6,7 +6,7 @@ import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.globals.tasking.tasks.MessageLogTaskExecutor;
+import me.anisekai.modules.toshiko.tasking.executors.MessageLogTaskExecutor;
 import me.anisekai.modules.toshiko.JdaStore;
 import me.anisekai.modules.toshiko.utils.EmbeddingUtils;
 import net.dv8tion.jda.api.entities.MessageEmbed;

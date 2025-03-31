@@ -7,11 +7,11 @@ import fr.alexpado.jda.interactions.responses.SlashResponse;
 import me.anisekai.modules.chiya.entities.DiscordUser;
 import me.anisekai.modules.chiya.interfaces.IUser;
 import me.anisekai.modules.linn.entities.Anime;
+import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.entities.SeasonalSelection;
 import me.anisekai.modules.shizue.enums.InteractionType;
 import me.anisekai.modules.shizue.interfaces.entities.ISeasonalSelection;
 import me.anisekai.modules.shizue.services.ShizueService;
-import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.shizue.services.data.SeasonalSelectionDataService;
 import me.anisekai.modules.shizue.services.data.SeasonalVoteDataService;
 import me.anisekai.modules.toshiko.Texts;
@@ -22,14 +22,16 @@ import me.anisekai.modules.toshiko.utils.PermissionUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @InteractionBean
 public class SeasonalSelectionInteractions {
 
     private final SeasonalSelectionDataService service;
-    private final SeasonalVoteDataService voteService;
-    private final ShizueService           shizueService;
-    private final AnimeDataService        animeService;
+    private final SeasonalVoteDataService      voteService;
+    private final ShizueService                shizueService;
+    private final AnimeDataService             animeService;
 
     public SeasonalSelectionInteractions(SeasonalSelectionDataService service, SeasonalVoteDataService voteService, ShizueService shizueService, AnimeDataService animeService) {
 
@@ -50,13 +52,19 @@ public class SeasonalSelectionInteractions {
                             description = Texts.SEASON_START__OPTION_NAME,
                             type = OptionType.STRING,
                             required = true
+                    ),
+                    @Option(
+                            name = "votes",
+                            description = Texts.SEASON_START__OPTION_VOTES,
+                            type = OptionType.INTEGER
                     )
             }
     )
-    public SlashResponse runSeasonStart(IUser user, @Param("name") String name) {
+    public SlashResponse runSeasonStart(IUser user, @Param("name") String name, @Param("votes") Long votes) {
 
         PermissionUtils.requirePrivileges(user);
-        ISeasonalSelection selection = this.shizueService.createNewSelection(name);
+        long               totalVotes = Optional.ofNullable(votes).orElse(7L);
+        ISeasonalSelection selection  = this.shizueService.createNewSelection(name, totalVotes);
         return new SeasonalSelectionEmbed(selection);
     }
     // </editor-fold>

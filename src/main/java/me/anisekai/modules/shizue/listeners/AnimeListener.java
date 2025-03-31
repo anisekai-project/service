@@ -8,10 +8,11 @@ import me.anisekai.modules.shizue.entities.SeasonalVote;
 import me.anisekai.modules.shizue.events.broadcast.BroadcastStatusUpdatedEvent;
 import me.anisekai.modules.shizue.events.interest.InterestCreatedEvent;
 import me.anisekai.modules.shizue.events.interest.InterestLevelUpdatedEvent;
-import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionClosedUpdatedEvent;
+import me.anisekai.modules.shizue.events.seasonalselection.SeasonalSelectionStateUpdatedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -41,16 +42,22 @@ public class AnimeListener {
     }
 
     @EventListener
-    public void onSeasonalSelectionClosedUpdated(SeasonalSelectionClosedUpdatedEvent event) {
+    public void onSeasonalSelectionStateUpdated(SeasonalSelectionStateUpdatedEvent event) {
 
-        if (event.getCurrent()) {
-            List<Long> votedAnimeIds = event.getEntity().getVotes().stream()
-                                            .map(SeasonalVote::getAnime)
-                                            .map(IEntity::getId)
-                                            .toList();
+        List<Long> animeIds = switch (event.getCurrent()) {
+            case OPENED -> Collections.emptyList();
+            case CLOSED -> event.getEntity().getVotes().stream()
+                                .map(SeasonalVote::getAnime)
+                                .map(IEntity::getId)
+                                .toList();
+            case AUTO_CLOSED -> event.getEntity().getAnimes().stream()
+                                     .map(IEntity::getId)
+                                     .toList();
+        };
 
+        if (!animeIds.isEmpty()) {
             this.service.getProxy().batch(
-                    repository -> repository.findAllById(votedAnimeIds),
+                    repository -> repository.findAllById(animeIds),
                     animes -> {
                         animes.forEach(anime -> anime.setStatus(AnimeStatus.SIMULCAST));
                     }

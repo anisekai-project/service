@@ -3,7 +3,7 @@ package me.anisekai.modules.toshiko.services;
 import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
 import jakarta.annotation.Priority;
 import me.anisekai.globals.tasking.TaskingService;
-import me.anisekai.globals.tasking.factories.MessageLogTaskFactory;
+import me.anisekai.modules.toshiko.tasking.factories.MessageLogTaskFactory;
 import me.anisekai.modules.freya.enums.TorrentStatus;
 import me.anisekai.modules.freya.events.torrent.TorrentStatusUpdatedEvent;
 import org.springframework.stereotype.Service;

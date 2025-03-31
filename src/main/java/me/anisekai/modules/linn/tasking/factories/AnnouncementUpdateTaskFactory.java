@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.factories;
+package me.anisekai.modules.linn.tasking.factories;
 
 import jakarta.annotation.PostConstruct;
 import me.anisekai.api.json.BookshelfJson;
@@ -6,8 +6,8 @@ import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.globals.tasking.tasks.AnnouncementUpdateTaskExecutor;
-import me.anisekai.globals.tasking.tasks.commons.AnnouncementTaskExecutor;
+import me.anisekai.modules.linn.tasking.executors.AnnouncementUpdateTaskExecutor;
+import me.anisekai.modules.linn.tasking.AnnouncementTaskExecutor;
 import me.anisekai.modules.linn.interfaces.IAnime;
 import me.anisekai.modules.linn.services.data.AnimeDataService;
 import me.anisekai.modules.toshiko.JdaStore;

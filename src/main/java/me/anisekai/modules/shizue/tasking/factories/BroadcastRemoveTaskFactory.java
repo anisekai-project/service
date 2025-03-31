@@ -1,4 +1,4 @@
-package me.anisekai.globals.tasking.factories;
+package me.anisekai.modules.shizue.tasking.factories;
 
 import jakarta.annotation.PostConstruct;
 import me.anisekai.api.json.BookshelfJson;
@@ -6,22 +6,22 @@ import me.anisekai.globals.tasking.Task;
 import me.anisekai.globals.tasking.TaskingService;
 import me.anisekai.globals.tasking.interfaces.TaskExecutor;
 import me.anisekai.globals.tasking.interfaces.TaskFactory;
-import me.anisekai.globals.tasking.tasks.BroadcastScheduleTaskExector;
-import me.anisekai.globals.tasking.tasks.commons.BroadcastTaskExecutor;
 import me.anisekai.modules.shizue.interfaces.entities.IBroadcast;
 import me.anisekai.modules.shizue.services.data.BroadcastDataService;
+import me.anisekai.modules.shizue.tasking.BroadcastTaskExecutor;
+import me.anisekai.modules.shizue.tasking.executors.BroadcastRemoveTaskExecutor;
 import me.anisekai.modules.toshiko.JdaStore;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastScheduleTaskExector> {
+public class BroadcastRemoveTaskFactory implements TaskFactory<BroadcastRemoveTaskExecutor> {
 
-    public static final String               NAME = "broadcast:schedule";
+    public static final String               NAME = "broadcast:remove";
     private final       TaskingService       service;
     private final       BroadcastDataService broadcastService;
     private final       JdaStore             store;
 
-    public BroadcastScheduleTaskFactory(TaskingService service, BroadcastDataService broadcastService, JdaStore store) {
+    public BroadcastRemoveTaskFactory(TaskingService service, BroadcastDataService broadcastService, JdaStore store) {
 
         this.service          = service;
         this.broadcastService = broadcastService;
@@ -43,9 +43,9 @@ public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastSchedu
     }
 
     @Override
-    public Class<BroadcastScheduleTaskExector> getTaskClass() {
+    public Class<BroadcastRemoveTaskExecutor> getTaskClass() {
 
-        return BroadcastScheduleTaskExector.class;
+        return BroadcastRemoveTaskExecutor.class;
     }
 
     /**
@@ -65,9 +65,9 @@ public class BroadcastScheduleTaskFactory implements TaskFactory<BroadcastSchedu
      * @return A new {@link TaskExecutor} instance.
      */
     @Override
-    public BroadcastScheduleTaskExector create() {
+    public BroadcastRemoveTaskExecutor create() {
 
-        return new BroadcastScheduleTaskExector(this.broadcastService, this.store);
+        return new BroadcastRemoveTaskExecutor(this.broadcastService, this.store);
     }
 
     @PostConstruct

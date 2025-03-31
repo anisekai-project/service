@@ -109,8 +109,9 @@ public final class Texts {
     // </editor-fold>
 
     // <editor-fold desc="@ season/start">
-    public static final String SEASON_START__DESCRIPTION = "\uD83D\uDD12 Commence un vote de simulcast pour la prochaine saison";
-    public static final String SEASON_START__OPTION_NAME = "Nom de la saison (ex: Hiver 2023)";
+    public static final String SEASON_START__DESCRIPTION  = "\uD83D\uDD12 Commence un vote de simulcast pour la prochaine saison";
+    public static final String SEASON_START__OPTION_NAME  = "Nom de la saison (ex: Hiver 2023)";
+    public static final String SEASON_START__OPTION_VOTES = "Nombre d'anime dans le vote de simulcast.";
     // </editor-fold>
 
     // <editor-fold desc="@ watchlist/refresh">
