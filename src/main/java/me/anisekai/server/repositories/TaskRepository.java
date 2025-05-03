@@ -1,7 +1,7 @@
 package me.anisekai.server.repositories;
 
+import fr.anisekai.wireless.remote.enums.TaskStatus;
 import me.anisekai.server.entities.Task;
-import me.anisekai.server.enums.TaskState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,13 +12,15 @@ import java.util.Optional;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    @Query("SELECT t FROM Task t WHERE t.state = :state ORDER BY t.priority DESC, t.createdAt ASC LIMIT 1")
-    Optional<Task> getFirst(TaskState state);
+    @Query("SELECT t FROM Task t WHERE t.status = :status ORDER BY t.priority DESC, t.createdAt ASC LIMIT 1")
+    Optional<Task> getFirst(TaskStatus status);
 
-    List<Task> findAllByNameAndState(String name, TaskState state);
+    List<Task> findAllByNameAndStatus(String name, TaskStatus status);
 
-    long countTaskByState(TaskState state);
+    long countTaskByStatus(TaskStatus status);
 
-    Optional<Task> findByNameAndStateIn(String name, List<TaskState> scheduled);
+    Optional<Task> findByNameAndStatusIn(String name, List<TaskStatus> scheduled);
+
+    List<Task> findAllByStatus(TaskStatus status);
 
 }

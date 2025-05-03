@@ -1,13 +1,13 @@
 package me.anisekai.discord.tasks.watchlist.update;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.discord.responses.embeds.WatchlistEmbed;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Interest;
 import me.anisekai.server.entities.Watchlist;
-import me.anisekai.server.enums.AnimeStatus;
 import me.anisekai.server.services.AnimeService;
 import me.anisekai.server.services.InterestService;
 import me.anisekai.server.services.WatchlistService;
@@ -36,37 +36,18 @@ public class WatchlistUpdateTask implements TaskExecutor {
         this.store            = store;
     }
 
-    /**
-     * Check if the executor can find the required content in the provide {@link BookshelfJson} for its execution.
-     *
-     * @param params
-     *         A {@link BookshelfJson}
-     *
-     * @return True if the json contains all settings, false otherwise.
-     */
     @Override
-    public boolean validateParams(BookshelfJson params) {
+    public boolean validateParams(AnisekaiJson params) {
 
         return params.has(OPTION_WATCHLIST);
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) {
 
         timer.action("load", "Loading task data");
         String         rawStatus = params.getString(OPTION_WATCHLIST);
-        AnimeStatus    status    = AnimeStatus.valueOf(rawStatus.toUpperCase());
+        AnimeList      status    = AnimeList.valueOf(rawStatus.toUpperCase());
         Watchlist      watchlist = this.watchlistService.fetch(status);
         MessageChannel channel   = this.store.requireWatchlistChannel();
         Message message = DiscordUtils

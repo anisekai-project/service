@@ -1,7 +1,7 @@
 package me.anisekai.discord.tasks.broadcast.cleaning;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.server.services.BroadcastService;
 import me.anisekai.server.tasking.TaskExecutor;
@@ -17,19 +17,8 @@ public class BroadcastCleaningTask implements TaskExecutor {
         this.store   = store;
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) throws Exception {
         // TODO
         throw new IllegalAccessException("Task not implemented yet");
     }

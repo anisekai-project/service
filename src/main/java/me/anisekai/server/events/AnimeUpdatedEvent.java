@@ -1,13 +1,12 @@
 package me.anisekai.server.events;
 
-import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.server.entities.Anime;
 
-public class AnimeUpdatedEvent<V> extends EntityUpdatedEvent<Anime, V> {
+public class AnimeUpdatedEvent<V> extends EntityUpdatedEventAdapter<Anime, V> {
 
-    public AnimeUpdatedEvent(Object source, Anime entity, V previous, V current) {
+    public AnimeUpdatedEvent(Object source, Anime entity, V oldValue, V newValue) {
 
-        super(source, entity, previous, current);
+        super(source, entity, oldValue, newValue);
     }
 
 }

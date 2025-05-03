@@ -1,18 +1,22 @@
 package me.anisekai.server.entities;
 
 
-import jakarta.annotation.Nullable;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.AnimeStatus;
-import me.anisekai.server.interfaces.IAnime;
+import me.anisekai.server.entities.adapters.AnimeEventAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Entity
-public class Anime implements IAnime<DiscordUser> {
+public class Anime implements AnimeEventAdapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,19 +27,19 @@ public class Anime implements IAnime<DiscordUser> {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private AnimeStatus status;
+    private AnimeList list;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String synopsis;
 
     @Column
     private String tags;
 
     @Column
-    private String thumbnail;
+    private String thumbnailUrl;
 
     @Column(nullable = false)
-    private String nautiljonUrl;
+    private String url;
 
     @Column
     private String titleRegex;
@@ -56,10 +60,10 @@ public class Anime implements IAnime<DiscordUser> {
     private Long anilistId;
 
     @Column
-    private @Nullable Long announcementId;
+    private Long announcementId;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -71,31 +75,31 @@ public class Anime implements IAnime<DiscordUser> {
     }
 
     @Override
-    public String getTitle() {
+    public @NotNull String getTitle() {
 
         return this.title;
     }
 
     @Override
-    public void setTitle(String title) {
+    public void setTitle(@NotNull String title) {
 
         this.title = title;
     }
 
     @Override
-    public @NotNull AnimeStatus getWatchlist() {
+    public @NotNull AnimeList getList() {
 
-        return this.status;
+        return this.list;
     }
 
     @Override
-    public void setWatchlist(@NotNull AnimeStatus animeStatus) {
+    public void setList(@NotNull AnimeList list) {
 
-        this.status = animeStatus;
+        this.list = list;
     }
 
     @Override
-    public String getSynopsis() {
+    public @Nullable String getSynopsis() {
 
         return this.synopsis;
     }
@@ -107,51 +111,51 @@ public class Anime implements IAnime<DiscordUser> {
     }
 
     @Override
-    public String getTags() {
+    public @NotNull List<String> getTags() {
 
-        return this.tags;
+        return Arrays.asList(this.tags.split(","));
     }
 
     @Override
-    public void setTags(String tags) {
+    public void setTags(@NotNull List<String> tags) {
 
-        this.tags = tags;
+        this.tags = String.join(",", tags);
     }
 
     @Override
-    public String getThumbnail() {
+    public @Nullable String getThumbnailUrl() {
 
-        return this.thumbnail;
+        return this.thumbnailUrl;
     }
 
     @Override
-    public void setThumbnail(String thumbnail) {
+    public void setThumbnailUrl(String thumbnailUrl) {
 
-        this.thumbnail = thumbnail;
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     @Override
-    public String getNautiljonUrl() {
+    public @NotNull String getUrl() {
 
-        return this.nautiljonUrl;
+        return this.url;
     }
 
     @Override
-    public void setNautiljonUrl(String nautiljonUrl) {
+    public void setUrl(String url) {
 
-        this.nautiljonUrl = nautiljonUrl;
+        this.url = url;
     }
 
     @Override
-    public String getTitleRegex() {
+    public @Nullable Pattern getTitleRegex() {
 
-        return this.titleRegex;
+        return this.titleRegex == null ? null : Pattern.compile(this.titleRegex);
     }
 
     @Override
-    public void setTitleRegex(String titleRegex) {
+    public void setTitleRegex(@Nullable Pattern titleRegex) {
 
-        this.titleRegex = titleRegex;
+        this.titleRegex = titleRegex == null ? null : titleRegex.pattern();
     }
 
     @Override
@@ -191,19 +195,19 @@ public class Anime implements IAnime<DiscordUser> {
     }
 
     @Override
-    public DiscordUser getAddedBy() {
+    public @NotNull DiscordUser getAddedBy() {
 
         return this.addedBy;
     }
 
     @Override
-    public void setAddedBy(DiscordUser addedBy) {
+    public void setAddedBy(@NotNull DiscordUser addedBy) {
 
         this.addedBy = addedBy;
     }
 
     @Override
-    public Long getAnilistId() {
+    public @Nullable Long getAnilistId() {
 
         return this.anilistId;
     }
@@ -215,14 +219,13 @@ public class Anime implements IAnime<DiscordUser> {
     }
 
     @Override
-    @Nullable
     public Long getAnnouncementId() {
 
         return this.announcementId;
     }
 
     @Override
-    public void setAnnouncementId(@Nullable Long announcementId) {
+    public void setAnnouncementId(Long announcementId) {
 
         this.announcementId = announcementId;
     }
@@ -242,7 +245,7 @@ public class Anime implements IAnime<DiscordUser> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IAnime<?> anime) return EntityUtils.equals(this, anime);
+        if (o instanceof AnimeEntity<?> anime) return EntityUtils.equals(this, anime);
         return false;
     }
 

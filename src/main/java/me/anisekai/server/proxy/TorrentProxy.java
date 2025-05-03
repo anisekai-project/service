@@ -1,11 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
-import me.anisekai.server.entities.Episode;
 import me.anisekai.server.entities.Torrent;
+import me.anisekai.server.entities.adapters.TorrentEventAdapter;
 import me.anisekai.server.events.TorrentCreatedEvent;
 import me.anisekai.server.exceptions.torrent.TorrentNotFoundException;
-import me.anisekai.server.interfaces.ITorrent;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.TorrentRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class TorrentProxy extends ProxyService<Torrent, String, ITorrent<Episode>, TorrentRepository> {
+public class TorrentProxy extends ProxyService<Torrent, String, TorrentEventAdapter, TorrentRepository> {
 
     public TorrentProxy(ApplicationEventPublisher publisher, TorrentRepository repository) {
 
@@ -38,7 +37,7 @@ public class TorrentProxy extends ProxyService<Torrent, String, ITorrent<Episode
         return selector.apply(this.getRepository()).orElseThrow(TorrentNotFoundException::new);
     }
 
-    public Torrent create(Consumer<ITorrent<Episode>> consumer) {
+    public Torrent create(Consumer<TorrentEventAdapter> consumer) {
 
         return this.create(consumer, TorrentCreatedEvent::new);
     }

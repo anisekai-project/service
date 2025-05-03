@@ -1,19 +1,17 @@
 package me.anisekai.library.services;
 
-import me.anisekai.api.transmission.NyaaRssEntry;
-import me.anisekai.api.transmission.TransmissionClient;
-import me.anisekai.api.transmission.TransmissionTorrent;
+import fr.anisekai.wireless.api.services.Nyaa;
+import fr.anisekai.wireless.api.services.Transmission;
 import me.anisekai.server.services.SettingService;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class SpringTransmissionClient {
 
-    private final SettingService     settingService;
-    private       TransmissionClient client;
+    private final SettingService settingService;
+    private       Transmission   client;
 
     public SpringTransmissionClient(SettingService settingService) {
 
@@ -38,7 +36,7 @@ public class SpringTransmissionClient {
             return;
         }
 
-        this.client = new TransmissionClient(server);
+        this.client = new Transmission(server);
     }
 
     public boolean isAvailable() {
@@ -46,14 +44,34 @@ public class SpringTransmissionClient {
         return this.client != null;
     }
 
-    public Set<TransmissionTorrent> getTorrents() throws Exception {
+    public List<Transmission.Torrent> query() throws Exception {
 
-        return this.client.queryTorrents();
+        return this.client.query(Collections.emptyList());
     }
 
-    public TransmissionTorrent offerTorrent(NyaaRssEntry entry) throws Exception {
+    public List<Transmission.Torrent> query(Collection<String> hashes) throws Exception {
 
-        return this.client.offerTorrent(entry);
+        return this.client.query(hashes);
+    }
+
+    public Transmission.Torrent download(Nyaa.Entry entry) throws Exception {
+
+        return this.client.download(entry, false);
+    }
+
+    public Transmission.Torrent query(Nyaa.Entry entry) throws Exception {
+
+        return this.client.download(entry, true);
+    }
+
+    public Transmission.Torrent resume(Transmission.Torrent torrent) throws Exception {
+
+        return this.client.start(torrent);
+    }
+
+    public void delete(Transmission.Torrent torrent) throws Exception {
+
+        this.client.delete(torrent);
     }
 
 }

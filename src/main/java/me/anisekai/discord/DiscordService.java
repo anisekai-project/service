@@ -8,7 +8,6 @@ import fr.alexpado.jda.interactions.impl.interactions.button.ButtonInteractionTa
 import fr.alexpado.jda.interactions.impl.interactions.slash.SlashInteractionTargetImpl;
 import fr.alexpado.jda.interactions.interfaces.DiscordEmbeddable;
 import fr.alexpado.jda.interactions.interfaces.interactions.InteractionErrorHandler;
-import fr.alexpado.jda.interactions.interfaces.interactions.InteractionResponseHandler;
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutoCompleteProvider;
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutocompleteInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
@@ -75,6 +74,8 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
               .map(name -> beanFactory.getBean(name, ListenerAdapter.class))
               .forEach(builder::addEventListeners);
 
+        builder.addEventListeners(this.extension);
+
         try {
             LOGGER.info("Starting up JDA...");
             builder.build();
@@ -94,9 +95,11 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
                                                 .toList();
 
         for (Method method : interactionMethods) {
-            Interact                    interact = method.getAnnotation(Interact.class);
-            List<OptionMeta>            options  = Arrays.stream(interact.options()).map(OptionMeta::new).toList();
-            Collection<InteractionType> types    = new ArrayList<>();
+            Interact interact = method.getAnnotation(Interact.class);
+
+            //noinspection DataFlowIssue — We are sure we have the interaction here, due to the filtering above.
+            List<OptionMeta>            options = Arrays.stream(interact.options()).map(OptionMeta::new).toList();
+            Collection<InteractionType> types   = new ArrayList<>();
 
             LOGGER.debug(" — Found interaction `{}`", interact.name());
 
@@ -122,6 +125,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
 
             if (method.isAnnotationPresent(InteractAt.class)) {
                 InteractAt interactAt = method.getAnnotation(InteractAt.class);
+                //noinspection DataFlowIssue — We are sure we have the interaction here, due to the `if` above.
                 types.addAll(Arrays.asList(interactAt.value()));
             } else {
                 types.addAll(Arrays.asList(InteractionType.values()));
@@ -198,14 +202,6 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
         }
     }
 
-    /**
-     * Called when no {@link InteractionResponseHandler} could be found for the provided object.
-     *
-     * @param event
-     *         The {@link DispatchEvent} that was used to generate the response.
-     * @param response
-     *         The response object generated.
-     */
     @Override
     public <T extends Interaction> void onNoResponseHandlerFound(DispatchEvent<T> event, Object response) {
 

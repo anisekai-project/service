@@ -1,10 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
 import me.anisekai.server.entities.Setting;
+import me.anisekai.server.entities.adapters.SettingEventAdapter;
 import me.anisekai.server.events.SettingCreatedEvent;
 import me.anisekai.server.exceptions.setting.SettingNotFoundException;
-import me.anisekai.server.interfaces.ISetting;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.SettingRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class SettingProxy extends ProxyService<Setting, String, ISetting, SettingRepository> {
+public class SettingProxy extends ProxyService<Setting, String, SettingEventAdapter, SettingRepository> {
 
     public SettingProxy(ApplicationEventPublisher publisher, SettingRepository repository) {
 
@@ -37,7 +37,7 @@ public class SettingProxy extends ProxyService<Setting, String, ISetting, Settin
         return selector.apply(this.getRepository()).orElseThrow(SettingNotFoundException::new);
     }
 
-    public Setting create(Consumer<ISetting> consumer) {
+    public Setting create(Consumer<SettingEventAdapter> consumer) {
 
         return this.create(consumer, SettingCreatedEvent::new);
     }

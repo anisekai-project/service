@@ -1,14 +1,16 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.remote.interfaces.EpisodeEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.interfaces.IEpisode;
+import me.anisekai.server.entities.adapters.EpisodeEventAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
-public class Episode implements IEpisode<Anime> {
+public class Episode implements EpisodeEventAdapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,24 +23,25 @@ public class Episode implements IEpisode<Anime> {
     private int number;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
 
+    @Override
     public Long getId() {
 
         return this.id;
     }
 
     @Override
-    public Anime getAnime() {
+    public @NotNull Anime getAnime() {
 
         return this.anime;
     }
 
     @Override
-    public void setAnime(Anime anime) {
+    public void setAnime(@NotNull Anime anime) {
 
         this.anime = anime;
     }
@@ -55,11 +58,13 @@ public class Episode implements IEpisode<Anime> {
         this.number = number;
     }
 
+    @Override
     public ZonedDateTime getCreatedAt() {
 
         return this.createdAt;
     }
 
+    @Override
     public ZonedDateTime getUpdatedAt() {
 
         return this.updatedAt;
@@ -68,7 +73,7 @@ public class Episode implements IEpisode<Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IEpisode<?> episode) return EntityUtils.equals(this, episode);
+        if (o instanceof EpisodeEntity<?> episode) return EntityUtils.equals(this, episode);
         return false;
     }
 

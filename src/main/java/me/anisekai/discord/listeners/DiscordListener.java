@@ -1,10 +1,10 @@
 package me.anisekai.discord.listeners;
 
-import me.anisekai.api.plannifier.data.CalibrationResult;
+import fr.anisekai.wireless.api.plannifier.data.CalibrationResult;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.discord.responses.embeds.CalibrationEmbed;
 import me.anisekai.server.entities.Broadcast;
-import me.anisekai.server.enums.BroadcastStatus;
 import me.anisekai.server.services.AnimeService;
 import me.anisekai.server.services.BroadcastService;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
@@ -67,34 +67,14 @@ public class DiscordListener extends ListenerAdapter {
         Broadcast broadcast = optionalBroadcast.get();
 
         switch (event.getNewStatus()) {
-            case ACTIVE -> {
-                Broadcast updated = this.service.mod(
-                        broadcast.getId(), entity -> {
-                            entity.setStatus(BroadcastStatus.ACTIVE);
-                        }
-                );
+            case ACTIVE -> this.service.mod(
+                    broadcast.getId(), entity -> entity.setStatus(BroadcastStatus.ACTIVE)
+            );
+            case COMPLETED -> this.service.mod(
+                    broadcast.getId(), entity -> entity.setStatus(BroadcastStatus.COMPLETED)
+            );
 
-                this.animeService.mod(
-                        updated.getWatchTarget().getId(),
-                        this.animeService.defineWatching()
-                );
-            }
-            case COMPLETED -> {
-                Broadcast updated = this.service.mod(
-                        broadcast.getId(), entity -> {
-                            entity.setStatus(BroadcastStatus.ACTIVE);
-                        }
-                );
-
-                this.animeService.mod(
-                        updated.getWatchTarget().getId(),
-                        this.animeService.defineScheduleProgress(updated)
-                );
-            }
-
-            case CANCELED -> {
-                this.cancel(event.getScheduledEvent());
-            }
+            case CANCELED -> this.cancel(event.getScheduledEvent());
         }
     }
 

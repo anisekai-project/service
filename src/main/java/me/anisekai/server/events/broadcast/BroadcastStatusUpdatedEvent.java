@@ -1,7 +1,7 @@
 package me.anisekai.server.events.broadcast;
 
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import me.anisekai.server.entities.Broadcast;
-import me.anisekai.server.enums.BroadcastStatus;
 import me.anisekai.server.events.BroadcastUpdatedEvent;
 
 public class BroadcastStatusUpdatedEvent extends BroadcastUpdatedEvent<BroadcastStatus> {

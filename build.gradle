@@ -16,7 +16,7 @@ static def isNonStable(String version) {
     return !stableKeyword && !(version ==~ regex)
 }
 
-group = 'me.anisekai'
+group = 'fr.anisekai'
 
 compileJava.options.encoding = generalCharset
 compileTestJava.options.encoding = generalCharset
@@ -31,8 +31,8 @@ reckon {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 configurations {
@@ -64,6 +64,8 @@ dependencies {
     implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.5.0'
 
     implementation group: 'net.dv8tion', name: 'JDA', version: '5.3.1'
+
+    implementation group: 'fr.anisekai', name: 'wireless', version: '0.0.1-SNAPSHOT'
 
     implementation group: 'fr.alexpado', name: 'simple-http-client', version: '1.1.2'
     implementation(group: 'fr.alexpado', name: 'jda-interactions-extension', version: '1.0.0-rc.2') {

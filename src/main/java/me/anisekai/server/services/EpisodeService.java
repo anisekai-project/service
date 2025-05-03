@@ -1,9 +1,9 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.helpers.DataService;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Episode;
-import me.anisekai.server.interfaces.IEpisode;
+import me.anisekai.server.entities.adapters.EpisodeEventAdapter;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.proxy.EpisodeProxy;
 import me.anisekai.server.repositories.EpisodeRepository;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class EpisodeService extends DataService<Episode, Long, IEpisode<Anime>, EpisodeRepository, EpisodeProxy> {
+public class EpisodeService extends DataService<Episode, Long, EpisodeEventAdapter, EpisodeRepository, EpisodeProxy> {
 
     public EpisodeService(EpisodeProxy proxy) {
 

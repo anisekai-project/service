@@ -1,10 +1,11 @@
 package me.anisekai.discord.responses.embeds;
 
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.AnimeStatus;
-import me.anisekai.server.interfaces.IAnime;
-import me.anisekai.server.interfaces.IDiscordUser;
-import me.anisekai.server.interfaces.IInterest;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import fr.anisekai.wireless.remote.interfaces.InterestEntity;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
+import me.anisekai.Texts;
 import me.anisekai.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -27,13 +28,9 @@ public class WatchlistEmbed extends EmbedBuilder {
     private final Collection<String> mini       = new ArrayList<>();
     private final Collection<String> miniNoLink = new ArrayList<>();
 
-    public void setWatchlistContent(AnimeStatus status, List<? extends IAnime<?>> animes, Collection<? extends IInterest<?, ?>> interests) {
+    public void setWatchlistContent(AnimeList list, List<? extends AnimeEntity<?>> animes, Collection<? extends InterestEntity<?, ?>> interests) {
 
-        String watchlistName = String.format(
-                "%s (%s)",
-                status.getDisplay(),
-                animes.size()
-        );
+        String watchlistName = String.format("%s (%s)", Texts.formatted(list), animes.size());
 
         this.setAuthor(watchlistName);
         this.setTimestamp(ZonedDateTime.now());
@@ -43,15 +40,15 @@ public class WatchlistEmbed extends EmbedBuilder {
             return;
         }
 
-        for (IAnime<?> anime : animes) {
-            List<? extends IInterest<?, ?>> animeInterests = interests
+        for (AnimeEntity<?> anime : animes) {
+            List<? extends InterestEntity<?, ?>> animeInterests = interests
                     .stream()
                     .filter(interest -> EntityUtils.equals(interest.getAnime(), anime))
                     .filter(interest -> !Objects.isNull(interest.getUser().getEmote()))
                     .sorted(Comparator.comparing(interest -> interest.getUser().getUsername()))
                     .toList();
 
-            this.submitAnime(anime, animeInterests, status.isShowProgress());
+            this.submitAnime(anime, animeInterests, list.hasProperty(AnimeList.Property.PROGRESS));
         }
 
         String fullContent       = String.join("\n\n", this.full);
@@ -72,26 +69,25 @@ public class WatchlistEmbed extends EmbedBuilder {
         }
     }
 
-    private void submitAnime(IAnime<?> anime, Collection<? extends IInterest<?, ?>> interests, boolean showProgress) {
+    private void submitAnime(AnimeEntity<?> anime, Collection<? extends InterestEntity<?, ?>> interests, boolean showProgress) {
 
         String title       = anime.getTitle();
-        String link        = anime.getNautiljonUrl();
         String linkedTitle = DiscordUtils.link(anime);
         long   watched     = anime.getWatched();
-        long   total       = anime.getTotal();
+        String total       = anime.getTotal() < 0 ? "*%s*".formatted(anime.getTotal() * -1) : "**%s**".formatted(anime.getTotal());
 
         List<String> positiveInterests = interests
                 .stream()
                 .filter(interest -> interest.getLevel() > 0)
-                .map(IInterest::getUser)
-                .map(IDiscordUser::getEmote)
+                .map(InterestEntity::getUser)
+                .map(UserEntity::getEmote)
                 .toList();
 
         List<String> negativeInterests = interests
                 .stream()
                 .filter(interest -> interest.getLevel() < 0)
-                .map(IInterest::getUser)
-                .map(IDiscordUser::getEmote)
+                .map(InterestEntity::getUser)
+                .map(UserEntity::getEmote)
                 .toList();
 
         String votes = "*Aucun vote*";

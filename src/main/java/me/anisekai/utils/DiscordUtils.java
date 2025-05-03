@@ -3,10 +3,12 @@ package me.anisekai.utils;
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.alexpado.lib.rest.exceptions.RestException;
 import fr.alexpado.lib.rest.interfaces.IRestAction;
-import me.anisekai.server.interfaces.IAnime;
-import me.anisekai.server.interfaces.IBroadcast;
-import me.anisekai.server.interfaces.ISelection;
-import me.anisekai.server.interfaces.IWatchlist;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
+import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
+import fr.anisekai.wireless.remote.interfaces.WatchlistEntity;
+import fr.anisekai.wireless.utils.FileDownloader;
+import me.anisekai.Texts;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Icon;
@@ -46,16 +48,16 @@ public final class DiscordUtils {
     }
 
     /**
-     * Creates a Markdown link for the {@link IAnime} provided.
+     * Creates a Markdown link for the {@link AnimeEntity} provided.
      *
      * @param anime
-     *         The {@link IAnime} for which the link will be created.
+     *         The {@link AnimeEntity} for which the link will be created.
      *
      * @return A Markdown link as string.
      */
-    public static String link(IAnime<?> anime) {
+    public static String link(AnimeEntity<?> anime) {
 
-        return link(anime.getTitle(), anime.getNautiljonUrl());
+        return link(anime.getTitle(), anime.getUrl());
     }
 
     /**
@@ -94,19 +96,19 @@ public final class DiscordUtils {
     }
 
     /**
-     * Transform the provided {@link ISelection} into a command choice.
+     * Transform the provided {@link SelectionEntity} into a command choice.
      *
      * @param selection
-     *         The {@link ISelection} to transform
+     *         The {@link SelectionEntity} to transform
      *
      * @return A command choice
      */
-    public static Command.Choice asChoice(ISelection<?> selection) {
+    public static Command.Choice asChoice(SelectionEntity<?> selection) {
 
-        return asChoice(selection.getId(), selection.getLabel());
+        return asChoice(selection.getId(), Texts.formatted(selection.getSeason(), selection.getYear()));
     }
 
-    public static Optional<Message> findExistingMessage(MessageChannel channel, IAnime<?> anime) {
+    public static Optional<Message> findExistingMessage(MessageChannel channel, AnimeEntity<?> anime) {
 
         if (anime.getAnnouncementId() == null || anime.getAnnouncementId() == -1) {
             return Optional.empty();
@@ -115,7 +117,7 @@ public final class DiscordUtils {
         return findExistingMessage(channel, anime.getAnnouncementId());
     }
 
-    public static Optional<Message> findExistingMessage(MessageChannel channel, IWatchlist watchlist) {
+    public static Optional<Message> findExistingMessage(MessageChannel channel, WatchlistEntity<?> watchlist) {
 
         if (watchlist.getMessageId() == null) {
             return Optional.empty();
@@ -135,7 +137,7 @@ public final class DiscordUtils {
         }
     }
 
-    public static @NotNull ScheduledEvent requireEvent(Guild guild, IBroadcast<?> broadcast) {
+    public static @NotNull ScheduledEvent requireEvent(Guild guild, BroadcastEntity<?> broadcast) {
 
         if (broadcast.getEventId() == null) {
             throw new IllegalStateException("Broadcast is not scheduled on Discord.");
@@ -149,7 +151,7 @@ public final class DiscordUtils {
         return event;
     }
 
-    public static @Nullable Icon getBroadcastImage(ITimedAction timer, IBroadcast<?> broadcast) throws Exception {
+    public static @Nullable Icon getBroadcastImage(ITimedAction timer, BroadcastEntity<?> broadcast) throws Exception {
 
         timer.action("download-banner", "Downloading the event image banner");
         IRestAction<byte[]> imageAction = new FileDownloader(String.format(

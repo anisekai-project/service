@@ -5,7 +5,8 @@ import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
-import me.anisekai.api.persistence.UpsertResult;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import me.anisekai.discord.annotations.InteractAt;
 import me.anisekai.discord.annotations.InteractionBean;
 import me.anisekai.discord.responses.DiscordResponse;
@@ -17,12 +18,12 @@ import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
 import me.anisekai.server.entities.Interest;
 import me.anisekai.server.entities.Selection;
-import me.anisekai.server.interfaces.IDiscordUser;
+import me.anisekai.server.persistence.UpsertAction;
 import me.anisekai.server.services.*;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import org.json.JSONObject;
+import org.json.JSONException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,13 +32,13 @@ import java.util.List;
 @InteractionBean
 public class UserInteractions {
 
-    private final AnimeService       animeService;
-    private final DiscordUserService userService;
-    private final InterestService    interestService;
-    private final SelectionService   selectionService;
-    private final VoterService       voterService;
+    private final AnimeService     animeService;
+    private final UserService      userService;
+    private final InterestService  interestService;
+    private final SelectionService selectionService;
+    private final VoterService     voterService;
 
-    public UserInteractions(AnimeService animeService, DiscordUserService userService, InterestService interestService, SelectionService selectionService, VoterService voterService) {
+    public UserInteractions(AnimeService animeService, UserService userService, InterestService interestService, SelectionService selectionService, VoterService voterService) {
 
         this.animeService     = animeService;
         this.userService      = userService;
@@ -81,7 +82,7 @@ public class UserInteractions {
                     ),
             }
     )
-    public SlashResponse changeEmote(IDiscordUser user, @Param("emote") String emote) {
+    public SlashResponse changeEmote(UserEntity user, @Param("emote") String emote) {
 
         if (!this.userService.canUseEmote(user, emote)) {
             return DiscordResponse.error("L'emote choisie est déjà utilisée.");
@@ -105,14 +106,22 @@ public class UserInteractions {
                     )
             }
     )
-    public SlashResponse animeImport(DiscordUser user, @Param("json") String json) {
+    public SlashResponse animeImport(DiscordUser user, @Param("json") String rawJson) {
 
-        UpsertResult<Anime> result = this.animeService.importAnime(user, new JSONObject(json));
+        AnisekaiJson json;
 
-        if (result.isNew()) {
-            return DiscordResponse.success("L'anime **%s** a été ajouté au bot.", result.result().getTitle());
+        try {
+            json = new AnisekaiJson(rawJson);
+        } catch (JSONException e) {
+            return DiscordResponse.error("Le JSON reçu n'est pas correctement formatté.");
+        }
+
+        var result = this.animeService.importAnime(user, json);
+
+        if (result.action() == UpsertAction.INSERTED) {
+            return DiscordResponse.success("L'anime **%s** a été ajouté au bot.", result.entity().getTitle());
         } else {
-            return DiscordResponse.info("L'anime **%s** a été mis à jour.", result.result().getTitle());
+            return DiscordResponse.info("L'anime **%s** a été mis à jour.", result.entity().getTitle());
         }
     }
     // </editor-fold>
@@ -141,14 +150,21 @@ public class UserInteractions {
     )
     public SlashResponse animeInterest(DiscordUser user, @Param("anime") long animeId, @Param("interest") long interestLevel) {
 
+        if (user.getEmote() == null) {
+            return DiscordResponse.privateError(
+                    "Vous devez définir une emote de vote avant de pouvoir choisir votre intérêt pour un anime.");
+        }
+
         Anime anime = this.animeService.fetch(animeId);
 
         if (interestLevel < -2 || interestLevel > 2) {
             return DiscordResponse.error("La valeur d'intérêt doit être comprise entre -2 (inclus) et 2 (inclus)");
         }
 
-        this.interestService.setInterest(user, anime, interestLevel);
-        return DiscordResponse.success("Le niveau d'intérêt a bien été mis à jour.");
+        byte level = (byte) interestLevel;
+
+        this.interestService.setInterest(user, anime, level);
+        return DiscordResponse.privateSuccess("Le niveau d'intérêt a bien été mis à jour.");
     }
     // </editor-fold>
 
@@ -166,10 +182,11 @@ public class UserInteractions {
     )
     public SlashResponse profileView(User sender, @Param("user") Member member) {
 
-        User           effectiveUser        = member == null ? sender : member.getUser();
-        DiscordUser    effectiveDiscordUser = this.userService.of(effectiveUser);
-        List<Anime>    animes               = this.animeService.getAnimesAddedByUser(effectiveDiscordUser);
-        List<Interest> interests            = this.interestService.getInterests(effectiveDiscordUser);
+        User        effectiveUser        = member == null ? sender : member.getUser();
+        DiscordUser effectiveDiscordUser = this.userService.of(effectiveUser);
+        List<Anime> animes = this.animeService.getAnimesAddedByUser(
+                effectiveDiscordUser);
+        List<Interest> interests = this.interestService.getInterests(effectiveDiscordUser);
 
         return new ProfileMessage(effectiveUser, effectiveDiscordUser, animes, interests);
     }

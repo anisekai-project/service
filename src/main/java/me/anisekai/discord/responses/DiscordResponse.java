@@ -45,6 +45,11 @@ public class DiscordResponse implements SlashResponse, ButtonResponse {
         return new DiscordResponse(new EmbedBuilder().setDescription(message).setColor(color), false, false);
     }
 
+    public static DiscordResponse ofPrivate(CharSequence message, Color color) {
+
+        return new DiscordResponse(new EmbedBuilder().setDescription(message).setColor(color), false, true);
+    }
+
     public static DiscordResponse error(String message, Object... args) {
 
         return of(String.format(message, args), Color.RED);
@@ -63,6 +68,26 @@ public class DiscordResponse implements SlashResponse, ButtonResponse {
     public static DiscordResponse success(String message, Object... args) {
 
         return of(String.format(message, args), Color.GREEN);
+    }
+
+    public static DiscordResponse privateError(String message, Object... args) {
+
+        return ofPrivate(String.format(message, args), Color.RED);
+    }
+
+    public static DiscordResponse privateWarn(String message, Object... args) {
+
+        return ofPrivate(String.format(message, args), Color.ORANGE);
+    }
+
+    public static DiscordResponse privateInfo(String message, Object... args) {
+
+        return ofPrivate(String.format(message, args), Color.CYAN);
+    }
+
+    public static DiscordResponse privateSuccess(String message, Object... args) {
+
+        return ofPrivate(String.format(message, args), Color.GREEN);
     }
 
     @Override

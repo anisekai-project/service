@@ -1,11 +1,10 @@
 package me.anisekai.discord.tasks.watchlist.update;
 
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import jakarta.annotation.PostConstruct;
-import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.api.persistence.IEntity;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.server.entities.Task;
-import me.anisekai.server.enums.AnimeStatus;
 import me.anisekai.server.services.AnimeService;
 import me.anisekai.server.services.InterestService;
 import me.anisekai.server.services.TaskService;
@@ -62,28 +61,22 @@ public class WatchlistUpdateFactory implements TaskFactory<WatchlistUpdateTask> 
         );
     }
 
-    /**
-     * Check if this {@link TaskFactory} has named tasks. Named tasks usually mean that each {@link TaskExecutor}
-     * created is associated to a specific {@link IEntity} and thus will have a specific name for each of them.
-     *
-     * @return True if this {@link TaskFactory} handles named task, false otherwise.
-     */
     @Override
     public boolean hasNamedTask() {
 
         return true;
     }
 
-    public Task queue(AnimeStatus status) {
+    public Task queue(AnimeList list) {
 
-        return this.queue(status, Task.PRIORITY_AUTOMATIC_LOW);
+        return this.queue(list, Task.PRIORITY_AUTOMATIC_LOW);
     }
 
-    public Task queue(AnimeStatus status, long priority) {
+    public Task queue(AnimeList list, byte priority) {
 
-        String        name      = String.format("%s:%s", this.getName(), status.name().toLowerCase());
-        BookshelfJson arguments = new BookshelfJson();
-        arguments.put(WatchlistUpdateTask.OPTION_WATCHLIST, status.name().toLowerCase());
+        String       name      = String.format("%s:%s", this.getName(), list.name().toLowerCase());
+        AnisekaiJson arguments = new AnisekaiJson();
+        arguments.put(WatchlistUpdateTask.OPTION_WATCHLIST, list.name().toLowerCase());
 
         return this.service.queue(this, name, arguments, priority);
     }

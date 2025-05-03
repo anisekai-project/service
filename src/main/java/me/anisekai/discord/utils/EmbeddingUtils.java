@@ -1,9 +1,10 @@
 package me.anisekai.discord.utils;
 
-import me.anisekai.api.json.BookshelfArray;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiArray;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 
 import java.awt.*;
 import java.time.format.DateTimeFormatter;
@@ -15,18 +16,16 @@ public final class EmbeddingUtils {
 
     private EmbeddingUtils() {}
 
-    public static BookshelfJson toJson(MessageEmbed embed) {
+    public static AnisekaiJson toJson(MessageEmbed embed) {
 
-        BookshelfJson json = new BookshelfJson();
+        AnisekaiJson json = new AnisekaiJson();
         json.put("title", embed.getTitle());
         json.put("url", embed.getUrl());
         json.put("description", embed.getDescription());
         json.put("timestamp", Optional.ofNullable(embed.getTimestamp()).map(DTF::format).orElse(null));
         json.put("color", Optional.ofNullable(embed.getColor()).map(Color::getRGB).orElse(null));
 
-        Optional.ofNullable(embed.getThumbnail()).ifPresent(thumbnail -> {
-            json.put("thumbnail.url", thumbnail.getUrl());
-        });
+        Optional.ofNullable(embed.getThumbnail()).ifPresent(thumbnail -> json.put("thumbnail.url", thumbnail.getUrl()));
 
         Optional.ofNullable(embed.getAuthor()).ifPresent(author -> {
             json.put("author.name", author.getName());
@@ -39,13 +38,11 @@ public final class EmbeddingUtils {
             json.put("footer.iconUrl", footer.getIconUrl());
         });
 
-        Optional.ofNullable(embed.getImage()).ifPresent(image -> {
-            json.put("image.url", image.getUrl());
-        });
+        Optional.ofNullable(embed.getImage()).ifPresent(image -> json.put("image.url", image.getUrl()));
 
-        BookshelfArray fields = new BookshelfArray();
+        AnisekaiArray fields = new AnisekaiArray();
         for (MessageEmbed.Field field : embed.getFields()) {
-            BookshelfJson fieldJson = new BookshelfJson();
+            AnisekaiJson fieldJson = new AnisekaiJson();
             fieldJson.put("name", field.getName());
             fieldJson.put("value", field.getValue());
             fieldJson.put("inline", field.isInline());
@@ -56,15 +53,15 @@ public final class EmbeddingUtils {
         return json;
     }
 
-    public static MessageEmbed fromJson(BookshelfJson json) {
+    public static MessageEmbed fromJson(AnisekaiJson json) {
 
         EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle(json.readString("title"));
         builder.setUrl(json.readString("url"));
         builder.setDescription(json.readString("description"));
-        builder.setTimestamp(Optional.ofNullable(json.readString("timestamp")).map(DTF::parse).orElse(null));
-        builder.setColor(new Color(json.readInt("color")));
+        builder.setTimestamp(json.getOptionalZonedDateTime("timestamp").orElse(null));
+        builder.setColor(json.getOptionalInteger("color").orElse(Role.DEFAULT_COLOR_RAW));
         builder.setThumbnail(json.readString("thumbnail.url"));
 
         builder.setAuthor(
@@ -76,7 +73,7 @@ public final class EmbeddingUtils {
         builder.setFooter(json.readString("footer.text"), json.readString("footer.iconUrl"));
         builder.setImage(json.readString("image.url"));
 
-        json.readAll(
+        json.readList(
                     "fields",
                     fieldJson -> new MessageEmbed.Field(
                             fieldJson.readString("name"),

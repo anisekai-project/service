@@ -1,10 +1,10 @@
 package me.anisekai.discord.responses.messages;
 
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import fr.anisekai.wireless.remote.interfaces.InterestEntity;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import me.anisekai.discord.responses.embeds.AnimeCardEmbed;
-import me.anisekai.server.interfaces.IAnime;
-import me.anisekai.server.interfaces.IDiscordUser;
-import me.anisekai.server.interfaces.IInterest;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -18,16 +18,16 @@ import java.util.function.Consumer;
 public class AnimeCardMessage implements SlashResponse {
 
 
-    private final IAnime<? extends IDiscordUser>                             anime;
-    private final Collection<? extends IInterest<? extends IDiscordUser, ?>> interests;
-    private final Role                                                       role;
+    private final AnimeEntity<? extends UserEntity>          anime;
+    private final Collection<? extends InterestEntity<?, ?>> interests;
+    private final Role                                       role;
 
-    public AnimeCardMessage(IAnime<? extends IDiscordUser> anime, Collection<? extends IInterest<? extends IDiscordUser, ?>> interests) {
+    public AnimeCardMessage(AnimeEntity<?> anime, Collection<? extends InterestEntity<?, ?>> interests) {
 
         this(anime, interests, null);
     }
 
-    public AnimeCardMessage(IAnime<? extends IDiscordUser> anime, Collection<? extends IInterest<? extends IDiscordUser, ?>> interests, Role role) {
+    public AnimeCardMessage(AnimeEntity<?> anime, Collection<? extends InterestEntity<?, ?>> interests, Role role) {
 
         this.anime     = anime;
         this.interests = interests;

@@ -1,11 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
-import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Selection;
+import me.anisekai.server.entities.adapters.SelectionEventAdapter;
 import me.anisekai.server.events.SelectionCreatedEvent;
 import me.anisekai.server.exceptions.selection.SelectionNotFoundException;
-import me.anisekai.server.interfaces.ISelection;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.SelectionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class SelectionProxy extends ProxyService<Selection, Long, ISelection<Anime>, SelectionRepository> {
+public class SelectionProxy extends ProxyService<Selection, Long, SelectionEventAdapter, SelectionRepository> {
 
     public SelectionProxy(ApplicationEventPublisher publisher, SelectionRepository repository) {
 
@@ -38,7 +37,7 @@ public class SelectionProxy extends ProxyService<Selection, Long, ISelection<Ani
         return selector.apply(this.getRepository()).orElseThrow(SelectionNotFoundException::new);
     }
 
-    public Selection create(Consumer<ISelection<Anime>> consumer) {
+    public Selection create(Consumer<SelectionEventAdapter> consumer) {
 
         return this.create(consumer, SelectionCreatedEvent::new);
     }

@@ -1,11 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
-import me.anisekai.server.entities.Media;
 import me.anisekai.server.entities.Track;
+import me.anisekai.server.entities.adapters.TrackEventAdapter;
 import me.anisekai.server.events.TrackCreatedEvent;
 import me.anisekai.server.exceptions.track.TrackNotFoundException;
-import me.anisekai.server.interfaces.ITrack;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.TrackRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class TrackProxy extends ProxyService<Track, Long, ITrack<Media>, TrackRepository> {
+public class TrackProxy extends ProxyService<Track, Long, TrackEventAdapter, TrackRepository> {
 
     public TrackProxy(ApplicationEventPublisher publisher, TrackRepository repository) {
 
@@ -38,7 +37,7 @@ public class TrackProxy extends ProxyService<Track, Long, ITrack<Media>, TrackRe
         return selector.apply(this.getRepository()).orElseThrow(TrackNotFoundException::new);
     }
 
-    public Track create(Consumer<ITrack<Media>> consumer) {
+    public Track create(Consumer<TrackEventAdapter> consumer) {
 
         return this.create(consumer, TrackCreatedEvent::new);
     }

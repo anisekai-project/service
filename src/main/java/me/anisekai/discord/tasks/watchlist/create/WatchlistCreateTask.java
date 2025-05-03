@@ -1,7 +1,7 @@
 package me.anisekai.discord.tasks.watchlist.create;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.discord.responses.embeds.WatchlistEmbed;
 import me.anisekai.server.entities.Anime;
@@ -11,6 +11,7 @@ import me.anisekai.server.services.AnimeService;
 import me.anisekai.server.services.InterestService;
 import me.anisekai.server.services.WatchlistService;
 import me.anisekai.server.tasking.TaskExecutor;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
@@ -31,19 +32,8 @@ public class WatchlistCreateTask implements TaskExecutor {
         this.interestService = interestService;
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) {
 
         MessageChannel channel = this.store.requireWatchlistChannel();
 
@@ -68,7 +58,11 @@ public class WatchlistCreateTask implements TaskExecutor {
             timer.action("update", "Sending the message");
             MessageCreateBuilder mcb = new MessageCreateBuilder();
             mcb.setEmbeds(embed.build());
-            channel.sendMessage(mcb.build()).complete();
+            Message message = channel.sendMessage(mcb.build()).complete();
+            timer.endAction();
+
+            timer.action("save", "Saving the message ID");
+            this.service.mod(watchlist.getId(), entity -> entity.setMessageId(message.getIdLong()));
             timer.endAction();
         }
         timer.endAction();

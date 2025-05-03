@@ -1,11 +1,12 @@
 package me.anisekai.server.repositories;
 
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
-import me.anisekai.server.enums.AnimeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,9 +17,9 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
     Optional<Anime> findByTitle(String title);
 
-    List<Anime> findAllByStatus(AnimeStatus animeStatus);
+    List<Anime> findAllByList(AnimeList animeStatus);
 
-    List<Anime> findAllByStatusIn(List<AnimeStatus> animeStatuses);
+    List<Anime> findAllByListIn(Collection<AnimeList> animeStatuses);
 
     List<Anime> findAllByTitleRegexIsNotNull();
 

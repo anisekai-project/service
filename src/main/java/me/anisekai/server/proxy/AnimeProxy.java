@@ -1,11 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
 import me.anisekai.server.entities.Anime;
-import me.anisekai.server.entities.DiscordUser;
+import me.anisekai.server.entities.adapters.AnimeEventAdapter;
 import me.anisekai.server.events.AnimeCreatedEvent;
 import me.anisekai.server.exceptions.anime.AnimeNotFoundException;
-import me.anisekai.server.interfaces.IAnime;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.AnimeRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class AnimeProxy extends ProxyService<Anime, Long, IAnime<DiscordUser>, AnimeRepository> {
+public class AnimeProxy extends ProxyService<Anime, Long, AnimeEventAdapter, AnimeRepository> {
 
     public AnimeProxy(ApplicationEventPublisher publisher, AnimeRepository repository) {
 
@@ -38,7 +37,7 @@ public class AnimeProxy extends ProxyService<Anime, Long, IAnime<DiscordUser>, A
         return selector.apply(this.getRepository()).orElseThrow(AnimeNotFoundException::new);
     }
 
-    public Anime create(Consumer<IAnime<DiscordUser>> consumer) {
+    public Anime create(Consumer<AnimeEventAdapter> consumer) {
 
         return this.create(consumer, AnimeCreatedEvent::new);
     }

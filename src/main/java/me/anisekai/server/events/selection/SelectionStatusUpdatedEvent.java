@@ -1,7 +1,7 @@
 package me.anisekai.server.events.selection;
 
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
 import me.anisekai.server.entities.Selection;
-import me.anisekai.server.enums.SelectionStatus;
 import me.anisekai.server.events.SelectionUpdatedEvent;
 
 public class SelectionStatusUpdatedEvent extends SelectionUpdatedEvent<SelectionStatus> {

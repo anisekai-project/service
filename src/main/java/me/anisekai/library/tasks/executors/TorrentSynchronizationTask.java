@@ -1,40 +1,31 @@
 package me.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.api.transmission.TorrentStatus;
-import me.anisekai.api.transmission.TransmissionTorrent;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.services.Transmission;
 import me.anisekai.library.services.SpringTransmissionClient;
+import me.anisekai.library.tasks.factories.MediaImportFactory;
 import me.anisekai.server.entities.Torrent;
+import me.anisekai.server.services.TaskService;
 import me.anisekai.server.services.TorrentService;
 import me.anisekai.server.tasking.TaskExecutor;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public class TorrentSynchronizationTask implements TaskExecutor {
 
+    private final TaskService    taskService;
     private final TorrentService torrentService;
 
-    public TorrentSynchronizationTask(TorrentService torrentService) {
+    public TorrentSynchronizationTask(TaskService taskService, TorrentService torrentService) {
 
+        this.taskService    = taskService;
         this.torrentService = torrentService;
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) throws Exception {
 
         timer.action("client-check", "Check the transmission client");
         SpringTransmissionClient client = this.torrentService.getClient();
@@ -44,7 +35,7 @@ public class TorrentSynchronizationTask implements TaskExecutor {
 
         timer.action("load-torrents", "Load torrents");
         timer.action("remote", "Load remote torrents");
-        Set<TransmissionTorrent> torrents = this.torrentService.getClient().getTorrents();
+        List<Transmission.Torrent> torrents = this.torrentService.getClient().query();
         timer.endAction();
 
         timer.action("local", "Load local torrents");
@@ -57,29 +48,32 @@ public class TorrentSynchronizationTask implements TaskExecutor {
             timer.action("sync-torrent", "Sync torrent " + downloadingTorrent.getId());
 
             // Find a matching torrent in the download list.
-            Optional<TransmissionTorrent> optionalTransmissionTorrent = torrents
+            Optional<Transmission.Torrent> optionalTransmissionTorrent = torrents
                     .stream()
-                    .filter(item -> item.getHash().equals(downloadingTorrent.getId()))
+                    .filter(item -> item.hash().equals(downloadingTorrent.getId()))
                     .findFirst();
 
 
             if (optionalTransmissionTorrent.isPresent()) {
-                TransmissionTorrent transmissionTorrent = optionalTransmissionTorrent.get();
+                Transmission.Torrent transmissionTorrent = optionalTransmissionTorrent.get();
                 this.torrentService.mod(
                         downloadingTorrent.getId(),
                         entity -> {
-                            entity.setProgress(transmissionTorrent.getPercentDone());
-                            entity.setStatus(transmissionTorrent.getStatus());
+                            entity.setProgress(transmissionTorrent.percentDone());
+                            entity.setStatus(transmissionTorrent.status());
                         }
                 );
 
-                if (transmissionTorrent.getStatus().isFinished()) {
+                if (transmissionTorrent.status().isFinished()) {
                     timer.action("submit-task", "Submit media importation task");
-                    // TODO: Queue media import
+                    this.taskService.getFactory(MediaImportFactory.class).queue(downloadingTorrent.getId(), downloadingTorrent.getPriority());
                     timer.endAction();
                 }
             } else {
-                this.torrentService.mod(downloadingTorrent.getId(), entity -> entity.setStatus(TorrentStatus.UNKNOWN));
+                this.torrentService.mod(
+                        downloadingTorrent.getId(),
+                        entity -> entity.setStatus(Transmission.TorrentStatus.UNKNOWN)
+                );
             }
 
             timer.endAction();

@@ -1,21 +1,21 @@
 package me.anisekai.server.tasking;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 
 public interface TaskExecutor {
 
     String OPTION_PRIORITY = "priority";
 
     /**
-     * Check if the executor can find the required content in the provide {@link BookshelfJson} for its execution.
+     * Check if the executor can find the required content in the provide {@link AnisekaiJson} for its execution.
      *
      * @param params
-     *         A {@link BookshelfJson}
+     *         A {@link AnisekaiJson}
      *
      * @return True if the json contains all settings, false otherwise.
      */
-    default boolean validateParams(BookshelfJson params) {
+    default boolean validateParams(AnisekaiJson params) {
 
         return true;
     }
@@ -31,6 +31,6 @@ public interface TaskExecutor {
      * @throws Exception
      *         Thew if something happens.
      */
-    void execute(ITimedAction timer, BookshelfJson params) throws Exception;
+    void execute(ITimedAction timer, AnisekaiJson params) throws Exception;
 
 }

@@ -1,60 +1,70 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.interfaces.WatchlistEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.AnimeStatus;
-import me.anisekai.server.interfaces.IWatchlist;
+import me.anisekai.server.entities.adapters.WatchlistEventAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-public class Watchlist implements IWatchlist {
+public class Watchlist implements WatchlistEventAdapter {
 
     @Id
     @Enumerated(EnumType.STRING)
-    private AnimeStatus id;
+    private AnimeList id;
 
     @Column
     private Long messageId;
 
-    @Column(nullable = false)
-    private int order;
+    @OneToMany(fetch = FetchType.EAGER)
+    private Set<Anime> animes;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
 
     @Override
-    public AnimeStatus getId() {
+    public AnimeList getId() {
 
         return this.id;
     }
 
     @Override
-    public Long getMessageId() {
+    public void setId(AnimeList id) {
+
+        this.id = id;
+    }
+
+    @Override
+    public @Nullable Long getMessageId() {
 
         return this.messageId;
     }
 
     @Override
-    public void setMessageId(Long messageId) {
+    public void setMessageId(@Nullable Long messageId) {
 
         this.messageId = messageId;
     }
 
     @Override
-    public int getOrder() {
+    public @NotNull Set<Anime> getAnimes() {
 
-        return this.order;
+        return this.animes;
     }
 
     @Override
-    public void setOrder(int order) {
+    public void setAnimes(@NotNull Set<Anime> animes) {
 
-        this.order = order;
+        this.animes = animes;
     }
 
     @Override
@@ -72,7 +82,7 @@ public class Watchlist implements IWatchlist {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IWatchlist watchlist) return EntityUtils.equals(this, watchlist);
+        if (o instanceof WatchlistEntity<?> watchlist) return EntityUtils.equals(this, watchlist);
         return false;
     }
 

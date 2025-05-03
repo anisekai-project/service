@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 public class AnisekaiApplication {
 
+    @SuppressWarnings({"StaticNonFinalField", "CanBeFinal"})
     public static boolean enableDetailedOutput = false;
 
     public AnisekaiApplication(ListableBeanFactory beanFactory, DiscordService service) {

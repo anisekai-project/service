@@ -1,10 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
 import me.anisekai.server.entities.Task;
+import me.anisekai.server.entities.adapters.TaskEventAdapter;
 import me.anisekai.server.events.TaskCreatedEvent;
 import me.anisekai.server.exceptions.task.TaskNotFoundException;
-import me.anisekai.server.interfaces.ITask;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.TaskRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class TaskProxy extends ProxyService<Task, Long, ITask, TaskRepository> {
+public class TaskProxy extends ProxyService<Task, Long, TaskEventAdapter, TaskRepository> {
 
     public TaskProxy(ApplicationEventPublisher publisher, TaskRepository repository) {
 
@@ -37,7 +37,7 @@ public class TaskProxy extends ProxyService<Task, Long, ITask, TaskRepository> {
         return selector.apply(this.getRepository()).orElseThrow(TaskNotFoundException::new);
     }
 
-    public Task create(Consumer<ITask> consumer) {
+    public Task create(Consumer<TaskEventAdapter> consumer) {
 
         return this.create(consumer, TaskCreatedEvent::new);
     }

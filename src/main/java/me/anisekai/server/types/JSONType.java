@@ -1,6 +1,6 @@
 package me.anisekai.server.types;
 
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
 
@@ -10,7 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-public class JSONType implements UserType<BookshelfJson> {
+public class JSONType implements UserType<AnisekaiJson> {
 
     @Override
     public int getSqlType() {
@@ -19,37 +19,37 @@ public class JSONType implements UserType<BookshelfJson> {
     }
 
     @Override
-    public Class<BookshelfJson> returnedClass() {
+    public Class<AnisekaiJson> returnedClass() {
 
-        return BookshelfJson.class;
+        return AnisekaiJson.class;
     }
 
     @Override
-    public boolean equals(BookshelfJson json1, BookshelfJson json2) {
+    public boolean equals(AnisekaiJson json1, AnisekaiJson json2) {
 
         return (json1 == null && json2 == null) ||
                 (json1 != null && json2 != null && json1.toString().equals(json2.toString()));
     }
 
     @Override
-    public int hashCode(BookshelfJson bookshelfJson) {
+    public int hashCode(AnisekaiJson bookshelfJson) {
 
         return bookshelfJson.hashCode();
     }
 
     @Override
-    public BookshelfJson nullSafeGet(ResultSet rs, int column, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws SQLException {
+    public AnisekaiJson nullSafeGet(ResultSet rs, int column, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws SQLException {
 
         String raw = rs.getString(column);
         if (raw != null) {
-            return new BookshelfJson(raw);
+            return new AnisekaiJson(raw);
         }
 
         return null;
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement pst, BookshelfJson json, int column, SharedSessionContractImplementor sharedSessionContractImplementor) throws SQLException {
+    public void nullSafeSet(PreparedStatement pst, AnisekaiJson json, int column, SharedSessionContractImplementor sharedSessionContractImplementor) throws SQLException {
 
         if (json == null) {
             pst.setNull(column, this.getSqlType());
@@ -59,9 +59,9 @@ public class JSONType implements UserType<BookshelfJson> {
     }
 
     @Override
-    public BookshelfJson deepCopy(BookshelfJson bookshelfJson) {
+    public AnisekaiJson deepCopy(AnisekaiJson bookshelfJson) {
 
-        return new BookshelfJson(bookshelfJson.toMap());
+        return new AnisekaiJson(bookshelfJson.toMap());
     }
 
     @Override
@@ -71,15 +71,15 @@ public class JSONType implements UserType<BookshelfJson> {
     }
 
     @Override
-    public Serializable disassemble(BookshelfJson bookshelfJson) {
+    public Serializable disassemble(AnisekaiJson bookshelfJson) {
 
         return bookshelfJson.toString();
     }
 
     @Override
-    public BookshelfJson assemble(Serializable serializable, Object o) {
+    public AnisekaiJson assemble(Serializable serializable, Object o) {
 
-        return new BookshelfJson((String) serializable);
+        return new AnisekaiJson((String) serializable);
     }
 
 }

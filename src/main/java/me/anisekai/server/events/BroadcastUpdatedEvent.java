@@ -1,13 +1,12 @@
 package me.anisekai.server.events;
 
-import me.anisekai.api.persistence.events.EntityUpdatedEvent;
 import me.anisekai.server.entities.Broadcast;
 
-public class BroadcastUpdatedEvent<V> extends EntityUpdatedEvent<Broadcast, V> {
+public class BroadcastUpdatedEvent<V> extends EntityUpdatedEventAdapter<Broadcast, V> {
 
-    public BroadcastUpdatedEvent(Object source, Broadcast entity, V previous, V current) {
+    public BroadcastUpdatedEvent(Object source, Broadcast entity, V oldValue, V newValue) {
 
-        super(source, entity, previous, current);
+        super(source, entity, oldValue, newValue);
     }
 
 }

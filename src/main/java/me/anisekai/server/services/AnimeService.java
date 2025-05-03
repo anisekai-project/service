@@ -1,13 +1,13 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.UpsertResult;
-import me.anisekai.api.persistence.helpers.DataService;
-import me.anisekai.api.plannifier.interfaces.ScheduleSpotData;
+import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import me.anisekai.server.entities.adapters.AnimeEventAdapter;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
-import me.anisekai.server.enums.AnimeStatus;
 import me.anisekai.server.events.AnimeCreatedEvent;
-import me.anisekai.server.interfaces.IAnime;
+import me.anisekai.server.persistence.UpsertResult;
 import me.anisekai.server.proxy.AnimeProxy;
 import me.anisekai.server.repositories.AnimeRepository;
 import org.json.JSONArray;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Service
-public class AnimeService extends DataService<Anime, Long, IAnime<DiscordUser>, AnimeRepository, AnimeProxy> {
+public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, AnimeRepository, AnimeProxy> {
 
     public AnimeService(AnimeProxy proxy) {
 
@@ -38,24 +38,26 @@ public class AnimeService extends DataService<Anime, Long, IAnime<DiscordUser>, 
         genreArray.forEach(obj -> tagList.add(obj.toString()));
         themeArray.forEach(obj -> tagList.add(obj.toString()));
 
-        String      name            = source.getString("title");
-        String      synopsis        = source.getString("synopsis");
-        String      tags            = String.join(", ", tagList);
-        AnimeStatus status          = AnimeStatus.from(rawStatus);
-        String      link            = source.getString("link");
-        String      image           = source.getString("image");
-        long        total           = Long.parseLong(source.getString("episode"));
-        long        episodeDuration = Long.parseLong(source.getString("time"));
+        String    name            = source.getString("title");
+        String    synopsis        = source.getString("synopsis");
+        AnimeList status          = AnimeList.from(rawStatus);
+        String    link            = source.getString("link");
+        String    image           = source.getString("image");
+        long      total           = Long.parseLong(source.getString("episode"));
+        long      episodeDuration = Long.parseLong(source.getString("time"));
 
         return this.getProxy().upsert(
                 repo -> repo.findByTitle(name)
                 , anime -> {
                     anime.setTitle(name);
-                    anime.setWatchlist(status);
+                    anime.setList(status);
                     anime.setSynopsis(synopsis);
-                    anime.setTags(tags);
-                    anime.setThumbnail(image);
-                    anime.setNautiljonUrl(link);
+                    anime.setTags(tagList);
+                    anime.setThumbnailUrl(image);
+                    anime.setUrl(link);
+                    anime.setTotal(total);
+                    anime.setEpisodeDuration(episodeDuration);
+                    //noinspection ConstantValue — This is an UPSERT context, this can *really* be null.
                     if (anime.getAddedBy() == null) anime.setAddedBy(sender);
                 },
                 AnimeCreatedEvent::new
@@ -67,14 +69,14 @@ public class AnimeService extends DataService<Anime, Long, IAnime<DiscordUser>, 
         return this.fetchAll(repo -> repo.findByAddedBy(user));
     }
 
-    public List<Anime> getOfStatus(AnimeStatus status) {
+    public List<Anime> getOfStatus(AnimeList status) {
 
-        return this.fetchAll(repo -> repo.findAllByStatus(status));
+        return this.fetchAll(repo -> repo.findAllByList(status));
     }
 
     public List<Anime> getSimulcastsAvailable() {
 
-        return this.getOfStatus(AnimeStatus.SIMULCAST_AVAILABLE);
+        return this.getOfStatus(AnimeList.SIMULCAST_AVAILABLE);
     }
 
     public List<Anime> getAllDownloadable() {
@@ -82,62 +84,62 @@ public class AnimeService extends DataService<Anime, Long, IAnime<DiscordUser>, 
         return this.fetchAll(AnimeRepository::findAllByTitleRegexIsNotNull);
     }
 
-    public List<Anime> move(Collection<Long> ids, AnimeStatus to) {
+    public List<Anime> move(Collection<Long> ids, AnimeList to) {
 
         if (ids.isEmpty()) return Collections.emptyList();
 
         return this.batch(
                 repository -> repository.findAllById(ids),
-                entity -> entity.setWatchlist(to)
+                entity -> entity.setList(to)
         );
     }
 
-    public List<Anime> move(AnimeStatus from, AnimeStatus to) {
+    public List<Anime> move(AnimeList from, AnimeList to) {
 
         return this.batch(
-                repository -> repository.findAllByStatus(from),
-                entity -> entity.setWatchlist(to)
+                repository -> repository.findAllByList(from),
+                entity -> entity.setList(to)
         );
     }
 
-    public Consumer<IAnime<DiscordUser>> defineProgression(long progression) {
+    public Consumer<AnimeEventAdapter> defineProgression(long progression) {
 
         return entity -> {
             entity.setWatched(progression);
             if (entity.getTotal() == progression) {
-                entity.setWatchlist(AnimeStatus.WATCHED);
+                entity.setList(AnimeList.WATCHED);
             }
         };
     }
 
-    public Consumer<IAnime<DiscordUser>> defineProgression(long progression, long total) {
+    public Consumer<AnimeEventAdapter> defineProgression(long progression, long total) {
 
         return entity -> {
             entity.setWatched(progression);
             entity.setTotal(total);
             if (entity.getTotal() == progression) {
-                entity.setWatchlist(AnimeStatus.WATCHED);
+                entity.setList(AnimeList.WATCHED);
             }
         };
     }
 
-    public Consumer<IAnime<DiscordUser>> defineWatching() {
+    public Consumer<AnimeEventAdapter> defineWatching() {
 
         return anime -> {
-            switch (anime.getWatchlist()) {
+            switch (anime.getList()) {
                 case WATCHED,
                      DOWNLOADED,
                      DOWNLOADING,
                      NOT_DOWNLOADED,
                      NO_SOURCE,
                      UNAVAILABLE,
-                     CANCELLED -> anime.setWatchlist(AnimeStatus.WATCHING);
-                case SIMULCAST_AVAILABLE -> anime.setWatchlist(AnimeStatus.SIMULCAST);
+                     CANCELLED -> anime.setList(AnimeList.WATCHING);
+                case SIMULCAST_AVAILABLE -> anime.setList(AnimeList.SIMULCAST);
             }
         };
     }
 
-    public Consumer<IAnime<DiscordUser>> defineScheduleProgress(ScheduleSpotData<?> broadcast) {
+    public Consumer<AnimeEventAdapter> defineScheduleProgress(ScheduleSpotData<?> broadcast) {
 
         return entity -> this.defineProgression(entity.getWatched() + broadcast.getEpisodeCount()).accept(entity);
     }

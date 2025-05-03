@@ -1,88 +1,84 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.remote.interfaces.VoterEntity;
+import fr.anisekai.wireless.remote.keys.VoterKey;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.interfaces.IVoter;
+import me.anisekai.server.entities.adapters.VoterEventAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Voter implements IVoter<DiscordUser, Selection, Anime> {
+@IdClass(VoterKey.class)
+public class Voter implements VoterEventAdapter {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private Selection selection;
 
+    @Id
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private DiscordUser user;
 
     @Column(nullable = false)
-    private long amount;
+    private short amount;
 
     @OneToMany(fetch = FetchType.EAGER)
     private Set<Anime> votes;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
 
     @Override
-    public Long getId() {
-
-        return this.id;
-    }
-
-    @Override
-    public Selection getSelection() {
+    public @NotNull Selection getSelection() {
 
         return this.selection;
     }
 
     @Override
-    public void setSelection(Selection selection) {
+    public void setSelection(@NotNull Selection selection) {
 
         this.selection = selection;
     }
 
     @Override
-    public DiscordUser getUser() {
+    public @NotNull DiscordUser getUser() {
 
         return this.user;
     }
 
     @Override
-    public void setUser(DiscordUser user) {
+    public void setUser(@NotNull DiscordUser user) {
 
         this.user = user;
     }
 
     @Override
-    public long getAmount() {
+    public short getAmount() {
 
         return this.amount;
     }
 
     @Override
-    public void setAmount(long amount) {
+    public void setAmount(short amount) {
 
         this.amount = amount;
     }
 
     @Override
-    public Set<Anime> getVotes() {
+    public @NotNull Set<Anime> getVotes() {
 
         return this.votes;
     }
 
     @Override
-    public void setVotes(Set<Anime> votes) {
+    public void setVotes(@NotNull Set<Anime> votes) {
 
         this.votes = votes;
     }
@@ -102,7 +98,7 @@ public class Voter implements IVoter<DiscordUser, Selection, Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IVoter<?, ?, ?> voter) return EntityUtils.equals(this, voter);
+        if (o instanceof VoterEntity<?, ?, ?> voter) return EntityUtils.equals(this, voter);
         return false;
     }
 

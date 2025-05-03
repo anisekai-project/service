@@ -1,8 +1,9 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.helpers.DataService;
 import me.anisekai.server.entities.Setting;
-import me.anisekai.server.interfaces.ISetting;
+import me.anisekai.server.entities.adapters.SettingEventAdapter;
+import me.anisekai.server.events.SettingCreatedEvent;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.proxy.SettingProxy;
 import me.anisekai.server.repositories.SettingRepository;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class SettingService extends DataService<Setting, String, ISetting, SettingRepository, SettingProxy> {
+public class SettingService extends DataService<Setting, String, SettingEventAdapter, SettingRepository, SettingProxy> {
 
     public static final String WATCHLIST_CHANNEL    = "discord.channels.watchlist";
     public static final String ANNOUNCEMENT_CHANNEL = "discord.channels.announcements";
@@ -36,10 +37,14 @@ public class SettingService extends DataService<Setting, String, ISetting, Setti
 
     public Setting setSetting(String id, String value) {
 
-        return this.getProxy().create(setting -> {
-            setting.setId(id);
-            setting.setValue(value);
-        });
+        return this.getProxy().upsertEntity(
+                id,
+                SettingCreatedEvent::new,
+                setting -> {
+                    setting.setId(id);
+                    setting.setValue(value);
+                }
+        );
     }
 
     // <editor-fold desc="General Getters">

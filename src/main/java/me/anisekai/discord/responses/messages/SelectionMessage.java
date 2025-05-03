@@ -2,13 +2,13 @@ package me.anisekai.discord.responses.messages;
 
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import me.anisekai.discord.responses.embeds.SelectionEmbed;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
 import me.anisekai.server.entities.Selection;
 import me.anisekai.server.entities.Voter;
-import me.anisekai.server.interfaces.IAnime;
-import me.anisekai.server.interfaces.IDiscordUser;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -65,7 +65,7 @@ public class SelectionMessage implements SlashResponse, ButtonResponse {
 
                 List<Button> buttons = this.selection.getAnimes()
                                                      .stream()
-                                                     .sorted(Comparator.comparingLong(IAnime::getId))
+                                                     .sorted(Comparator.comparingLong(AnimeEntity::getId))
                                                      .map(anime -> votes.containsKey(anime) ? this.asButton(
                                                              anime,
                                                              votes.get(anime)
@@ -96,7 +96,7 @@ public class SelectionMessage implements SlashResponse, ButtonResponse {
         return false;
     }
 
-    private Button asButton(IAnime<?> anime) {
+    private Button asButton(AnimeEntity<?> anime) {
 
         return Button.primary(
                 String.format("button://vote?selection=%s&anime=%s", this.selection.getId(), anime.getId()),
@@ -104,7 +104,7 @@ public class SelectionMessage implements SlashResponse, ButtonResponse {
         );
     }
 
-    private Button asButton(IAnime<?> anime, IDiscordUser votedBy) {
+    private Button asButton(AnimeEntity<?> anime, UserEntity votedBy) {
 
         return Button.of(
                 ButtonStyle.SECONDARY,

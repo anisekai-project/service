@@ -1,13 +1,14 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.helpers.DataService;
+import fr.anisekai.wireless.remote.keys.VoterKey;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
 import me.anisekai.server.entities.Selection;
 import me.anisekai.server.entities.Voter;
+import me.anisekai.server.entities.adapters.VoterEventAdapter;
 import me.anisekai.server.exceptions.selection.SelectionAnimeNotFoundException;
 import me.anisekai.server.exceptions.voter.VoterMaxReachedException;
-import me.anisekai.server.interfaces.IVoter;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.proxy.VoterProxy;
 import me.anisekai.server.repositories.VoterRepository;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class VoterService extends DataService<Voter, Long, IVoter<DiscordUser, Selection, Anime>, VoterRepository, VoterProxy> {
+public class VoterService extends DataService<Voter, VoterKey, VoterEventAdapter, VoterRepository, VoterProxy> {
 
-    private final DiscordUserService userService;
+    private final UserService userService;
 
-    public VoterService(VoterProxy proxy, DiscordUserService userService) {
+    public VoterService(VoterProxy proxy, UserService userService) {
 
         super(proxy);
         this.userService = userService;
@@ -54,15 +55,15 @@ public class VoterService extends DataService<Voter, Long, IVoter<DiscordUser, S
 
     public List<Voter> createVoters(Selection selection, long maxVote) {
 
-        List<DiscordUser>         activeUsers = this.userService.getActiveUsers();
-        Map<DiscordUser, Integer> voteMap     = new HashMap<>();
-        activeUsers.forEach(user -> voteMap.put(user, 0));
+        List<DiscordUser>       activeUsers = this.userService.getActiveUsers();
+        Map<DiscordUser, Short> voteMap     = new HashMap<>();
+        activeUsers.forEach(user -> voteMap.put(user, (short) 0));
 
         long voteLeft = maxVote;
         int  i        = 0;
         while (voteLeft > 0) {
             DiscordUser user = activeUsers.get(i);
-            voteMap.put(user, voteMap.get(user) + 1);
+            voteMap.put(user, (short) (voteMap.get(user) + 1));
             voteLeft -= 1;
             i = activeUsers.size() - 1 == i ? 0 : i + 1;
         }
@@ -72,7 +73,7 @@ public class VoterService extends DataService<Voter, Long, IVoter<DiscordUser, S
                           .toList();
     }
 
-    public Voter createVoter(Selection selection, DiscordUser user, long amount) {
+    public Voter createVoter(Selection selection, DiscordUser user, short amount) {
 
         return this.getProxy().create(voter -> {
             voter.setSelection(selection);

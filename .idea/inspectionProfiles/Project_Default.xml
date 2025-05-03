@@ -94,6 +94,7 @@
       <option name="customHeaders">
         <set>
           <option value="X-FROM-DISK" />
+          <option value="X-API-KEY" />
         </set>
       </option>
     </inspection_tool>
@@ -103,7 +104,6 @@
     </inspection_tool>
     <inspection_tool class="InstanceofThis" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="LimitedScopeInnerClass" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="MarkerInterface" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MultipleTopLevelClassesInFile" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="NestedAssignment" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="NonFinalFieldInEnum" enabled="true" level="ERROR" enabled_by_default="true" />

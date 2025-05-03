@@ -1,22 +1,14 @@
 package me.anisekai.library;
 
-import me.anisekai.api.mkv.MediaTrack;
+import fr.anisekai.wireless.remote.interfaces.TorrentEntity;
+import fr.anisekai.wireless.remote.interfaces.TorrentFileEntity;
 import me.anisekai.library.configuration.DiskConfiguration;
-import me.anisekai.server.entities.Episode;
-import me.anisekai.server.entities.Media;
-import me.anisekai.server.entities.Track;
-import me.anisekai.server.interfaces.ITorrent;
-import me.anisekai.server.services.MediaService;
-import me.anisekai.server.services.TrackService;
+import me.anisekai.server.entities.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LibraryService {
@@ -24,74 +16,40 @@ public class LibraryService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LibraryService.class);
 
     private final DiskConfiguration configuration;
-    private final MediaService      mediaService;
-    private final TrackService      trackService;
 
-    public LibraryService(DiskConfiguration configuration, MediaService mediaService, TrackService trackService) {
+    public LibraryService(DiskConfiguration configuration) {
 
         this.configuration = configuration;
-
-        this.mediaService = mediaService;
-        this.trackService = trackService;
     }
 
-    /**
-     * Retrieve the {@link File} on disk for the provided {@link ITorrent}.
-     *
-     * @param torrent
-     *         The {@link ITorrent} to retrieve.
-     *
-     * @return A {@link File}.
-     */
-    public File getTorrentFile(ITorrent<Episode> torrent) {
+    public File get(TorrentEntity torrent) {
 
-        return new File(this.configuration.getTorrentFile(), torrent.getFileName());
+        File download = this.configuration.getDownloadFile();
+        return new File(download, torrent.getName());
     }
 
-    /**
-     * Retrieve all {@link Track} associated to the provided {@link Episode}.
-     *
-     * @param episode
-     *         The {@link Episode} to use when retrieving the {@link Track}
-     *
-     * @return A {@link List} of {@link Track}.
-     */
-    public List<Track> getTracks(Episode episode) {
+    public File get(TorrentFileEntity<Episode, Torrent> torrentFile) {
 
-        Media media = this.mediaService.find(episode);
-        return this.trackService.getTracks(media);
+        File download = this.configuration.getDownloadFile();
+        return new File(download, torrentFile.getName());
     }
 
-    public Media createMedia(Episode episode) {
+    public File get(TorrentEntity torrent, TorrentFileEntity<Episode, Torrent> torrentFile) {
 
-        return this.mediaService.upsert(episode);
+        File torrentDir = this.get(torrent);
+        return new File(torrentDir, torrentFile.getName());
     }
 
-    public List<Track> createTrack(Media media, Collection<MediaTrack> mediaTracks) {
+    public File get(Track track) {
 
-        File        mediaDirectory = this.configuration.getMediaFile();
-        List<Track> tracks         = this.trackService.getTracks(media);
+        // <root>/<anime_id>/<episode_id>/<track_name>.<ext>
 
-        if (!tracks.isEmpty()) {
-            // Delete all tracks, in case the task as been restarted.
-            for (Track track : tracks) {
-                File trackFile = track.asFile(mediaDirectory);
-                if (trackFile.exists() && trackFile.isFile()) {
-                    if (!trackFile.delete()) {
-                        Path mediaOutput = mediaDirectory.toPath();
-                        Path trackPath   = track.asFile(mediaDirectory).toPath();
-                        Path relativized = mediaOutput.relativize(trackPath);
-                        LOGGER.warn("Could not delete track file {}. This could cause issues later.", relativized);
-                    }
-                }
-            }
+        Episode episode = track.getEpisode();
+        Anime   anime   = episode.getAnime();
 
-            this.trackService.getProxy().getRepository().deleteAll(tracks);
-        }
-
-        return mediaTracks.stream()
-                          .map(mediaTrack -> this.trackService.createFromMediaTrack(media, mediaTrack))
-                          .collect(Collectors.toList());
+        File animeTarget   = new File(this.configuration.getMediaFile(), anime.getId().toString());
+        File episodeTarget = new File(animeTarget, episode.getId().toString());
+        return new File(episodeTarget, track.getName() + "." + track.getCodec().getExtension());
     }
 
 }

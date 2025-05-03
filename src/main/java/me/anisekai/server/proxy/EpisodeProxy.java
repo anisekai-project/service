@@ -1,11 +1,10 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
-import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Episode;
+import me.anisekai.server.entities.adapters.EpisodeEventAdapter;
 import me.anisekai.server.events.EpisodeCreatedEvent;
 import me.anisekai.server.exceptions.episode.EpisodeNotFoundException;
-import me.anisekai.server.interfaces.IEpisode;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.EpisodeRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class EpisodeProxy extends ProxyService<Episode, Long, IEpisode<Anime>, EpisodeRepository> {
+public class EpisodeProxy extends ProxyService<Episode, Long, EpisodeEventAdapter, EpisodeRepository> {
 
     public EpisodeProxy(ApplicationEventPublisher publisher, EpisodeRepository repository) {
 
@@ -38,7 +37,7 @@ public class EpisodeProxy extends ProxyService<Episode, Long, IEpisode<Anime>, E
         return selector.apply(this.getRepository()).orElseThrow(EpisodeNotFoundException::new);
     }
 
-    public Episode create(Consumer<IEpisode<Anime>> consumer) {
+    public Episode create(Consumer<EpisodeEventAdapter> consumer) {
 
         return this.create(consumer, EpisodeCreatedEvent::new);
     }

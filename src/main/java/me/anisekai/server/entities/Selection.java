@@ -1,17 +1,19 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.remote.enums.AnimeSeason;
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
+import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.Season;
-import me.anisekai.server.enums.SelectionStatus;
-import me.anisekai.server.interfaces.ISelection;
+import me.anisekai.server.entities.adapters.SelectionEventAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Selection implements ISelection<Anime> {
+public class Selection implements SelectionEventAdapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +21,7 @@ public class Selection implements ISelection<Anime> {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private Season season;
+    private AnimeSeason season;
 
     @Column(nullable = false)
     private int year;
@@ -32,7 +34,7 @@ public class Selection implements ISelection<Anime> {
     private Set<Anime> animes;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -43,53 +45,61 @@ public class Selection implements ISelection<Anime> {
         return this.id;
     }
 
-    public Season getSeason() {
+    @Override
+    public @NotNull AnimeSeason getSeason() {
 
         return this.season;
     }
 
-    public void setSeason(Season season) {
+    @Override
+    public void setSeason(@NotNull AnimeSeason season) {
 
         this.season = season;
     }
 
+    @Override
     public int getYear() {
 
         return this.year;
     }
 
+    @Override
     public void setYear(int year) {
 
         this.year = year;
     }
 
     @Override
-    public SelectionStatus getStatus() {
+    public @NotNull SelectionStatus getStatus() {
 
         return this.status;
     }
 
     @Override
-    public void setStatus(SelectionStatus status) {
+    public void setStatus(@NotNull SelectionStatus status) {
 
         this.status = status;
     }
 
-    public Set<Anime> getAnimes() {
+    @Override
+    public @NotNull Set<Anime> getAnimes() {
 
         return this.animes;
     }
 
-    public void setAnimes(Set<Anime> animes) {
+    @Override
+    public void setAnimes(@NotNull Set<Anime> animes) {
 
         this.animes = animes;
     }
 
+    @Override
     public ZonedDateTime getCreatedAt() {
 
         return this.createdAt;
     }
 
+    @Override
     public ZonedDateTime getUpdatedAt() {
 
         return this.updatedAt;
@@ -98,7 +108,7 @@ public class Selection implements ISelection<Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof ISelection<?> selection) return EntityUtils.equals(this, selection);
+        if (o instanceof SelectionEntity<?> selection) return EntityUtils.equals(this, selection);
         return false;
     }
 

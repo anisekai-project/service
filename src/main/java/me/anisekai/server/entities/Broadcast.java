@@ -1,16 +1,18 @@
 package me.anisekai.server.entities;
 
-import jakarta.annotation.Nullable;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
+import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.BroadcastStatus;
-import me.anisekai.server.interfaces.IBroadcast;
+import me.anisekai.server.entities.adapters.BroadcastEventAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
-public class Broadcast implements IBroadcast<Anime> {
+public class Broadcast implements BroadcastEventAdapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,8 +21,11 @@ public class Broadcast implements IBroadcast<Anime> {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private Anime watchTarget;
 
+    @Column(nullable = false)
+    private ZonedDateTime startingAt;
+
     @Column
-    private @Nullable Long eventId;
+    private Long eventId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -33,16 +38,10 @@ public class Broadcast implements IBroadcast<Anime> {
     private long firstEpisode;
 
     @Column(nullable = false)
-    private ZonedDateTime startingAt;
-
-    @Column(nullable = false)
     private boolean skipEnabled;
 
     @Column(nullable = false)
-    private boolean doProgress;
-
-    @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -54,38 +53,49 @@ public class Broadcast implements IBroadcast<Anime> {
     }
 
     @Override
-    public Anime getWatchTarget() {
+    public @NotNull Anime getWatchTarget() {
 
         return this.watchTarget;
     }
 
     @Override
-    public void setWatchTarget(Anime watchTarget) {
+    public void setWatchTarget(@NotNull Anime watchTarget) {
 
         this.watchTarget = watchTarget;
     }
 
     @Override
-    @Nullable
-    public Long getEventId() {
+    public @NotNull ZonedDateTime getStartingAt() {
+
+        return this.startingAt;
+    }
+
+    @Override
+    public void setStartingAt(@NotNull ZonedDateTime startingAt) {
+
+        this.startingAt = startingAt;
+    }
+
+    @Override
+    public @Nullable Long getEventId() {
 
         return this.eventId;
     }
 
     @Override
-    public void setEventId(@Nullable Long eventId) {
+    public void setEventId(Long eventId) {
 
         this.eventId = eventId;
     }
 
     @Override
-    public BroadcastStatus getStatus() {
+    public @NotNull BroadcastStatus getStatus() {
 
         return this.status;
     }
 
     @Override
-    public void setStatus(BroadcastStatus status) {
+    public void setStatus(@NotNull BroadcastStatus status) {
 
         this.status = status;
     }
@@ -115,18 +125,6 @@ public class Broadcast implements IBroadcast<Anime> {
     }
 
     @Override
-    public ZonedDateTime getStartingAt() {
-
-        return this.startingAt;
-    }
-
-    @Override
-    public void setStartingAt(ZonedDateTime startingAt) {
-
-        this.startingAt = startingAt;
-    }
-
-    @Override
     public boolean isSkipEnabled() {
 
         return this.skipEnabled;
@@ -136,18 +134,6 @@ public class Broadcast implements IBroadcast<Anime> {
     public void setSkipEnabled(boolean skipEnabled) {
 
         this.skipEnabled = skipEnabled;
-    }
-
-    @Override
-    public boolean shouldDoProgress() {
-
-        return this.doProgress;
-    }
-
-    @Override
-    public void setDoProgress(boolean shouldDoProgress) {
-
-        this.doProgress = shouldDoProgress;
     }
 
     @Override
@@ -165,7 +151,7 @@ public class Broadcast implements IBroadcast<Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IBroadcast<?> broadcast) return EntityUtils.equals(this, broadcast);
+        if (o instanceof BroadcastEntity<?> broadcast) return EntityUtils.equals(this, broadcast);
         return false;
     }
 

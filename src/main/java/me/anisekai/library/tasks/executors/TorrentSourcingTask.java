@@ -1,18 +1,20 @@
 package me.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
-import me.anisekai.api.nyaa.NyaaFeed;
-import me.anisekai.api.transmission.NyaaRssEntry;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.services.Nyaa;
+import fr.anisekai.wireless.api.services.Transmission;
+import fr.anisekai.wireless.utils.MapUtils;
 import me.anisekai.library.services.SpringTransmissionClient;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Episode;
 import me.anisekai.server.entities.Torrent;
+import me.anisekai.server.entities.TorrentFile;
 import me.anisekai.server.services.AnimeService;
 import me.anisekai.server.services.EpisodeService;
+import me.anisekai.server.services.TorrentFileService;
 import me.anisekai.server.services.TorrentService;
 import me.anisekai.server.tasking.TaskExecutor;
-import me.anisekai.utils.MapUtils;
 
 import java.net.URI;
 import java.util.List;
@@ -25,46 +27,29 @@ public class TorrentSourcingTask implements TaskExecutor {
 
     public static final String OPTION_SOURCE = "source";
 
-    private final AnimeService   animeService;
-    private final EpisodeService episodeService;
-    private final TorrentService torrentService;
+    private final AnimeService       animeService;
+    private final EpisodeService     episodeService;
+    private final TorrentService     torrentService;
+    private final TorrentFileService torrentFileService;
 
-    public TorrentSourcingTask(AnimeService animeService, EpisodeService episodeService, TorrentService torrentService) {
+    public TorrentSourcingTask(AnimeService animeService, EpisodeService episodeService, TorrentService torrentService, TorrentFileService torrentFileService) {
 
-        this.animeService   = animeService;
-        this.episodeService = episodeService;
-        this.torrentService = torrentService;
+        this.animeService       = animeService;
+        this.episodeService     = episodeService;
+        this.torrentService     = torrentService;
+        this.torrentFileService = torrentFileService;
     }
 
-    /**
-     * Check if the executor can find the required content in the provide {@link BookshelfJson} for its execution.
-     *
-     * @param params
-     *         A {@link BookshelfJson}
-     *
-     * @return True if the json contains all settings, false otherwise.
-     */
     @Override
-    public boolean validateParams(BookshelfJson params) {
+    public boolean validateParams(AnisekaiJson params) {
 
         return params.has(OPTION_PRIORITY) && params.has(OPTION_SOURCE);
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) throws Exception {
 
-        long   priority = params.getLong(OPTION_PRIORITY);
+        byte   priority = (byte) params.getInt(OPTION_PRIORITY);
         String source   = params.getString(OPTION_SOURCE);
 
         timer.action("client-check", "Check the transmission client");
@@ -82,35 +67,71 @@ public class TorrentSourcingTask implements TaskExecutor {
         Map<Long, Pattern> regexMap = animes
                 .stream()
                 .filter(anime -> anime.getTitleRegex() != null)
-                .collect(MapUtils.map(Anime::getId, anime -> Pattern.compile(anime.getTitleRegex())));
+                .collect(MapUtils.map(Anime::getId, Anime::getTitleRegex));
         timer.endAction();
 
         timer.action("rss-load", "Reading RSS content");
-        URI                uri     = URI.create(source);
-        List<NyaaRssEntry> entries = NyaaFeed.analyze(uri, NyaaRssEntry::new);
+        URI              uri     = URI.create(source);
+        List<Nyaa.Entry> entries = Nyaa.fetch(uri);
         timer.endAction();
 
         timer.action("rss-handle", "Handling RSS content");
-        for (NyaaRssEntry entry : entries) {
-            timer.action("find-rss-match", entry.getLink());
+        for (Nyaa.Entry entry : entries) {
+            timer.action("find-rss-match", entry.link());
 
             for (Map.Entry<Long, Pattern> mapEntry : regexMap.entrySet()) {
-                Matcher matcher = mapEntry.getValue().matcher(entry.getTitle());
-                if (matcher.matches()) {
+                Matcher matcher = mapEntry.getValue().matcher(entry.title());
+                if (matcher.find()) {
                     Anime anime  = animeMap.get(mapEntry.getKey());
-                    int   number = Integer.parseInt(matcher.group("episode"));
+                    int   number = Integer.parseInt(matcher.group("ep"));
 
                     Optional<Episode> optionalEpisode = this.episodeService.getEpisode(anime, number);
 
-                    if (optionalEpisode.isPresent() && this.torrentService.getTorrent(optionalEpisode.get())
-                                                                          .isPresent()) {
-                        // Download already up and running — or probably already done, in fact.
-                        continue;
+                    timer.action("offering-torrent", "Add torrent to client");
+                    Transmission.Torrent query = client.query(entry);
+                    if (query.files().size() > 1) {
+                        client.delete(query);
+                        throw new IllegalStateException("Not supporting multi-file download.");
+                    }
+                    timer.endAction();
+
+                    Episode episode;
+
+                    if (optionalEpisode.isPresent()) {
+                        episode = optionalEpisode.get();
+                        Optional<TorrentFile> file = this.torrentFileService.getFile(episode);
+
+                        if (file.isPresent()) {
+                            break; // Already downloading this file.
+                        }
+
+                    } else {
+                        episode = this.episodeService.create(anime, number);
                     }
 
-                    timer.action("submit-torrent", "Submitting the torrent");
-                    Episode episode = optionalEpisode.orElseGet(() -> this.episodeService.create(anime, number));
-                    Torrent torrent = this.torrentService.download(entry, episode, priority);
+                    timer.action("starting-torrent", "Starting torrent");
+                    Transmission.Torrent transmissionTorrent = client.resume(query);
+                    timer.endAction();
+
+                    timer.action("saving-entities", "Saving entities to database");
+                    Torrent torrent = this.torrentService.getProxy().create(entity -> {
+                        entity.setId(transmissionTorrent.hash());
+                        entity.setName(entry.title());
+                        entity.setStatus(transmissionTorrent.status());
+                        entity.setProgress(transmissionTorrent.percentDone());
+                        entity.setLink(entry.link());
+                        entity.setDownloadDirectory(transmissionTorrent.downloadDir());
+                    });
+
+                    String file = transmissionTorrent.files().getFirst();
+
+                    this.torrentFileService.getProxy().create(entity -> {
+                        entity.setEpisode(episode);
+                        entity.setTorrent(torrent);
+                        entity.setIndex(0);
+                        entity.setName(file);
+                    });
+
                     timer.endAction();
                     break;
                 }

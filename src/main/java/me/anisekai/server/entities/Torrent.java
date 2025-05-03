@@ -1,15 +1,17 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.api.services.Transmission;
+import fr.anisekai.wireless.remote.interfaces.TorrentEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.api.transmission.TorrentStatus;
-import me.anisekai.server.interfaces.ITorrent;
+import me.anisekai.server.entities.adapters.TorrentEventAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
-public class Torrent implements ITorrent<Episode> {
+public class Torrent implements TorrentEventAdapter {
 
     @Id
     private String id;
@@ -17,12 +19,9 @@ public class Torrent implements ITorrent<Episode> {
     @Column(nullable = false)
     private String name;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    private Episode episode;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TorrentStatus status = TorrentStatus.DOWNLOAD_QUEUED;
+    private Transmission.TorrentStatus status = Transmission.TorrentStatus.DOWNLOAD_QUEUED;
 
     @Column(nullable = false)
     private double progress = 0;
@@ -34,13 +33,10 @@ public class Torrent implements ITorrent<Episode> {
     private String downloadDirectory;
 
     @Column(nullable = false)
-    private String fileName;
+    private byte priority;
 
     @Column(nullable = false)
-    private int priority = 0;
-
-    @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -52,37 +48,31 @@ public class Torrent implements ITorrent<Episode> {
     }
 
     @Override
-    public String getName() {
+    public void setId(String id) {
+
+        this.id = id;
+    }
+
+    @Override
+    public @NotNull String getName() {
 
         return this.name;
     }
 
     @Override
-    public void setName(String name) {
+    public void setName(@NotNull String name) {
 
         this.name = name;
     }
 
     @Override
-    public Episode getEpisode() {
-
-        return this.episode;
-    }
-
-    @Override
-    public void setEpisode(Episode episode) {
-
-        this.episode = episode;
-    }
-
-    @Override
-    public TorrentStatus getStatus() {
+    public @NotNull Transmission.TorrentStatus getStatus() {
 
         return this.status;
     }
 
     @Override
-    public void setStatus(TorrentStatus status) {
+    public void setStatus(Transmission.@NotNull TorrentStatus status) {
 
         this.status = status;
     }
@@ -100,51 +90,39 @@ public class Torrent implements ITorrent<Episode> {
     }
 
     @Override
-    public String getLink() {
+    public @NotNull String getLink() {
 
         return this.link;
     }
 
     @Override
-    public void setLink(String link) {
+    public void setLink(@NotNull String link) {
 
         this.link = link;
     }
 
     @Override
-    public String getDownloadDirectory() {
+    public @NotNull String getDownloadDirectory() {
 
         return this.downloadDirectory;
     }
 
     @Override
-    public void setDownloadDirectory(String downloadDirectory) {
+    public void setDownloadDirectory(@NotNull String downloadDirectory) {
 
         this.downloadDirectory = downloadDirectory;
     }
 
     @Override
-    public String getFileName() {
-
-        return this.fileName;
-    }
-
-    @Override
-    public void setFileName(String fileName) {
-
-        this.fileName = fileName;
-    }
-
-    @Override
-    public long getPriority() {
+    public byte getPriority() {
 
         return this.priority;
     }
 
     @Override
-    public void setPriority(long priority) {
+    public void setPriority(byte priority) {
 
-        this.priority = (int) priority;
+        this.priority = priority;
     }
 
     @Override
@@ -162,7 +140,7 @@ public class Torrent implements ITorrent<Episode> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof ITorrent<?> torrent) return EntityUtils.equals(this, torrent);
+        if (o instanceof TorrentEntity torrent) return EntityUtils.equals(this, torrent);
         return false;
     }
 

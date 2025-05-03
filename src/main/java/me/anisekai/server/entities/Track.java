@@ -1,33 +1,41 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.api.media.enums.Codec;
+import fr.anisekai.wireless.remote.interfaces.TrackEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.enums.TrackType;
-import me.anisekai.server.interfaces.ITrack;
+import me.anisekai.server.entities.adapters.TrackEventAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
-public class Track implements ITrack<Media> {
+public class Track implements TrackEventAdapter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    private Media media;
+    private Episode episode;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private TrackType type;
+    public Codec codec;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private boolean forced = false;
+
+    @Column
+    private String language;
+
+    @Column(nullable = false)
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -39,39 +47,63 @@ public class Track implements ITrack<Media> {
     }
 
     @Override
-    public Media getMedia() {
+    public @NotNull Episode getEpisode() {
 
-        return this.media;
+        return this.episode;
     }
 
     @Override
-    public void setMedia(Media media) {
+    public void setEpisode(@NotNull Episode episode) {
 
-        this.media = media;
+        this.episode = episode;
     }
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
 
         return this.name;
     }
 
     @Override
-    public void setName(String name) {
+    public void setName(@NotNull String name) {
 
         this.name = name;
     }
 
     @Override
-    public TrackType getType() {
+    public @NotNull Codec getCodec() {
 
-        return this.type;
+        return this.codec;
     }
 
     @Override
-    public void setType(TrackType type) {
+    public void setCodec(@NotNull Codec codec) {
 
-        this.type = type;
+        this.codec = codec;
+    }
+
+    @Override
+    public @Nullable String getLanguage() {
+
+        return this.language;
+    }
+
+    @Override
+    public void setLanguage(String language) {
+
+        this.language = language;
+    }
+
+    @Override
+    public boolean isForced() {
+
+        return this.forced;
+    }
+
+    @Override
+    public void setForced(boolean forced) {
+
+        this.forced = forced;
     }
 
     @Override
@@ -89,7 +121,7 @@ public class Track implements ITrack<Media> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof ITrack<?> track) return EntityUtils.equals(this, track);
+        if (o instanceof TrackEntity<?> track) return EntityUtils.equals(this, track);
         return false;
     }
 
@@ -103,18 +135,6 @@ public class Track implements ITrack<Media> {
     public void beforeSave() {
 
         this.updatedAt = ZonedDateTime.now();
-    }
-
-    public File asFile(File root) {
-
-        Media   media   = this.getMedia();
-        Episode episode = media.getEpisode();
-        Anime   anime   = episode.getAnime();
-
-        File animeTarget   = new File(root, anime.getId().toString());
-        File episodeTarget = new File(animeTarget, episode.getId().toString());
-        File mediaTarget   = new File(episodeTarget, media.getId().toString());
-        return new File(mediaTarget, this.getName() + this.getType().getExtension());
     }
 
 }

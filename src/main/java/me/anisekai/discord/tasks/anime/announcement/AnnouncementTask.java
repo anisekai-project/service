@@ -1,7 +1,7 @@
 package me.anisekai.discord.tasks.anime.announcement;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import me.anisekai.api.json.BookshelfJson;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import me.anisekai.discord.JDAStore;
 import me.anisekai.discord.exceptions.tasks.UndefinedAnnouncementChannelException;
 import me.anisekai.discord.exceptions.tasks.UndefinedAnnouncementRoleException;
@@ -40,19 +40,8 @@ public class AnnouncementTask implements TaskExecutor {
         this.store           = store;
     }
 
-    /**
-     * Run this task.
-     *
-     * @param timer
-     *         The timer to use to mesure performance of the task.
-     * @param params
-     *         The parameters of this task.
-     *
-     * @throws Exception
-     *         Thew if something happens.
-     */
     @Override
-    public void execute(ITimedAction timer, BookshelfJson params) throws Exception {
+    public void execute(ITimedAction timer, AnisekaiJson params) {
 
         TextChannel      channel   = this.getAnnouncementChannel();
         Role             role      = this.getAnnouncementRole();
@@ -76,16 +65,8 @@ public class AnnouncementTask implements TaskExecutor {
         message.editMessage(builder.build()).complete();
     }
 
-    /**
-     * Check if the executor can find the required content in the provide {@link BookshelfJson} for its execution.
-     *
-     * @param params
-     *         A {@link BookshelfJson}
-     *
-     * @return True if the json contains all settings, false otherwise.
-     */
     @Override
-    public boolean validateParams(BookshelfJson params) {
+    public boolean validateParams(AnisekaiJson params) {
 
         return params.has(OPTION_ANIME);
     }

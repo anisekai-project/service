@@ -1,16 +1,18 @@
 package me.anisekai.server.entities;
 
+import fr.anisekai.wireless.remote.interfaces.InterestEntity;
+import fr.anisekai.wireless.remote.keys.InterestKey;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.interfaces.IInterest;
-import me.anisekai.server.keys.UserAnimeKey;
+import me.anisekai.server.entities.adapters.InterestEventAdapter;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
-@IdClass(UserAnimeKey.class)
-public class Interest implements IInterest<DiscordUser, Anime> {
+@IdClass(InterestKey.class)
+public class Interest implements InterestEventAdapter {
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
@@ -21,46 +23,46 @@ public class Interest implements IInterest<DiscordUser, Anime> {
     private Anime anime;
 
     @Column(nullable = false)
-    private long level; // From -2 to 2 (0 being neutral)
+    private byte level; // From -2 to 2 (0 being neutral)
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
 
     @Override
-    public DiscordUser getUser() {
+    public @NotNull DiscordUser getUser() {
 
         return this.user;
     }
 
     @Override
-    public void setUser(DiscordUser user) {
+    public void setUser(@NotNull DiscordUser user) {
 
         this.user = user;
     }
 
     @Override
-    public Anime getAnime() {
+    public @NotNull Anime getAnime() {
 
         return this.anime;
     }
 
     @Override
-    public void setAnime(Anime anime) {
+    public void setAnime(@NotNull Anime anime) {
 
         this.anime = anime;
     }
 
     @Override
-    public long getLevel() {
+    public byte getLevel() {
 
         return this.level;
     }
 
     @Override
-    public void setLevel(long level) {
+    public void setLevel(byte level) {
 
         this.level = level;
     }
@@ -80,7 +82,7 @@ public class Interest implements IInterest<DiscordUser, Anime> {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IInterest<?, ?> interest) return EntityUtils.equals(this, interest);
+        if (o instanceof InterestEntity<?, ?> interest) return EntityUtils.equals(this, interest);
         return false;
     }
 

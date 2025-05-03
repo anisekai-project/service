@@ -1,18 +1,19 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.helpers.DataService;
-import me.anisekai.api.plannifier.EventScheduler;
-import me.anisekai.api.plannifier.data.BookedSpot;
-import me.anisekai.api.plannifier.interfaces.Scheduler;
-import me.anisekai.api.plannifier.interfaces.SchedulerManager;
-import me.anisekai.api.plannifier.interfaces.entities.Plannifiable;
+import fr.anisekai.wireless.api.plannifier.EventScheduler;
+import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
+import fr.anisekai.wireless.api.plannifier.interfaces.Scheduler;
+import fr.anisekai.wireless.api.plannifier.interfaces.SchedulerManager;
+import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
+import me.anisekai.server.planifier.BookedSpot;
 import me.anisekai.discord.tasks.broadcast.cancel.BroadcastCancelFactory;
 import me.anisekai.discord.tasks.broadcast.schedule.BroadcastScheduleFactory;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Broadcast;
+import me.anisekai.server.entities.adapters.BroadcastEventAdapter;
 import me.anisekai.server.enums.BroadcastFrequency;
-import me.anisekai.server.enums.BroadcastStatus;
-import me.anisekai.server.interfaces.IBroadcast;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.proxy.BroadcastProxy;
 import me.anisekai.server.repositories.BroadcastRepository;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
@@ -24,7 +25,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<Anime>, BroadcastRepository, BroadcastProxy> implements SchedulerManager<Anime, IBroadcast<Anime>, Broadcast> {
+public class BroadcastService extends DataService<Broadcast, Long, BroadcastEventAdapter, BroadcastRepository, BroadcastProxy> implements SchedulerManager<Anime, BroadcastEventAdapter, Broadcast> {
+
+    private final static List<BroadcastStatus> ACTIVE_STATUSES = Arrays.asList(
+            BroadcastStatus.SCHEDULED,
+            BroadcastStatus.ACTIVE,
+            BroadcastStatus.UNSCHEDULED
+    );
 
     private final TaskService taskService;
 
@@ -34,28 +41,27 @@ public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<An
         this.taskService = taskService;
     }
 
-
     @Override
-    public Broadcast create(Plannifiable<Anime> plannifiable) {
+    public Broadcast create(Planifiable<Anime> planifiable) {
 
         return this.getProxy().create(entity -> {
-            entity.setWatchTarget(plannifiable.getWatchTarget());
+            entity.setWatchTarget(planifiable.getWatchTarget());
             entity.setStatus(BroadcastStatus.UNSCHEDULED);
-            entity.setFirstEpisode(plannifiable.getFirstEpisode());
-            entity.setEpisodeCount(plannifiable.getEpisodeCount());
-            entity.setStartingAt(plannifiable.getStartingAt());
-            entity.setSkipEnabled(plannifiable.isSkipEnabled());
+            entity.setFirstEpisode(planifiable.getFirstEpisode());
+            entity.setEpisodeCount(planifiable.getEpisodeCount());
+            entity.setStartingAt(planifiable.getStartingAt());
+            entity.setSkipEnabled(planifiable.isSkipEnabled());
         });
     }
 
     @Override
-    public Broadcast update(Broadcast entity, Consumer<IBroadcast<Anime>> updateHook) {
+    public Broadcast update(Broadcast entity, Consumer<BroadcastEventAdapter> updateHook) {
 
         return this.mod(entity.getId(), updateHook);
     }
 
     @Override
-    public List<Broadcast> update(List<Broadcast> entities, Consumer<IBroadcast<Anime>> updateHook) {
+    public List<Broadcast> updateAll(List<Broadcast> entities, Consumer<BroadcastEventAdapter> updateHook) {
 
         List<Long> ids = entities.stream().map(Broadcast::getId).toList();
         return this.batch(repository -> repository.findAllById(ids), updateHook);
@@ -73,23 +79,33 @@ public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<An
         String scheduleTaskName = this.taskService.getFactory(BroadcastScheduleFactory.class).asTaskName(broadcast);
         this.taskService.cancel(scheduleTaskName);
 
-        if (broadcast.getStatus().isCancelable()) {
+        if (broadcast.getStatus().isDiscordCancelable()) {
             this.taskService.getFactory(BroadcastCancelFactory.class).queue(broadcast);
+        } else {
+            this.mod(
+                    broadcast.getId(), entity -> entity.setStatus(BroadcastStatus.CANCELED)
+            );
         }
-
-        this.mod(
-                broadcast.getId(), entity -> {
-                    entity.setStatus(BroadcastStatus.CANCELED);
-                    entity.setDoProgress(false);
-                }
-        );
 
         return true;
     }
 
-    public Scheduler<Anime, IBroadcast<Anime>, Broadcast> createScheduler() {
+    public boolean hasPreviousScheduled(ScheduleSpotData<Anime> broadcast) {
 
-        return new EventScheduler<>(this, this.fetchAll());
+        return this.getProxy()
+                   .getRepository()
+                   .countPreviousOf(
+                           broadcast.getWatchTarget().getId(),
+                           broadcast.getStartingAt(),
+                           ACTIVE_STATUSES
+                   ) > 0;
+    }
+
+    public Scheduler<Anime, BroadcastEventAdapter, Broadcast> createScheduler() {
+
+        List<Broadcast> broadcasts = this.fetchAll(repository -> repository.findAllByStatusIn(ACTIVE_STATUSES));
+
+        return new EventScheduler<>(this, broadcasts);
     }
 
     public List<Broadcast> schedule(Anime anime, ZonedDateTime starting, BroadcastFrequency frequency, long amount) {
@@ -100,12 +116,12 @@ public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<An
             throw new IllegalArgumentException("Unknown amount of episodes");
         }
 
-        Scheduler<Anime, IBroadcast<Anime>, Broadcast> scheduler = this.createScheduler();
+        Scheduler<Anime, BroadcastEventAdapter, Broadcast> scheduler = this.createScheduler();
 
         if (frequency.hasDateModifier()) {
-            Collection<BookedSpot<Anime>> spots       = new ArrayList<>();
-            long                          schedulable = total - anime.getWatched();
-            ZonedDateTime                 spotTime    = starting;
+            Collection<ScheduleSpotData<Anime>> spots       = new ArrayList<>();
+            long                                schedulable = total - anime.getWatched();
+            ZonedDateTime                       spotTime    = starting;
 
             while (schedulable > 0) {
                 long              spotAmount = schedulable - amount < 0 ? schedulable : amount;
@@ -148,7 +164,6 @@ public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<An
         return broadcasts.size();
     }
 
-
     public Broadcast cancel(Broadcast broadcast) {
 
         BroadcastCancelFactory factory = this.taskService.getFactory(BroadcastCancelFactory.class);
@@ -159,10 +174,7 @@ public class BroadcastService extends DataService<Broadcast, Long, IBroadcast<An
         }
 
         return this.mod(
-                broadcast.getId(), entity -> {
-                    entity.setStatus(BroadcastStatus.CANCELED);
-                    entity.setDoProgress(false);
-                }
+                broadcast.getId(), entity -> entity.setStatus(BroadcastStatus.CANCELED)
         );
     }
 

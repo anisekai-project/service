@@ -1,11 +1,13 @@
 package me.anisekai.web.resolvers;
 
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import jakarta.servlet.http.HttpServletRequest;
 import me.anisekai.server.entities.DiscordUser;
-import me.anisekai.server.interfaces.IDiscordUser;
-import me.anisekai.server.services.DiscordUserService;
+import me.anisekai.server.services.UserService;
 import me.anisekai.web.oauth2.OAuth2DiscordUser;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.WebDataBinder;
@@ -13,14 +15,15 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 
 public class DiscordUserResolver implements HandlerMethodArgumentResolver {
 
-    private final DiscordUserService service;
+    private final UserService service;
 
-    public DiscordUserResolver(DiscordUserService service) {
+    public DiscordUserResolver(UserService service) {
 
         this.service = service;
     }
@@ -38,7 +41,7 @@ public class DiscordUserResolver implements HandlerMethodArgumentResolver {
 
         return Arrays.asList(
                 DiscordUser.class,
-                IDiscordUser.class
+                UserEntity.class
         ).contains(parameter.getParameter().getType());
     }
 
@@ -58,24 +61,36 @@ public class DiscordUserResolver implements HandlerMethodArgumentResolver {
      *         a factory for creating {@link WebDataBinder} instances
      *
      * @return the resolved argument value, or {@code null} if not resolvable
-     *
-     * @throws Exception
-     *         in case of errors with the preparation of argument values
      */
     @Override
-    public Object resolveArgument(@NotNull MethodParameter parameter, ModelAndViewContainer mavContainer, @NotNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public Object resolveArgument(@NotNull MethodParameter parameter, ModelAndViewContainer mavContainer, @NotNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof OAuth2DiscordUser user) {
             // Do not create a DiscordUser if we don't have it, otherwise update the existing one.
             return this.service.getProxy().fetchEntity(user.getIdLong())
-                               .map(localUser -> this.service.getProxy()
-                                                             .modify(
-                                                                     localUser,
-                                                                     proxy -> proxy.setUsername(user.getUsername())
-                                                             ))
+                               .map(localUser -> this.service.getProxy().modify(
+                                       localUser,
+                                       proxy -> proxy.setUsername(user.getUsername())
+                               ))
                                .orElse(null);
+        }
+
+        HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
+        String             path    = request.getRequestURI();
+
+        if (path.startsWith("/api/v3")) {
+            String apiKey = request.getHeader("X-API-KEY");
+            if (apiKey == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing API Key");
+            }
+
+            return this.service.getByApiKey(apiKey)
+                               .orElseThrow(() -> new ResponseStatusException(
+                                       HttpStatus.UNAUTHORIZED,
+                                       "Wrong API Key"
+                               ));
         }
 
         return null;

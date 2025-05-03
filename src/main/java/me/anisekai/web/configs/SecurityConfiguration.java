@@ -24,6 +24,16 @@ public class SecurityConfiguration {
         OAuth2UserService<OAuth2UserRequest, OAuth2User>                     userProvider = new OAuth2UserProvider(this.restOperations());
 
         return httpSecurity
+                // 🔐 Allow anonymous access to API
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v3/**", "/error").permitAll()
+                        .anyRequest().authenticated()
+                )
+                // ❌ CSRF is useless for APIs
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/v3/**") // just disable it for your API
+                )
+                // 🌐 OAuth2 login for web browser
                 .oauth2Login(configurer -> configurer
                         .tokenEndpoint(config -> config.accessTokenResponseClient(tokenClient))
                         .userInfoEndpoint(config -> config.userService(userProvider))

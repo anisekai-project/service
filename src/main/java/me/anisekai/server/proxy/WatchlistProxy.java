@@ -1,11 +1,11 @@
 package me.anisekai.server.proxy;
 
-import me.anisekai.api.persistence.helpers.ProxyService;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import me.anisekai.server.entities.Watchlist;
-import me.anisekai.server.enums.AnimeStatus;
+import me.anisekai.server.entities.adapters.WatchlistEventAdapter;
 import me.anisekai.server.events.WatchlistCreatedEvent;
 import me.anisekai.server.exceptions.watchlist.WatchlistNotFoundException;
-import me.anisekai.server.interfaces.IWatchlist;
+import me.anisekai.server.persistence.ProxyService;
 import me.anisekai.server.repositories.WatchlistRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class WatchlistProxy extends ProxyService<Watchlist, AnimeStatus, IWatchlist, WatchlistRepository> {
+public class WatchlistProxy extends ProxyService<Watchlist, AnimeList, WatchlistEventAdapter, WatchlistRepository> {
 
     public WatchlistProxy(ApplicationEventPublisher publisher, WatchlistRepository repository) {
 
@@ -38,7 +38,7 @@ public class WatchlistProxy extends ProxyService<Watchlist, AnimeStatus, IWatchl
         return selector.apply(this.getRepository()).orElseThrow(WatchlistNotFoundException::new);
     }
 
-    public Watchlist create(Consumer<IWatchlist> consumer) {
+    public Watchlist create(Consumer<WatchlistEventAdapter> consumer) {
 
         return this.create(consumer, WatchlistCreatedEvent::new);
     }

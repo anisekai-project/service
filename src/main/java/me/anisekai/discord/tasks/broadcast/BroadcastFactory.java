@@ -1,9 +1,7 @@
 package me.anisekai.discord.tasks.broadcast;
 
-import me.anisekai.api.persistence.IEntity;
+import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 import me.anisekai.discord.JDAStore;
-import me.anisekai.server.entities.Task;
-import me.anisekai.server.interfaces.IBroadcast;
 import me.anisekai.server.services.BroadcastService;
 import me.anisekai.server.services.TaskService;
 import me.anisekai.server.tasking.TaskExecutor;
@@ -44,30 +42,19 @@ public abstract class BroadcastFactory<T extends TaskExecutor> implements TaskFa
         return this.store;
     }
 
-    /**
-     * Check if this {@link TaskFactory} has named task. Named task usually mean that each {@link TaskExecutor} created
-     * is associated to a specific {@link IEntity}.
-     *
-     * @return True if this {@link TaskFactory} handles named task, false otherwise.
-     */
     @Override
     public boolean hasNamedTask() {
 
         return true;
     }
 
-    /**
-     * Check if this {@link TaskFactory} allows multiple {@link Task} with the same {@link Task#getName()}.
-     *
-     * @return True if duplicates are allowed, false otherwise.
-     */
     @Override
     public boolean allowDuplicated() {
 
         return false;
     }
 
-    public String asTaskName(IBroadcast<?> broadcast) {
+    public String asTaskName(BroadcastEntity<?> broadcast) {
 
         return String.format("%s:%s", this.getName(), broadcast.getId());
     }

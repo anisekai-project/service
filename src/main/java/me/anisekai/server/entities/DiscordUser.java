@@ -1,18 +1,20 @@
 package me.anisekai.server.entities;
 
-import jakarta.annotation.Nullable;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PreUpdate;
-import me.anisekai.api.persistence.EntityUtils;
-import me.anisekai.server.interfaces.IDiscordUser;
+import me.anisekai.server.entities.adapters.UserEventAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity(name = "user")
-public class DiscordUser implements IDiscordUser {
+public class DiscordUser implements UserEventAdapter {
 
     @Id
     private Long id;
@@ -20,8 +22,14 @@ public class DiscordUser implements IDiscordUser {
     @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false)
+    private String nickname;
+
     @Column
-    private @Nullable String emote;
+    private String avatarUrl;
+
+    @Column
+    private String emote;
 
     @Column(nullable = false)
     private boolean active = false;
@@ -30,13 +38,13 @@ public class DiscordUser implements IDiscordUser {
     private boolean administrator = false;
 
     @Column(nullable = false)
-    private boolean websiteAccess = false;
+    private boolean guest = true;
 
     @Column
-    private String key;
+    private String apiKey;
 
     @Column(nullable = false)
-    private ZonedDateTime createdAt = ZonedDateTime.now();
+    private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
@@ -54,26 +62,49 @@ public class DiscordUser implements IDiscordUser {
     }
 
     @Override
-    public String getUsername() {
+    public @NotNull String getUsername() {
 
         return this.username;
     }
 
     @Override
-    public void setUsername(String username) {
+    public void setUsername(@NotNull String username) {
 
         this.username = username;
     }
 
-    @Nullable
     @Override
-    public String getEmote() {
+    public @Nullable String getNickname() {
+
+        return this.nickname;
+    }
+
+    @Override
+    public void setNickname(String nickname) {
+
+        this.nickname = nickname;
+    }
+
+    @Override
+    public @NotNull String getAvatarUrl() {
+
+        return this.avatarUrl;
+    }
+
+    @Override
+    public void setAvatarUrl(@NotNull String avatarUrl) {
+
+        this.avatarUrl = avatarUrl;
+    }
+
+    @Override
+    public @Nullable String getEmote() {
 
         return this.emote;
     }
 
     @Override
-    public void setEmote(@Nullable String emote) {
+    public void setEmote(String emote) {
 
         this.emote = emote;
     }
@@ -103,27 +134,27 @@ public class DiscordUser implements IDiscordUser {
     }
 
     @Override
-    public boolean hasWebsiteAccess() {
+    public boolean isGuest() {
 
-        return this.websiteAccess;
+        return this.guest;
     }
 
     @Override
-    public void setWebsiteAccess(boolean websiteAccess) {
+    public void setGuest(boolean guest) {
 
-        this.websiteAccess = websiteAccess;
+        this.guest = guest;
     }
 
     @Override
-    public String getKey() {
+    public @Nullable String getApiKey() {
 
-        return this.key;
+        return this.apiKey;
     }
 
     @Override
-    public void setKey(String key) {
+    public void setApiKey(String apiKey) {
 
-        this.key = key;
+        this.apiKey = apiKey;
     }
 
     @Override
@@ -141,7 +172,7 @@ public class DiscordUser implements IDiscordUser {
     @Override
     public boolean equals(Object o) {
 
-        if (o instanceof IDiscordUser user) return EntityUtils.equals(this, user);
+        if (o instanceof UserEntity user) return EntityUtils.equals(this, user);
         return false;
     }
 

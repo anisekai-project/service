@@ -1,11 +1,11 @@
 package me.anisekai.server.services;
 
-import me.anisekai.api.persistence.helpers.DataService;
+import fr.anisekai.wireless.remote.enums.AnimeSeason;
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.Selection;
-import me.anisekai.server.enums.Season;
-import me.anisekai.server.enums.SelectionStatus;
-import me.anisekai.server.interfaces.ISelection;
+import me.anisekai.server.entities.adapters.SelectionEventAdapter;
+import me.anisekai.server.persistence.DataService;
 import me.anisekai.server.proxy.SelectionProxy;
 import me.anisekai.server.repositories.SelectionRepository;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 
 @Service
-public class SelectionService extends DataService<Selection, Long, ISelection<Anime>, SelectionRepository, SelectionProxy> {
+public class SelectionService extends DataService<Selection, Long, SelectionEventAdapter, SelectionRepository, SelectionProxy> {
 
     private static final long DEFAULT_TOTAL_VOTE = 8;
 
@@ -40,7 +40,7 @@ public class SelectionService extends DataService<Selection, Long, ISelection<An
 
         // Adding one month here ensure we fall under the right season and year for the selection, hopefully.
         ZonedDateTime now    = ZonedDateTime.now().plusMonths(1);
-        Season        season = Season.fromDate(now);
+        AnimeSeason   season = AnimeSeason.fromDate(now);
 
         Selection selection = this.getProxy().create(entity -> {
             entity.setSeason(season);

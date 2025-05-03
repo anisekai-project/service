@@ -1,8 +1,9 @@
 package me.anisekai.server.tasking;
 
-import me.anisekai.api.persistence.IEntity;
 import me.anisekai.server.entities.Task;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.text.html.parser.Entity;
 
 public interface TaskFactory<T extends TaskExecutor> {
 
@@ -32,7 +33,7 @@ public interface TaskFactory<T extends TaskExecutor> {
 
     /**
      * Check if this {@link TaskFactory} has named tasks. Named tasks usually mean that each {@link TaskExecutor}
-     * created is associated to a specific {@link IEntity} and thus will have a specific name for each of them.
+     * created is associated to a specific {@link Entity} and thus will have a specific name for each of them.
      *
      * @return True if this {@link TaskFactory} handles named task, false otherwise.
      */

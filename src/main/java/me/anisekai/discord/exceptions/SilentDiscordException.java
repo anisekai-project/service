@@ -35,7 +35,7 @@ public abstract class SilentDiscordException extends RuntimeException implements
     public EmbedBuilder asEmbed() {
 
         return new EmbedBuilder()
-                .setAuthor("Anisekai", null, "https://anisekai.fr/favicon.png")
+                .setAuthor("Anisekai", "https://anisekai.fr", "https://anisekai.fr/favicon.png")
                 .setDescription(this.getDiscordMessage())
                 .setColor(Color.RED)
                 .setTimestamp(ZonedDateTime.now());
