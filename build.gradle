@@ -1,11 +1,11 @@
 import java.nio.charset.StandardCharsets
 
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
+    id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'org.ajoberstar.reckon' version '0.19.1'
+    id 'org.ajoberstar.reckon' version '0.19.2'
 }
 
 def generalCharset = StandardCharsets.UTF_8.name()
@@ -57,13 +57,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.5.0'
+
+    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.13.2'
 
     runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.3'
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.5.0'
-    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.5.0'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.9.1'
+    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.9.1'
 
-    implementation group: 'net.dv8tion', name: 'JDA', version: '5.3.1'
+    implementation group: 'net.dv8tion', name: 'JDA', version: '5.6.1'
 
     implementation group: 'fr.anisekai', name: 'wireless', version: '0.0.1-SNAPSHOT'
 
@@ -73,8 +74,8 @@ dependencies {
     }
 
     implementation group: 'com.github.slugify', name: 'slugify', version: '3.0.7'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.19.1'
-    implementation group: 'org.json', name: 'json', version: '20250107'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.20.1'
+    implementation group: 'org.json', name: 'json', version: '20250517'
 
     implementation group: 'org.jetbrains', name: 'annotations', version: '26.0.2'
 
