@@ -45,13 +45,3 @@ is still undergoing significant changes. To avoid unnecessary effort on both sid
   helps ensure your efforts align with the project's current priorities and focus.
 
 Thank you for your understanding and for helping make this project better!
-
-# Library Structure
-
-This is a recommended directory structure for the application within a docker
-
-- `/anisekai/config/transmission`
-- `/anisekai/config/flood`
-- `/anisekai/web/media/{anime}/{episode}/{track}`
-- `/anisekai/web/downloads/{file}`
-- `/anisekai/torrents`
