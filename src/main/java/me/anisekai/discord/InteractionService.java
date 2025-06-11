@@ -6,6 +6,7 @@ import fr.alexpado.jda.interactions.interfaces.interactions.Injection;
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutoCompleteProvider;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import fr.anisekai.wireless.utils.StringUtils;
 import me.anisekai.Texts;
 import me.anisekai.server.entities.DiscordUser;
 import me.anisekai.server.enums.BroadcastFrequency;
@@ -15,7 +16,6 @@ import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +65,7 @@ public class InteractionService {
                 .map(anime -> new Command.Choice(
                         StringUtils.truncate(
                                 String.format("%s %s", anime.getList().getIcon(), anime.getTitle()),
-                                100
+                                97
                         ),
                         anime.getId()
                 ))
