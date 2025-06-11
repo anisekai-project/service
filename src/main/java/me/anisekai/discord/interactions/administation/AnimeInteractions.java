@@ -18,6 +18,7 @@ import me.anisekai.server.services.TaskService;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Component
@@ -233,6 +234,50 @@ public class AnimeInteractions {
                 "La durée d'un épisode pour l'anime **%s** a bien été mis à jour.\n%s minutes",
                 anime.getTitle(),
                 duration
+        );
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ anime/status ─ Change to which watchlist an anime belongs. [anime: integer, watchlist: string]">
+    @Interact(
+            name = "anime/bulk-status",
+            description = "\uD83D\uDD12 — Déplace tous les animes d'une liste à une autre.",
+            options = {
+                    @Option(
+                            name = "from",
+                            autoCompleteName = "watchlist",
+                            description = "Liste source",
+                            type = OptionType.STRING,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "to",
+                            autoCompleteName = "watchlist",
+                            description = "Liste de destination",
+                            type = OptionType.STRING,
+                            required = true,
+                            autoComplete = true
+                    )
+            }
+    )
+    public SlashResponse animeStatusBulkUpdate(UserEntity user, @Param("from") String from, @Param("to") String to) {
+
+        requireAdministrator(user);
+
+        AnimeList source      = AnimeList.from(from);
+        AnimeList destination = AnimeList.from(to);
+
+        List<Anime> animes = this.service.batch(
+                repo -> repo.findAllByList(source),
+                entity -> entity.setList(destination)
+        );
+
+        return DiscordResponse.info(
+                "La watchlist de **%s** anime(s) a bien été changée.\n%s **->** %s",
+                animes.size(),
+                Texts.formatted(source),
+                Texts.formatted(destination)
         );
     }
     // </editor-fold>
