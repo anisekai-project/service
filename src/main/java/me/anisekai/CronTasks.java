@@ -42,6 +42,10 @@ public class CronTasks {
     @Scheduled(cron = "0/1 * * * * *")
     public void runTorrentSync() throws Exception {
 
+        if (!this.settingService.isDownloadEnabled()) {
+            return;
+        }
+
         Optional<String> optionalServer = this.settingService.getDownloadServer();
 
         if (optionalServer.isEmpty()) {
