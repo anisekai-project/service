@@ -60,7 +60,7 @@ public class SelectionInteractions {
         requireAdministrator(user);
 
         long        votes     = Optional.ofNullable(votesParam).orElse(8L);
-        Selection   selection = this.service.createSelection();
+        Selection   selection = this.service.createSelection(votes);
         List<Voter> voters    = this.voterService.createVoters(selection, votes);
 
         return new SelectionMessage(selection, voters);
