@@ -21,6 +21,7 @@ public class SettingService extends DataService<Setting, String, SettingEventAda
     public static final String DOWNLOAD_ENABLED     = "application.downloads.enabled";
     public static final String DOWNLOAD_SERVER      = "application.downloads.server";
     public static final String DOWNLOAD_SOURCE      = "application.downloads.source";
+    public static final String ANIME_AUTO_ANNOUNCE  = "application.announces.anime";
 
     public SettingService(SettingProxy proxy) {
 
@@ -77,6 +78,13 @@ public class SettingService extends DataService<Setting, String, SettingEventAda
     public boolean isDownloadEnabled() {
 
         return this.getSetting(DOWNLOAD_ENABLED)
+                   .map(Boolean::parseBoolean)
+                   .orElse(false);
+    }
+
+    public boolean isAnimeAnnouncementEnabled() {
+
+        return this.getSetting(ANIME_AUTO_ANNOUNCE)
                    .map(Boolean::parseBoolean)
                    .orElse(false);
     }

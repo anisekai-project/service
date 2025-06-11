@@ -18,10 +18,7 @@ import me.anisekai.server.events.broadcast.BroadcastStatusUpdatedEvent;
 import me.anisekai.server.events.interest.InterestLevelUpdatedEvent;
 import me.anisekai.server.events.selection.SelectionStatusUpdatedEvent;
 import me.anisekai.server.events.user.UserEmoteUpdatedEvent;
-import me.anisekai.server.services.AnimeService;
-import me.anisekai.server.services.BroadcastService;
-import me.anisekai.server.services.TaskService;
-import me.anisekai.server.services.VoterService;
+import me.anisekai.server.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -40,13 +37,15 @@ public class EventListeners {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(EventListeners.class);
 
+    private final SettingService   settingService;
     private final TaskService      taskService;
     private final AnimeService     animeService;
     private final VoterService     voterService;
     private final BroadcastService broadcastService;
 
-    public EventListeners(TaskService taskService, AnimeService animeService, VoterService voterService, BroadcastService broadcastService) {
+    public EventListeners(SettingService settingService, TaskService taskService, AnimeService animeService, VoterService voterService, BroadcastService broadcastService) {
 
+        this.settingService   = settingService;
         this.taskService      = taskService;
         this.animeService     = animeService;
         this.voterService     = voterService;
@@ -58,7 +57,9 @@ public class EventListeners {
     @EventListener
     public void onAnimeCreated(AnimeCreatedEvent event) {
 
-        this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity());
+        if (this.settingService.isAnimeAnnouncementEnabled()) {
+            this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity());
+        }
 
         if (event.getEntity().getList().hasProperty(AnimeList.Property.SHOW)) {
             this.taskService.getFactory(WatchlistUpdateFactory.class).queue(event.getEntity().getList());

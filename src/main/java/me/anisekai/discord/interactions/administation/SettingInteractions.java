@@ -210,4 +210,26 @@ public class SettingInteractions {
     }
     // </editor-fold>
 
+    // <editor-fold desc="@ setting/enable-anime-announcement ─ Enable or disable announcement when an anime is imported. [value: boolean]">
+    @Interact(
+            name = "setting/enable-anime-announcement",
+            description = "\uD83D\uDD12 — Active ou désactive les annonces automatique des animes.",
+            target = SlashTarget.ALL,
+            options = {
+                    @Option(
+                            name = "value",
+                            description = "Valeur de l'option",
+                            type = OptionType.BOOLEAN,
+                            required = true
+                    )
+            }
+    )
+    public SlashResponse settingAnimeAnnouncements(UserEntity user, @Param("value") boolean value) {
+
+        requireAdministrator(user);
+
+        this.service.setSetting(SettingService.ANIME_AUTO_ANNOUNCE, Boolean.toString(value));
+        return DiscordResponse.info("Les annonces automatiques ont été %s.", value ? "activés" : "désactivés");
+    }
+    // </editor-fold>
 }
