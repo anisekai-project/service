@@ -11,12 +11,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Entity
-public class Anime implements AnimeEventAdapter {
+public class Anime implements AnimeEventAdapter, Comparable<Anime> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -259,6 +260,17 @@ public class Anime implements AnimeEventAdapter {
     public void beforeSave() {
 
         this.updatedAt = ZonedDateTime.now();
+    }
+
+    @Override
+    public int compareTo(@NotNull Anime o) {
+
+        return EntityUtils.compare(
+                this,
+                o,
+                Comparator.comparing(Anime::getList),
+                Comparator.comparing(Anime::getTitle)
+        );
     }
 
 }
