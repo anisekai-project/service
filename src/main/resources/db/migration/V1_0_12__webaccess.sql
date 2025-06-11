@@ -1,8 +1,0 @@
-ALTER TABLE user
-    ADD web_access BIT(1) NOT NULL DEFAULT FALSE;
-
-ALTER TABLE user
-    ADD avatar VARCHAR(255) NULL;
-
-ALTER TABLE user
-    MODIFY discriminator VARCHAR(4) NULL;

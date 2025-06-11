@@ -1,2 +1,0 @@
-ALTER TABLE `anime` ADD COLUMN `synopsis` LONGTEXT NULL AFTER `name`;
-ALTER TABLE `anime` ADD COLUMN `tags` VARCHAR(255) NULL AFTER `synopsis`;

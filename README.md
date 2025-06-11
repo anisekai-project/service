@@ -1,4 +1,5 @@
-> As English is not my native language, I wrote a first version with "my" english and asked ChatGPT to adapt it.
+> This is the README file for the v3 version of the bot. More on that later. I used ChatGPT because English is not my
+> native language and I wanted to be as clear as possible.
 
 # The Anisekai Project
 
@@ -6,58 +7,41 @@ The Anisekai Project aims to provide a set of tools and commands for small commu
 based on their current status (e.g., currently watching, simulcast, downloaded) in a semi-automated manner. Think of it
 as a shared Anilist account, but on Discord.
 
-## Internationalization
+### Internationalization
 
 Internationalization support is planned for the future, but it will not be implemented until the codebase reaches a
 satisfactory level. For now, all messages sent through Discord will be in French, while code comments, exceptions, and
 messages intended for developers/administrators will remain in English.
 
-## Requirements
+### Requirements
 
 - Docker
 - Docker Compose
 - JDK 17+
 
 This README will be updated to include the installation process and contribution guidelines once the project is ready to
-accept contributions. However, at this stage, contributions are not being accepted to ensure stability and consistency
-in development. Feel free to clone the repository and explore the `.env.example` file. If you are familiar with Spring
-Boot and Java, it should not be too challenging to understand how to get things started.
+accept contributions. However, at this stage, contributions are limited to ensure stability and consistency in
+development. Feel free to clone the repository and explore the `.env.example` file. If you are familiar with Spring
+Boot and Java, it should not be too challenging to understand how to get things started, even without Docker.
 
-## About "Character" Packages in Modules
+### Why v3 ?
 
-Each set of features is separated into different packages named after characters. While these packages could potentially
-be developed into separate projects or services, this would be overkill for a small personal project. Nevertheless, this
-may be considered in the future for the sake of experience.
+With every major version of this application comes a big change in codebase (hence the major version bump), and this
+time around, a lot of feature were added during v2 which made its codebase a complete mess. The v3 aims to provide a
+better environment for the application evolution.
 
-- **Freya:** Library Management & Video Import
-- **Linn:** Anime and Episode Database
-- **Shizue:** Event Planner & Watchlist Manager
-- **Toshiko:** Discord Bot
-- **Chiya:** Web Application
+- Discord Version: `v1.1`
+- Library Version: `v2.0`
+- Backend Version: `v2.0`
 
 # Contributing
 
-At this stage, the project is not open for contributions due to frequent changes in the codebase and structure. However,
-you're welcome to open issues for feature requests, which may be considered for implementation when time permits.
+Thank you for your interest in contributing to this project! Contributions are welcome, but at this stage, the codebase
+is still undergoing significant changes. To avoid unnecessary effort on both sides:
 
-# Library File Structure
-This is not the current version of the structure, but what is the goal for the library v2 (even if the based structure 
-is very similar).
-```
-──/
- ├── automation/            # Root of Freya's import folder
- │   └── <anime>/           @ Folder of the anime to import
- │       └── <season>/      @ Folder of the season to import (containing MKV files)
- ├── content                # Root of Freya's imported content
- │   ├── animes/            # Folder containing all imported animes
- │   │   └── <anime>/       @ Folder of the imported anime
- │   │       └── <season>/  @ Folder of the imported season
- │   └── subtitles/         # Folder containing all imported subtitles
- │       └── <anime>/       @ Folder of the imported anime's subtitles
- │           └── <season>/  @ Folder of the imported season's subtitles
- └── torrents               # Temporary folder storing transmission downloads (before being moved to automation)
-```
-*`@` means that the folder is mirroring the database content, meanwhile `#` represent static folders.*
+- **Open an Issue First**: Before submitting a pull request, please open an issue to describe the problem or
+  feature you'd like to address. This applies to all types of contributions, including bug fixes.
+- **Await Approval to work on an issue**: I prefer to give the green light on issues before they are worked on. This
+  helps ensure your efforts align with the project's current priorities and focus.
 
-Each mirrored folder will be named after the entity's database id, and each track will be named based on their hashes. 
-Example: `content/0082/0001/0001/8efeb535dd94ce093d6738df7656ddab.webm`
+Thank you for your understanding and for helping make this project better!

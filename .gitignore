@@ -3,5 +3,6 @@
 build/
 
 # Runtime exclusion
-data/
+/data/
 .env
+.*.env

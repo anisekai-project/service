@@ -1,0 +1,38 @@
+package me.anisekai.server.services;
+
+import fr.anisekai.wireless.api.media.MediaFile;
+import me.anisekai.server.entities.Episode;
+import me.anisekai.server.entities.Track;
+import me.anisekai.server.entities.adapters.TrackEventAdapter;
+import me.anisekai.server.persistence.DataService;
+import me.anisekai.server.proxy.TrackProxy;
+import me.anisekai.server.repositories.TrackRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class TrackService extends DataService<Track, Long, TrackEventAdapter, TrackRepository, TrackProxy> {
+
+    public TrackService(TrackProxy proxy) {
+
+        super(proxy);
+    }
+
+    public List<Track> getTracks(Episode episode) {
+
+        return this.fetchAll(repository -> repository.findByEpisode(episode));
+    }
+
+    public List<Track> createFromMediaTrack(Episode episode, MediaFile mediaFile) {
+
+        return mediaFile.getStreams().stream()
+                        .map(stream -> this.getProxy().create(track -> {
+                            track.setEpisode(episode);
+                            track.setName("Track " + stream.index());
+                            track.setCodec(stream.codec());
+                            track.setLanguage(stream.language());
+                        })).toList();
+    }
+
+}
