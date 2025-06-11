@@ -40,19 +40,6 @@ public class TaskInteractions {
         }
     }
 
-    // <editor-fold desc="@ task/check-automation ─ Import media files within the automation folder.">
-    @Interact(
-            name = "task/check-automation",
-            description = "\uD83D\uDD12 — Importe les fichier média présents dans le dossier d'automatisation.",
-            defer = true
-    )
-    public SlashResponse checkAutomation(UserEntity user) {
-
-        //TODO
-        return new DiscordResponse("TODO: Do something and write a response");
-    }
-    // </editor-fold>
-
     // <editor-fold desc="@ task/check-downloads ─ Check for new episode to automatically download">
     @Interact(
             name = "task/check-downloads",
