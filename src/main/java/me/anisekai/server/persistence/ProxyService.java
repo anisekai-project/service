@@ -16,6 +16,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Class allowing to easily map an entity type and its repository to the {@link EventProxy} class.
@@ -68,7 +69,7 @@ public abstract class ProxyService<E extends I, ID extends Serializable, I exten
         public List<E> commit() {
 
             ProxyService.this.repository.saveAll(this.entities);
-            List<E> refreshed = this.selector.apply(ProxyService.this.repository);
+            List<E> refreshed = ProxyService.this.repository.findAllById(this.entities.stream().map(I::getId).toList());
 
             refreshed.stream()
                      .filter(entity -> entity.getId() != null)
