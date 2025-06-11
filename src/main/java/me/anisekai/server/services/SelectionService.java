@@ -49,7 +49,7 @@ public class SelectionService extends DataService<Selection, Long, SelectionEven
             entity.setAnimes(new HashSet<>(simulcasts));
         });
 
-        if (simulcasts.size() >= amount) {
+        if (simulcasts.size() <= amount) {
             // Auto-close selection. Events should handle the anime watchlist update.
             return this.mod(selection.getId(), entity -> entity.setStatus(SelectionStatus.AUTO_CLOSED));
         }
