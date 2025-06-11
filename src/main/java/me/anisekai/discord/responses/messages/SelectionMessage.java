@@ -4,12 +4,16 @@ import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import me.anisekai.discord.responses.embeds.SelectionEmbed;
+import me.anisekai.discord.responses.embeds.selections.SelectionAnimeEmbed;
+import me.anisekai.discord.responses.embeds.selections.SelectionClosedEmbed;
+import me.anisekai.discord.responses.embeds.selections.SelectionVoterEmbed;
 import me.anisekai.server.entities.Anime;
 import me.anisekai.server.entities.DiscordUser;
 import me.anisekai.server.entities.Selection;
 import me.anisekai.server.entities.Voter;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -51,17 +55,26 @@ public class SelectionMessage implements SlashResponse, ButtonResponse {
     public Consumer<MessageRequest<?>> getHandler() {
 
         return mr -> {
-            SelectionEmbed selectionEmbed = new SelectionEmbed();
+            Collection<MessageEmbed> embeds = new ArrayList<>();
 
             if (this.selection.getStatus().isClosed()) {
-                selectionEmbed.asClosed(this.selection, this.voters);
+                EmbedBuilder closedEmbed = new SelectionClosedEmbed(this.selection, this.voters);
+                embeds.add(closedEmbed.build());
+
+                mr.setEmbeds(embeds);
+                mr.setComponents(Collections.emptyList());
             } else {
-                selectionEmbed.asOpened(this.selection, this.voters);
                 Map<Anime, DiscordUser> votes = new HashMap<>();
 
                 for (Voter voter : this.voters) {
                     voter.getVotes().forEach(anime -> votes.put(anime, voter.getUser()));
                 }
+
+                EmbedBuilder voterEmbed = new SelectionVoterEmbed(this.selection, this.voters);
+                EmbedBuilder animeEmbed = new SelectionAnimeEmbed(this.selection, votes);
+
+                embeds.add(voterEmbed.build());
+                embeds.add(animeEmbed.build());
 
                 List<Button> buttons = this.selection.getAnimes()
                                                      .stream()
@@ -79,7 +92,7 @@ public class SelectionMessage implements SlashResponse, ButtonResponse {
                         String.format("button://selection/close?selection=%s", this.selection.getId()),
                         "Clôturer"
                 ));
-
+                mr.setEmbeds(embeds);
                 mr.setComponents(ActionRow.partitionOf(allButtons));
             }
         };
