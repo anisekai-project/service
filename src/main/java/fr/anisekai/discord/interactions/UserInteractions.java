@@ -93,39 +93,6 @@ public class UserInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ import ─ Import an anime into database. [json: string]">
-    @Interact(
-            name = "import",
-            description = "Importe un anime dans la base de donnée du bot.",
-            options = {
-                    @Option(
-                            name = "json",
-                            description = "JSON obtenu depuis l'extension navigateur.",
-                            type = OptionType.STRING,
-                            required = true
-                    )
-            }
-    )
-    public SlashResponse animeImport(DiscordUser user, @Param("json") String rawJson) {
-
-        AnisekaiJson json;
-
-        try {
-            json = new AnisekaiJson(rawJson);
-        } catch (JSONException e) {
-            return DiscordResponse.error("Le JSON reçu n'est pas correctement formatté.");
-        }
-
-        var result = this.animeService.importAnime(user, json);
-
-        if (result.action() == UpsertAction.INSERTED) {
-            return DiscordResponse.success("L'anime **%s** a été ajouté au bot.", result.entity().getTitle());
-        } else {
-            return DiscordResponse.info("L'anime **%s** a été mis à jour.", result.entity().getTitle());
-        }
-    }
-    // </editor-fold>
-
     // <editor-fold desc="% interest ─ Change the interest level on an anime. [anime: integer, interest: integer]">
     @Interact(
             name = "interest",
