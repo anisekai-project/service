@@ -1,22 +1,23 @@
-FROM gradle:8.10.1-jdk17-alpine AS anisekai
+FROM gradle:8.14.2-jdk21-alpine AS anisekai
 WORKDIR /source
-ADD .. .
-RUN gradle clean build --no-daemon && rm -rf /source/build/libs/*-plain.jar && mv /source/build/libs/*.jar /app.jar && rm -rf /source
+RUN git clone https://github.com/anisekai-project/anisekai-service.git && \
+    cd anisekai-service &&  \
+    gradle clean build --no-daemon &&  \
+    rm -rf /source/anisekai-service/build/libs/*-plain.jar &&  \
+    mv /source/anisekai-service/build/libs/*.jar /app.jar &&  \
+    rm -rf /source
 
-FROM openjdk:17.0.2-slim AS service
+FROM openjdk:21-bookworm AS service
 LABEL authors="akio"
 WORKDIR /app
 
-# Installing mkvtoolnix
+# Install deps
 RUN apt-get update &&  \
-    apt-get install -y wget xz-utils && \
-    wget -O /usr/share/keyrings/gpg-pub-moritzbunkus.gpg https://mkvtoolnix.download/gpg-pub-moritzbunkus.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ bullseye main" >> /etc/apt/sources.list.d/mkvtoolnix.list && \
-    echo "deb-src [signed-by=/usr/share/keyrings/gpg-pub-moritzbunkus.gpg] https://mkvtoolnix.download/debian/ bullseye main" >> /etc/apt/sources.list.d/mkvtoolnix.list && \
-    apt-get install -y mkvtoolnix && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    apt-get install -y xz-utils &&  \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Installing ffmpeg
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+RUN curl https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O && \
     tar xvf 'ffmpeg-release-amd64-static.tar.xz' && \
     mv ffmpeg-7.0.2-amd64-static /var/opt/ffmpeg && \
     ln -s /var/opt/ffmpeg/ffmpeg /usr/bin/ffmpeg && \
