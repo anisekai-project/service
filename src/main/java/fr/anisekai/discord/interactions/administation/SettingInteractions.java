@@ -10,6 +10,7 @@ import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
 import fr.anisekai.server.services.SettingService;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -232,4 +233,21 @@ public class SettingInteractions {
         return DiscordResponse.info("Les annonces automatiques ont été %s.", value ? "activés" : "désactivés");
     }
     // </editor-fold>
+
+    // <editor-fold desc="@ setting/server ─ Define the active server to the current one">
+    @Interact(
+            name = "setting/server",
+            description = "\uD83D\uDD12 — Défini le serveur actif sur le serveur actuel.",
+            target = SlashTarget.ALL
+    )
+    public SlashResponse settingServer(UserEntity user, Guild guild) {
+
+        requireAdministrator(user);
+
+        this.service.setSetting(SettingService.SERVER_ID, guild.getId());
+        return DiscordResponse.info("Le serveur actif a bien été défini.");
+    }
+    // </editor-fold>
+
+
 }
