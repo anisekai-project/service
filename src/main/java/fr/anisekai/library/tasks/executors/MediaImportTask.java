@@ -16,6 +16,7 @@ import fr.anisekai.server.services.TorrentFileService;
 import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.services.TrackService;
 import fr.anisekai.server.tasking.TaskExecutor;
+import fr.anisekai.wireless.api.media.enums.Disposition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +92,7 @@ public class MediaImportTask implements TaskExecutor {
                     entity.setName("Track %s".formatted(stream.getId()));
                     entity.setCodec(stream.getCodec());
                     entity.setLanguage(stream.getMetadata().get("language"));
+                    entity.setForced(stream.getDispositions().contains(Disposition.FORCED));
                 });
 
                 if (subs.containsKey(stream)) {
