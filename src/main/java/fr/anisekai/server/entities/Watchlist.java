@@ -22,7 +22,7 @@ public class Watchlist implements WatchlistEventAdapter {
     @Column
     private Long messageId;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "list")
     private Set<Anime> animes;
 
     @Column(nullable = false)

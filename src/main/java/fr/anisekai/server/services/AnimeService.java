@@ -45,10 +45,14 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         String    image           = source.getString("image");
         long      total           = Long.parseLong(source.getString("episode"));
         long      episodeDuration = Long.parseLong(source.getString("time"));
+        String    group           = source.getString("group");
+        byte      order           = Byte.parseByte(source.getString("order"));
 
         return this.getProxy().upsert(
                 repo -> repo.findByTitle(name)
                 , anime -> {
+                    anime.setGroup(group);
+                    anime.setOrder(order);
                     anime.setTitle(name);
                     anime.setList(status);
                     anime.setSynopsis(synopsis);

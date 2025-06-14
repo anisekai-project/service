@@ -1,46 +1,48 @@
 CREATE TABLE `anime`
 (
     `id`               BIGINT AUTO_INCREMENT NOT NULL,
-    `title`            VARCHAR(255) NOT NULL,
-    `list`             VARCHAR(255) NOT NULL,
-    `synopsis`         TEXT NULL,
-    `tags`             VARCHAR(255) NULL,
-    `thumbnail_url`    VARCHAR(255) NULL,
-    `url`              VARCHAR(255) NOT NULL,
-    `title_regex`      VARCHAR(255) NULL,
-    `watched`          BIGINT NULL,
-    `total`            BIGINT NULL,
-    `episode_duration` BIGINT NULL,
-    `added_by_id`      BIGINT       NOT NULL,
-    `anilist_id`       BIGINT NULL,
-    `announcement_id`  BIGINT NULL,
-    `created_at`       DATETIME     NOT NULL,
-    `updated_at`       DATETIME     NOT NULL,
+    `group`            VARCHAR(255)          NOT NULL,
+    `order`            TINYINT               NOT NULL,
+    `title`            VARCHAR(255)          NOT NULL,
+    `list`             VARCHAR(255)          NOT NULL,
+    `synopsis`         TEXT                  NULL,
+    `tags`             VARCHAR(255)          NULL,
+    `thumbnail_url`    VARCHAR(255)          NULL,
+    `url`              VARCHAR(255)          NOT NULL,
+    `title_regex`      VARCHAR(255)          NULL,
+    `watched`          BIGINT                NULL,
+    `total`            BIGINT                NULL,
+    `episode_duration` BIGINT                NULL,
+    `added_by_id`      BIGINT                NOT NULL,
+    `anilist_id`       BIGINT                NULL,
+    `announcement_id`  BIGINT                NULL,
+    `created_at`       DATETIME              NOT NULL,
+    `updated_at`       DATETIME              NOT NULL,
     CONSTRAINT `pk_anime` PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `broadcast`
 (
     `id`              BIGINT AUTO_INCREMENT NOT NULL,
-    `watch_target_id` BIGINT       NOT NULL,
-    `starting_at`     DATETIME     NOT NULL,
-    `event_id`        BIGINT NULL,
-    `status`          VARCHAR(255) NOT NULL,
-    `episode_count`   BIGINT       NOT NULL,
-    `first_episode`   BIGINT       NOT NULL,
-    `skip_enabled`    BIT(1)       NOT NULL,
-    `created_at`      DATETIME     NOT NULL,
-    `updated_at`      DATETIME     NOT NULL,
+    `watch_target_id` BIGINT                NOT NULL,
+    `starting_at`     DATETIME              NOT NULL,
+    `event_id`        BIGINT                NULL,
+    `status`          VARCHAR(255)          NOT NULL,
+    `episode_count`   BIGINT                NOT NULL,
+    `first_episode`   BIGINT                NOT NULL,
+    `skip_enabled`    BIT(1)                NOT NULL,
+    `created_at`      DATETIME              NOT NULL,
+    `updated_at`      DATETIME              NOT NULL,
     CONSTRAINT `pk_broadcast` PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `episode`
 (
     `id`         BIGINT AUTO_INCREMENT NOT NULL,
-    `anime_id`   BIGINT   NOT NULL,
-    `number`     INT      NOT NULL,
-    `created_at` DATETIME NOT NULL,
-    `updated_at` DATETIME NOT NULL,
+    `anime_id`   BIGINT                NOT NULL,
+    `number`     INT                   NOT NULL,
+    `created_at` DATETIME              NOT NULL,
+    `updated_at` DATETIME              NOT NULL,
     CONSTRAINT `pk_episode` PRIMARY KEY (`id`)
 );
 
@@ -57,11 +59,11 @@ CREATE TABLE `interest`
 CREATE TABLE `selection`
 (
     `id`         BIGINT AUTO_INCREMENT NOT NULL,
-    `season`     VARCHAR(255) NOT NULL,
-    `year`       INT          NOT NULL,
-    `status`     VARCHAR(255) NOT NULL,
-    `created_at` DATETIME     NOT NULL,
-    `updated_at` DATETIME     NOT NULL,
+    `season`     VARCHAR(255)          NOT NULL,
+    `year`       INT                   NOT NULL,
+    `status`     VARCHAR(255)          NOT NULL,
+    `created_at` DATETIME              NOT NULL,
+    `updated_at` DATETIME              NOT NULL,
     CONSTRAINT `pk_selection` PRIMARY KEY (`id`)
 );
 
@@ -84,16 +86,16 @@ CREATE TABLE `setting`
 CREATE TABLE `task`
 (
     `id`            BIGINT AUTO_INCREMENT NOT NULL,
-    `factory_name`  VARCHAR(255) NOT NULL,
-    `name`          VARCHAR(255) NOT NULL,
-    `status`        VARCHAR(255) NOT NULL,
-    `priority`      TINYINT      NOT NULL,
-    `arguments`     LONGTEXT NULL,
-    `failure_count` TINYINT      NOT NULL,
-    `started_at`    DATETIME NULL,
-    `completed_at`  DATETIME NULL,
-    `created_at`    DATETIME     NOT NULL,
-    `updated_at`    DATETIME     NOT NULL,
+    `factory_name`  VARCHAR(255)          NOT NULL,
+    `name`          VARCHAR(255)          NOT NULL,
+    `status`        VARCHAR(255)          NOT NULL,
+    `priority`      TINYINT               NOT NULL,
+    `arguments`     LONGTEXT              NULL,
+    `failure_count` TINYINT               NOT NULL,
+    `started_at`    DATETIME              NULL,
+    `completed_at`  DATETIME              NULL,
+    `created_at`    DATETIME              NOT NULL,
+    `updated_at`    DATETIME              NOT NULL,
     CONSTRAINT `pk_task` PRIMARY KEY (`id`)
 );
 
@@ -102,7 +104,7 @@ CREATE TABLE `torrent`
     `id`                 VARCHAR(255) NOT NULL,
     `name`               VARCHAR(255) NOT NULL,
     `status`             VARCHAR(255) NOT NULL,
-    `progress` DOUBLE NOT NULL,
+    `progress`           DOUBLE       NOT NULL,
     `link`               VARCHAR(255) NOT NULL,
     `download_directory` VARCHAR(255) NOT NULL,
     `priority`           TINYINT      NOT NULL,
@@ -125,13 +127,14 @@ CREATE TABLE `torrent_file`
 CREATE TABLE `track`
 (
     `id`         BIGINT AUTO_INCREMENT NOT NULL,
-    `episode_id` BIGINT       NOT NULL,
-    `name`       VARCHAR(255) NOT NULL,
-    `codec`      VARCHAR(255) NOT NULL,
-    `forced`     BIT(1)       NOT NULL,
-    `language`   VARCHAR(255) NULL,
-    `created_at` DATETIME     NOT NULL,
-    `updated_at` DATETIME     NOT NULL,
+    `episode_id` BIGINT                NOT NULL,
+    `name`       VARCHAR(255)          NOT NULL,
+    `label`      VARCHAR(255)          NULL,
+    `codec`      VARCHAR(255)          NOT NULL,
+    `forced`     BIT(1)                NOT NULL,
+    `language`   VARCHAR(255)          NULL,
+    `created_at` DATETIME              NOT NULL,
+    `updated_at` DATETIME              NOT NULL,
     CONSTRAINT `pk_track` PRIMARY KEY (`id`)
 );
 
@@ -172,17 +175,10 @@ CREATE TABLE `voter_votes`
 CREATE TABLE `watchlist`
 (
     `id`         VARCHAR(255) NOT NULL,
-    `message_id` BIGINT NULL,
+    `message_id` BIGINT       NULL,
     `created_at` DATETIME     NOT NULL,
     `updated_at` DATETIME     NOT NULL,
     CONSTRAINT `pk_watchlist` PRIMARY KEY (`id`)
-);
-
-CREATE TABLE `watchlist_animes`
-(
-    `watchlist_id` VARCHAR(255) NOT NULL,
-    `animes_id`    BIGINT       NOT NULL,
-    CONSTRAINT `pk_watchlist_animes` PRIMARY KEY (`watchlist_id`, `animes_id`)
 );
 
 ALTER TABLE `anime`
@@ -190,9 +186,6 @@ ALTER TABLE `anime`
 
 ALTER TABLE `voter_votes`
     ADD CONSTRAINT `uc_voter_votes_votes` UNIQUE (`votes_id`);
-
-ALTER TABLE `watchlist_animes`
-    ADD CONSTRAINT `uc_watchlist_animes_animes` UNIQUE (`animes_id`);
 
 ALTER TABLE `anime`
     ADD CONSTRAINT `FK_ANIME_ON_ADDEDBY` FOREIGN KEY (`added_by_id`) REFERENCES `user` (`id`);
@@ -235,9 +228,3 @@ ALTER TABLE `voter_votes`
 
 ALTER TABLE `voter_votes`
     ADD CONSTRAINT `fk_votvot_on_voter` FOREIGN KEY (`voter_selection_id`, `voter_user_id`) REFERENCES `voter` (`selection_id`, `user_id`);
-
-ALTER TABLE `watchlist_animes`
-    ADD CONSTRAINT `fk_watani_on_anime` FOREIGN KEY (`animes_id`) REFERENCES `anime` (`id`);
-
-ALTER TABLE `watchlist_animes`
-    ADD CONSTRAINT `fk_watani_on_watchlist` FOREIGN KEY (`watchlist_id`) REFERENCES `watchlist` (`id`);

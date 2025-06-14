@@ -29,9 +29,9 @@ public class TrackService extends DataService<Track, Long, TrackEventAdapter, Tr
         return mediaFile.getStreams().stream()
                         .map(stream -> this.getProxy().create(track -> {
                             track.setEpisode(episode);
-                            track.setName("Track " + stream.index());
-                            track.setCodec(stream.codec());
-                            track.setLanguage(stream.language());
+                            track.setName("Track " + stream.getId());
+                            track.setCodec(stream.getCodec());
+                            track.setLanguage(stream.getMetadata().get("language"));
                         })).toList();
     }
 

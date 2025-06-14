@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <title>Anisekai - Toshiko AniDB</title>
 
-    <link rel="stylesheet" href="/assets/plyr/plyr.css" />
     <link rel="stylesheet" href="/assets/styles/style.css">
 
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png"/>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,12 +15,12 @@
 
 <nav>
     <div class="web-icon">
-        <img src="/assets/images/toshiko.png" alt="Toshiko" />
+        <img src="/assets/images/toshiko.png" alt="Toshiko"/>
     </div>
 
     <div class="search">
         <label for="search-input" hidden>Search</label>
-        <input id="search-input" placeholder="Rechercher..." />
+        <input id="search-input" placeholder="Rechercher..."/>
     </div>
 
     <div class="logout">
@@ -29,34 +28,19 @@
     </div>
 </nav>
 
-<div class="note">
-    Les fichiers étant hébergés sur un disque pouvant passer en veille, les temps de chargement peuvent parfois être
-    long (10-15s) lorsque vous téléchargez un fichier ou regardez un épisode le temps que le disque sorte du mode
-    veille.
-</div>
-
-<div class="note warn">
-    Certain sous-titres peuvent être erronés / manquant. Si vous repérez un épisode dans cette situation,
-    merci de contacter <span class="discord">Akio Nakao#0001</span> sur Discord.
-</div>
-
-<div id="tree-view" th:if="${!@diskService.getDatabase().isEmpty()}">
-    <details th:each="anime : ${@diskService.getDatabase()}" th:id="${anime.getUuid().toString()}">
-        <summary th:text="${anime.getName()}"></summary>
+<div id="tree-view">
+    <details th:each="group : ${groups}" th:id="'group-' + ${group.name}">
+        <summary th:text="${group.name}"></summary>
         <div class="content">
-            <details th:each="group : ${anime.getGroups()}" th:id="${group.getUuid().toString()}">
-                <summary th:text="${group.getName()}"></summary>
+            <details th:each="anime : ${group.animes}" th:id="'anime-' + ${anime.id}">
+                <summary th:text="${anime.title}"></summary>
                 <div class="content">
-                    <div class="file" th:each="episode : ${group.getEpisodes()}" th:id="${episode.getUuid().toString()}">
+                    <div class="file" th:data-play="${episode.id}" th:each="episode : ${anime.episodes}"
+                         th:id="'episode-' + ${episode.id}">
                         <span th:text="${episode.getName()}"></span>
-                        <meta name="subtitle" th:each="sub : ${episode.getSubtitles()}" th:content="${sub.getUuid()}"/>
                     </div>
                 </div>
             </details>
-            <div class="file" th:each="episode : ${anime.getEpisodes()}" th:id="${episode.getUuid().toString()}">
-                <span th:text="${episode.getName()}"></span>
-                <meta name="subtitle" th:each="sub : ${episode.getSubtitles()}" th:content="${sub.getUuid()}"/>
-            </div>
         </div>
     </details>
 </div>
@@ -65,15 +49,52 @@
     Aucun résultat
 </div>
 
-<div id="modal" class="hidden">
-    <div class="backdrop"></div>
-    <div class="player">
-        <video id="video-player" controls></video>
-        <a id="download" download>Télécharger le fichier</a>
+<div id="player-container" class="hidden">
+    <div id="player">
+        <video></video>
+        <div class="no-mouse"></div>
+        <div class="player-bar">
+            <button class="btn btn-play" title="Lecture"><i data-feather="play"></i></button>
+            <button class="btn btn-pause" title="Pause"><i data-feather="pause"></i></button>
+            <span class="track-time track-time-current">00:00</span>
+            <div class="bar-container media-timing">
+                <div class="bar">
+                    <div class="progress"></div>
+                    <div class="handle"></div>
+                </div>
+            </div>
+            <span class="track-time track-time-total">24:00</span>
+            <div class="bar-container media-volume">
+                <div class="bar">
+                    <div class="progress"></div>
+                    <div class="handle"></div>
+                </div>
+            </div>
+            <button class="btn btn-settings">
+                <i data-feather="settings"></i>
+            </button>
+            <button class="btn btn-maximize" title="Plein écran"><i data-feather="maximize"></i></button>
+            <button class="btn btn-minimize" title="Quitter le plein écran"><i data-feather="minimize"></i></button>
+        </div>
+        <div class="player-menu hidden">
+            <section>
+                <h2>Audio</h2>
+                <ul class="audio-list">
+                </ul>
+            </section>
+            <section>
+                <h2>Sous-Titres</h2>
+                <ul class="subs-list">
+                </ul>
+            </section>
+        </div>
     </div>
+    <button class="btn back-btn">&lt; Retour à la liste</button>
 </div>
 
 </body>
-<script src="/assets/plyr/plyr.min.js"></script>
+<script src="/assets/libs/shaka/shaka-player.compiled.js"></script>
+<script src="/assets/libs/subtitles-octopus/subtitles-octopus.js"></script>
+<script src="/assets/libs/feather/feather.min.js"></script>
 <script type="module" src="/assets/scripts/script.js"></script>
 </html>

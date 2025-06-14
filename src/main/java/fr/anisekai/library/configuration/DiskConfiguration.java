@@ -54,4 +54,19 @@ public class DiskConfiguration {
         return this.getFile(this.media, "media");
     }
 
+    public File getMediaSubs() {
+
+        return new File(this.getMedia(), "subs");
+    }
+
+    public File getMediaChunks() {
+
+        return new File(this.getMedia(), "chunks");
+    }
+
+    public File getMediaTemp() {
+
+        return new File(this.getMedia(), "tmp");
+    }
+
 }

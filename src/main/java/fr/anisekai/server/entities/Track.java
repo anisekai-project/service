@@ -24,6 +24,9 @@ public class Track implements TrackEventAdapter {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String label;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     public Codec codec;
@@ -68,6 +71,18 @@ public class Track implements TrackEventAdapter {
     public void setName(@NotNull String name) {
 
         this.name = name;
+    }
+
+    @Override
+    public String getLabel() {
+
+        return this.label;
+    }
+
+    @Override
+    public void setLabel(@NotNull String label) {
+
+        this.label = label;
     }
 
     @Override

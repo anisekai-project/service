@@ -1,6 +1,7 @@
 package fr.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.server.services.EpisodeService;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.media.MediaFile;
 import fr.anisekai.wireless.api.media.MediaStream;
@@ -30,7 +31,7 @@ public class MediaImportTask implements TaskExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaImportTask.class);
 
     private static final Codec VIDEO_CODEC = Codec.H264;
-    private static final Codec AUDIO_CODEC = Codec.VORBIS;
+    private static final Codec AUDIO_CODEC = Codec.AAC;
 
     public static final String OPTION_TORRENT = "torrent";
 
@@ -38,13 +39,15 @@ public class MediaImportTask implements TaskExecutor {
     private final TrackService       trackService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
+    private final EpisodeService     episodeService;
 
-    public MediaImportTask(LibraryService libraryService, TrackService trackService, TorrentService torrentService, TorrentFileService torrentFileService) {
+    public MediaImportTask(LibraryService libraryService, TrackService trackService, TorrentService torrentService, TorrentFileService torrentFileService, EpisodeService episodeService) {
 
         this.libraryService     = libraryService;
         this.trackService       = trackService;
         this.torrentService     = torrentService;
         this.torrentFileService = torrentFileService;
+        this.episodeService     = episodeService;
     }
 
     @Override
@@ -65,33 +68,40 @@ public class MediaImportTask implements TaskExecutor {
             Episode   episode    = file.getEpisode();
             MediaFile media      = MediaFile.of(downloaded);
 
-            LOGGER.info("Converting file {} (Video: {}, Audio: {})", downloaded.getName(), VIDEO_CODEC, AUDIO_CODEC);
-            Map<MediaStream, File> tracks = FFMpeg.explode(media, VIDEO_CODEC, AUDIO_CODEC);
-            LOGGER.info("The file {} has been converted.", downloaded.getName());
+            LOGGER.info("[{}:{}] Converting Video/Audio...", torrent.getId(), file.getIndex());
+            File tmp = this.libraryService.useTemporaryFile("mkv");
+            FFMpeg.convert(media, VIDEO_CODEC, AUDIO_CODEC, null, tmp, 6);
+            LOGGER.info("[{}:{}] File converted to {}", torrent.getId(), file.getIndex(), tmp.getAbsolutePath());
 
-            for (MediaStream stream : tracks.keySet()) {
-                File   mediaTrack     = tracks.get(stream);
-                String mediaTrackName = mediaTrack.getName().substring(0, mediaTrack.getName().lastIndexOf('.'));
+            LOGGER.info("[{}:{}] Creating MPD Meta with chunks...", torrent.getId(), file.getIndex());
+            File      chunksStore        = this.libraryService.getChunksStore(episode);
+            MediaFile convertedMediaFile = MediaFile.of(tmp);
+            FFMpeg.createMpd(convertedMediaFile, chunksStore);
+            if (!tmp.delete()) {
+                LOGGER.warn("Could not delete temporary media file {}", tmp.getAbsolutePath());
+            }
+            LOGGER.info("[{}:{}] MPD Meta created.", torrent.getId(), file.getIndex());
 
-                Codec codec = switch (stream.codec().getType()) {
-                    case VIDEO -> VIDEO_CODEC == Codec.VIDEO_COPY ? stream.codec() : VIDEO_CODEC;
-                    case AUDIO -> AUDIO_CODEC == Codec.AUDIO_COPY ? stream.codec() : AUDIO_CODEC;
-                    default -> stream.codec();
-                };
+            LOGGER.info("[{}:{}] Saving subtitles and generating track entities...", torrent.getId(), file.getIndex());
+            Map<MediaStream, File> subs = FFMpeg.explode(media, null, null, Codec.SUBTITLES_COPY, 1);
 
+            for (MediaStream stream : media.getStreams()) {
                 Track track = this.trackService.getProxy().create(entity -> {
                     entity.setEpisode(episode);
-                    entity.setName(mediaTrackName);
-                    entity.setCodec(codec);
-                    entity.setLanguage(stream.language());
+                    entity.setName("Track %s".formatted(stream.getId()));
+                    entity.setCodec(stream.getCodec());
+                    entity.setLanguage(stream.getMetadata().get("language"));
                 });
 
-                File destination = this.libraryService.get(track);
-                //noinspection ResultOfMethodCallIgnored
-                destination.getParentFile().mkdirs();
-
-                Files.move(mediaTrack.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                if (subs.containsKey(stream)) {
+                    File mediaTrack  = subs.get(stream);
+                    File destination = this.libraryService.getSubFile(track);
+                    destination.getParentFile().mkdirs();
+                    Files.move(mediaTrack.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
             }
+            this.episodeService.mod(episode.getId(), entity -> entity.setReady(true));
+            LOGGER.info("[{}:{}] The torrent file has been imported.", torrent.getId(), file.getIndex());
         }
     }
 

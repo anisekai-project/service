@@ -1,15 +1,12 @@
 package fr.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.server.entities.*;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.services.Nyaa;
 import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.wireless.utils.MapUtils;
 import fr.anisekai.library.services.SpringTransmissionClient;
-import fr.anisekai.server.entities.Anime;
-import fr.anisekai.server.entities.Episode;
-import fr.anisekai.server.entities.Torrent;
-import fr.anisekai.server.entities.TorrentFile;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.EpisodeService;
 import fr.anisekai.server.services.TorrentFileService;
@@ -49,7 +46,7 @@ public class TorrentSourcingTask implements TaskExecutor {
     @Override
     public void execute(ITimedAction timer, AnisekaiJson params) throws Exception {
 
-        byte   priority = (byte) params.getInt(OPTION_PRIORITY);
+        byte   priority = params.has(OPTION_PRIORITY) ? (byte) params.getInt(OPTION_PRIORITY) : Task.PRIORITY_AUTOMATIC_LOW;
         String source   = params.getString(OPTION_SOURCE);
 
         timer.action("client-check", "Check the transmission client");
@@ -120,6 +117,7 @@ public class TorrentSourcingTask implements TaskExecutor {
                         entity.setStatus(transmissionTorrent.status());
                         entity.setProgress(transmissionTorrent.percentDone());
                         entity.setLink(entry.link());
+                        entity.setPriority(priority);
                         entity.setDownloadDirectory(transmissionTorrent.downloadDir());
                     });
 

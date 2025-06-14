@@ -26,7 +26,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 // 🔐 Allow anonymous access to API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v3/**", "/error").permitAll()
+                        .requestMatchers("/api/v3/**", "/error", "/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 // ❌ CSRF is useless for APIs

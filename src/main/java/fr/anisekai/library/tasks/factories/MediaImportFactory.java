@@ -1,14 +1,11 @@
 package fr.anisekai.library.tasks.factories;
 
+import fr.anisekai.server.services.*;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.library.LibraryService;
 import fr.anisekai.library.tasks.executors.MediaImportTask;
 import fr.anisekai.server.entities.Task;
-import fr.anisekai.server.services.TaskService;
-import fr.anisekai.server.services.TorrentFileService;
-import fr.anisekai.server.services.TorrentService;
-import fr.anisekai.server.services.TrackService;
 import fr.anisekai.server.tasking.TaskFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -23,15 +20,17 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
     private final TrackService       trackService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
+    private final EpisodeService     episodeService;
 
 
-    public MediaImportFactory(TaskService service, LibraryService libraryService, TorrentService torrentService, TrackService trackService, TorrentFileService torrentFileService) {
+    public MediaImportFactory(TaskService service, LibraryService libraryService, TorrentService torrentService, TrackService trackService, TorrentFileService torrentFileService, EpisodeService episodeService) {
 
         this.service            = service;
         this.libraryService     = libraryService;
         this.torrentService     = torrentService;
         this.trackService       = trackService;
         this.torrentFileService = torrentFileService;
+        this.episodeService     = episodeService;
     }
 
     @Override
@@ -47,7 +46,8 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
                 this.libraryService,
                 this.trackService,
                 this.torrentService,
-                this.torrentFileService
+                this.torrentFileService,
+                this.episodeService
         );
     }
 

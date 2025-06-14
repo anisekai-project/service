@@ -10,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Entity
@@ -22,6 +19,12 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String group;
+
+    @Column(nullable = false)
+    private byte order = 1;
 
     @Column(nullable = false, unique = true)
     private String title;
@@ -63,6 +66,9 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
     @Column
     private Long announcementId;
 
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "anime")
+    private Set<Episode> episodes;
+
     @Column(nullable = false)
     private final ZonedDateTime createdAt = ZonedDateTime.now();
 
@@ -73,6 +79,30 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
     public Long getId() {
 
         return this.id;
+    }
+
+    @Override
+    public @NotNull String getGroup() {
+
+        return this.group;
+    }
+
+    @Override
+    public void setGroup(@NotNull String group) {
+
+        this.group = group;
+    }
+
+    @Override
+    public byte getOrder() {
+
+        return this.order;
+    }
+
+    @Override
+    public void setOrder(byte order) {
+
+        this.order = order;
     }
 
     @Override
@@ -229,6 +259,11 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
     public void setAnnouncementId(Long announcementId) {
 
         this.announcementId = announcementId;
+    }
+
+    public Set<Episode> getEpisodes() {
+
+        return this.episodes;
     }
 
     @Override

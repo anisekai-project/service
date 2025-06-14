@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Episode implements EpisodeEventAdapter {
@@ -21,6 +22,12 @@ public class Episode implements EpisodeEventAdapter {
 
     @Column(nullable = false)
     private int number;
+
+    @Column(nullable = false)
+    private boolean ready = false;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "episode")
+    private Set<Track> tracks;
 
     @Column(nullable = false)
     private final ZonedDateTime createdAt = ZonedDateTime.now();
@@ -56,6 +63,23 @@ public class Episode implements EpisodeEventAdapter {
     public void setNumber(int number) {
 
         this.number = number;
+    }
+
+    @Override
+    public boolean isReady() {
+
+        return this.ready;
+    }
+
+    @Override
+    public void setReady(boolean ready) {
+
+        this.ready = ready;
+    }
+
+    public Set<Track> getTracks() {
+
+        return this.tracks;
     }
 
     @Override

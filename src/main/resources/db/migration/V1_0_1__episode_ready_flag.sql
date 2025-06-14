@@ -1,0 +1,2 @@
+ALTER TABLE `episode`
+    ADD `ready` BIT(1) NOT NULL DEFAULT FALSE;
