@@ -58,7 +58,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.13.2'
+    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.13.3'
 
     runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.3'
     implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.9.1'
