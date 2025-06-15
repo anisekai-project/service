@@ -37,7 +37,6 @@
                     <img alt="" th:src="${anime.imageUrl}"/>
                     <span th:text="${anime.title}"></span>
                 </summary>
-                <summary th:text="${anime.title}"></summary>
                 <div class="content">
                     <div class="episode file" th:data-play="${episode.id}" th:each="episode : ${anime.episodes}">
                         <span th:text="${episode.getName()}"></span>
