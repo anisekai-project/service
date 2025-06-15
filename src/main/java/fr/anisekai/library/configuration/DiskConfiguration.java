@@ -13,18 +13,7 @@ public class DiskConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DiskConfiguration.class);
 
-    private String downloads;
     private String media;
-
-    public String getDownloads() {
-
-        return this.downloads;
-    }
-
-    public void setDownloads(String downloads) {
-
-        this.downloads = downloads;
-    }
 
     public String getMedia() {
 
@@ -34,39 +23,6 @@ public class DiskConfiguration {
     public void setMedia(String media) {
 
         this.media = media;
-    }
-
-    private File getFile(String path, String name) {
-
-        if (!path.startsWith("/")) {
-            LOGGER.warn("Path '{}' is not an absolute path. This is not recommended.", name);
-        }
-        return new File(path);
-    }
-
-    public File getDownloadFile() {
-
-        return this.getFile(this.downloads, "downloads");
-    }
-
-    public File getMediaFile() {
-
-        return this.getFile(this.media, "media");
-    }
-
-    public File getMediaSubs() {
-
-        return new File(this.getMedia(), "subs");
-    }
-
-    public File getMediaChunks() {
-
-        return new File(this.getMedia(), "chunks");
-    }
-
-    public File getMediaTemp() {
-
-        return new File(this.getMedia(), "tmp");
     }
 
 }

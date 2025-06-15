@@ -17,6 +17,7 @@ import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.services.TrackService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.wireless.api.media.enums.Disposition;
+import fr.anisekai.wireless.remote.interfaces.TorrentFileEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,22 +66,18 @@ public class MediaImportTask implements TaskExecutor {
 
         for (TorrentFile file : files) {
 
-            File      downloaded = this.detectFile(torrent, file);
+            File      downloaded = this.detectFile(file);
             Episode   episode    = file.getEpisode();
             MediaFile media      = MediaFile.of(downloaded);
 
             LOGGER.info("[{}:{}] Converting Video/Audio...", torrent.getId(), file.getIndex());
-            File tmp = this.libraryService.useTemporaryFile("mkv");
+            File tmp = this.libraryService.requestTemporaryFile("mkv");
             FFMpeg.convert(media, VIDEO_CODEC, AUDIO_CODEC, null, tmp, 6);
             LOGGER.info("[{}:{}] File converted to {}", torrent.getId(), file.getIndex(), tmp.getAbsolutePath());
 
             LOGGER.info("[{}:{}] Creating MPD Meta with chunks...", torrent.getId(), file.getIndex());
-            File      chunksStore        = this.libraryService.getChunksStore(episode);
-            MediaFile convertedMediaFile = MediaFile.of(tmp);
-            FFMpeg.createMpd(convertedMediaFile, chunksStore);
-            if (!tmp.delete()) {
-                LOGGER.warn("Could not delete temporary media file {}", tmp.getAbsolutePath());
-            }
+            this.libraryService.storeEpisode(episode, tmp);
+            this.deleteFile(tmp);
             LOGGER.info("[{}:{}] MPD Meta created.", torrent.getId(), file.getIndex());
 
             LOGGER.info("[{}:{}] Saving subtitles and generating track entities...", torrent.getId(), file.getIndex());
@@ -96,10 +93,9 @@ public class MediaImportTask implements TaskExecutor {
                 });
 
                 if (subs.containsKey(stream)) {
-                    File mediaTrack  = subs.get(stream);
-                    File destination = this.libraryService.getSubFile(track);
-                    destination.getParentFile().mkdirs();
-                    Files.move(mediaTrack.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    File mediaTrack = subs.get(stream);
+                    this.libraryService.storeSubtitle(track, mediaTrack);
+                    this.deleteFile(mediaTrack);
                 }
             }
             this.episodeService.mod(episode.getId(), entity -> entity.setReady(true));
@@ -107,16 +103,23 @@ public class MediaImportTask implements TaskExecutor {
         }
     }
 
-    private File detectFile(Torrent torrent, TorrentFile file) {
+    private File detectFile(TorrentFileEntity<?, ?> file) throws IOException {
 
-        File downloaded = this.libraryService.get(file);
-        if (downloaded.exists()) return downloaded;
-        downloaded = this.libraryService.get(torrent, file);
-        if (downloaded.exists()) return downloaded;
-        throw new IllegalStateException("Could not determine path to file %s of torrent %s".formatted(
-                file.getIndex(),
-                torrent.getId()
-        ));
+        return this.libraryService
+                .retrieveDownload(file)
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format(
+                                "Could not determine path to file %s of torrent %s",
+                                file.getIndex(),
+                                file.getTorrent().getId()
+                        )));
+    }
+
+    private void deleteFile(File file) {
+
+        if (!file.delete()) {
+            LOGGER.warn("Could not delete file {}", file.getAbsolutePath());
+        }
     }
 
 }
