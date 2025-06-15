@@ -21,18 +21,15 @@ export default class Collapse {
      * @return {boolean}
      */
     applyFilter(filter) {
-        if (filter === '') {
-            this.show();
-            this.items.forEach(item => item.show());
-            return true;
-        }
-
         const isNameMatching = this.name.toLowerCase().indexOf(filter.toLowerCase()) > -1;
 
         if (isNameMatching || filter === '') {
             this.show();
-            this.items.forEach(item => item.show());
-            this.el.open = false;
+            this.items.forEach(item => {
+                item.show();
+                item.collapse();
+            });
+            this.collapse();
             return true;
         }
 
@@ -46,14 +43,16 @@ export default class Collapse {
 
             if (hasMatched) {
                 this.show();
+                this.expand();
             } else {
                 this.hide();
+                this.collapse();
             }
-            this.el.open = hasMatched;
             return hasMatched;
         }
 
         this.hide();
+        this.collapse();
         return false;
     }
 
@@ -63,5 +62,17 @@ export default class Collapse {
 
     show() {
         this.el.classList.remove('hidden')
+    }
+
+    collapse() {
+        if (this.el.tagName === "DETAILS") {
+            this.el.open = false;
+        }
+    }
+
+    expand() {
+        if (this.el.tagName === "DETAILS") {
+            this.el.open = true;
+        }
     }
 }
