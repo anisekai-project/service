@@ -42,7 +42,7 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
     @Column
     private String thumbnailUrl;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String url;
 
     @Column
