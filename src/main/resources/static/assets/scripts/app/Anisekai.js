@@ -57,27 +57,16 @@ export default class Anisekai {
      * @param {string} filter
      */
     search(filter) {
-        let hasResults = false;
 
-        this.data.forEach(anime => {
-            if (filter === '') {
-                // Quick filter
-                anime.show();
-                hasResults = true;
-                return;
+        let hasMatched = false;
+
+        for (let item of this.data) {
+            if (item.applyFilter(filter)) {
+                hasMatched = true;
             }
+        }
 
-            const display = anime.name.toLowerCase().indexOf(filter.toLowerCase()) > -1;
-
-            if (display) {
-                anime.show();
-                hasResults = true;
-            } else {
-                anime.hide();
-            }
-        });
-
-        if (hasResults) {
+        if (hasMatched) {
             this.elements.empty.classList.add('hidden');
         } else {
             this.elements.empty.classList.remove('hidden');
