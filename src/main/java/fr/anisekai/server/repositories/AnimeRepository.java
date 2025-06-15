@@ -23,4 +23,6 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
     List<Anime> findAllByTitleRegexIsNotNull();
 
+    Optional<Anime> findByUrl(String url);
+
 }

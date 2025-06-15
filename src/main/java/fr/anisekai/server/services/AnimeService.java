@@ -49,7 +49,7 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         byte      order           = Byte.parseByte(source.getString("order"));
 
         return this.getProxy().upsert(
-                repo -> repo.findByTitle(name)
+                repo -> repo.findByUrl(link)
                 , anime -> {
                     anime.setGroup(group);
                     anime.setOrder(order);
