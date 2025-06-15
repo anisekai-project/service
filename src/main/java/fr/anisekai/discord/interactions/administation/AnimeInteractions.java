@@ -4,17 +4,19 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
-import fr.anisekai.wireless.remote.enums.AnimeList;
-import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import fr.anisekai.Texts;
 import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
 import fr.anisekai.discord.tasks.anime.announcement.AnnouncementFactory;
+import fr.anisekai.library.LibraryService;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.TaskService;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +27,15 @@ import java.util.regex.Pattern;
 @InteractionBean
 public class AnimeInteractions {
 
-    private final TaskService  taskService;
-    private final AnimeService service;
+    private final TaskService    taskService;
+    private final LibraryService libraryService;
+    private final AnimeService   service;
 
-    public AnimeInteractions(TaskService taskService, AnimeService service) {
+    public AnimeInteractions(TaskService taskService, LibraryService libraryService, AnimeService service) {
 
-        this.taskService = taskService;
-        this.service     = service;
+        this.taskService    = taskService;
+        this.libraryService = libraryService;
+        this.service        = service;
     }
 
     private static void requireAdministrator(UserEntity user) {
@@ -238,7 +242,7 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
-    // <editor-fold desc="@ anime/status ─ Change to which watchlist an anime belongs. [anime: integer, watchlist: string]">
+    // <editor-fold desc="@ anime/bulk-status ─ Move all anime from one list to another. [from: string, to: string]">
     @Interact(
             name = "anime/bulk-status",
             description = "\uD83D\uDD12 — Déplace tous les animes d'une liste à une autre.",
@@ -282,4 +286,47 @@ public class AnimeInteractions {
     }
     // </editor-fold>
 
+    // <editor-fold desc="@ anime/event-image ─ Change the event image for an anime. [anime: integer, duration: integer]">
+    @Interact(
+            name = "anime/event-image",
+            description = "\uD83D\uDD12 — Change l'image d'évènement d'un anime.",
+            defer = true,
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = "Anime pour lequel l'image sera changée.",
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "image",
+                            description = "Image d'évènement pour l'anime",
+                            type = OptionType.ATTACHMENT,
+                            required = true
+                    ),
+            }
+    )
+    public SlashResponse animeEventImage(UserEntity user, @Param("anime") long animeId, @Param("image") Message.Attachment attachment) throws Exception {
+
+        requireAdministrator(user);
+
+        if (!attachment.isImage() || !"png".equals(attachment.getFileExtension())) {
+            return DiscordResponse.error("Merci de fournir une image.\n***800x320 (png)***");
+        }
+
+        if (attachment.getWidth() != 800 || attachment.getHeight() != 320) {
+            return DiscordResponse.error(String.format(
+                    "Les dimensions de l'image ne sont pas valide.\nReçu: %sx%s\nAttendu: 800x320",
+                    attachment.getWidth(),
+                    attachment.getHeight()
+            ));
+        }
+
+        Anime anime = this.service.fetch(animeId);
+        this.libraryService.storeAnimeEventImage(anime, attachment.getUrl());
+
+        return DiscordResponse.info("L'image a bien été mise à jour.").setImage(attachment.getProxyUrl());
+    }
+    // </editor-fold>
 }

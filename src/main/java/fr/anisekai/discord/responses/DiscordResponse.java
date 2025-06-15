@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 
 public class DiscordResponse implements SlashResponse, ButtonResponse {
 
-    private final Collection<EmbedBuilder> builders;
-    private final boolean                  edit;
-    private final boolean                  ephemeral;
+    private final EmbedBuilder builder;
+    private final boolean      edit;
+    private final boolean      ephemeral;
 
     public DiscordResponse(CharSequence message) {
 
@@ -28,14 +28,7 @@ public class DiscordResponse implements SlashResponse, ButtonResponse {
 
     public DiscordResponse(EmbedBuilder builder, boolean edit, boolean ephemeral) {
 
-        this.builders  = Collections.singletonList(builder);
-        this.edit      = edit;
-        this.ephemeral = ephemeral;
-    }
-
-    public DiscordResponse(Collection<EmbedBuilder> builders, boolean edit, boolean ephemeral) {
-
-        this.builders  = builders;
+        this.builder   = builder;
         this.edit      = edit;
         this.ephemeral = ephemeral;
     }
@@ -99,13 +92,19 @@ public class DiscordResponse implements SlashResponse, ButtonResponse {
     @Override
     public Consumer<MessageRequest<?>> getHandler() {
 
-        return (amb) -> amb.setEmbeds(this.builders.stream().map(EmbedBuilder::build).toList());
+        return (amb) -> amb.setEmbeds(this.builder.build());
     }
 
     @Override
     public boolean isEphemeral() {
 
         return this.ephemeral;
+    }
+
+    public DiscordResponse setImage(String url) {
+
+        this.builder.setImage(url);
+        return this;
     }
 
 }

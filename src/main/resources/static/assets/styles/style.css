@@ -281,3 +281,33 @@ nav .logout a:hover {
     max-width: 1200px;
     margin: 1em auto;
 }
+
+#tree-view .anime > summary {
+    position: relative;
+    display: flex;
+    height: 100px;
+    overflow: hidden;
+    border-left: none;
+    padding: 0;
+    gap: 1em;
+    font-size: 1.3em;
+    align-items: center;
+}
+
+#tree-view .anime > summary img {
+    height: 100%;
+}
+
+.anime > summary::before {
+    content: ' ';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-image: var(--image);
+    background-position: center;
+    background-size: cover;
+    opacity: 0.1;
+    filter: blur(8px);
+}

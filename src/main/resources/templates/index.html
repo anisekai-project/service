@@ -29,14 +29,17 @@
 </nav>
 
 <div id="tree-view">
-    <details th:each="group : ${groups}" th:id="'group-' + ${group.name}">
+    <details th:each="group : ${groups}" class="group">
         <summary th:text="${group.name}"></summary>
         <div class="content">
-            <details th:each="anime : ${group.animes}" th:id="'anime-' + ${anime.id}">
+            <details th:each="anime : ${group.animes}" class="anime">
+                <summary th:style="'--image: url(\'' + ${anime.imageUrl} + '\')'">
+                    <img alt="" th:src="${anime.imageUrl}"/>
+                    <span th:text="${anime.title}"></span>
+                </summary>
                 <summary th:text="${anime.title}"></summary>
                 <div class="content">
-                    <div class="file" th:data-play="${episode.id}" th:each="episode : ${anime.episodes}"
-                         th:id="'episode-' + ${episode.id}">
+                    <div class="episode file" th:data-play="${episode.id}" th:each="episode : ${anime.episodes}">
                         <span th:text="${episode.getName()}"></span>
                     </div>
                 </div>
