@@ -21,6 +21,7 @@ RUN curl https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
     tar xvf 'ffmpeg-release-amd64-static.tar.xz' && \
     mv ffmpeg-7.0.2-amd64-static /var/opt/ffmpeg && \
     ln -s /var/opt/ffmpeg/ffmpeg /usr/bin/ffmpeg && \
+    ln -s /var/opt/ffmpeg/ffprobe /usr/bin/ffprobe && \
     rm 'ffmpeg-release-amd64-static.tar.xz'
 
 COPY --from=anisekai /app.jar .
