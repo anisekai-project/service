@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MediaImportFactory implements TaskFactory<MediaImportTask> {
 
-    public static final String NAME = "MEDIA:IMPORT";
+    public static final String NAME = "media:import";
 
     private final TaskService        service;
     private final LibraryService     libraryService;

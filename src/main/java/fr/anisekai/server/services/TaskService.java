@@ -1,6 +1,7 @@
 package fr.anisekai.server.services;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.library.tasks.factories.MediaImportFactory;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
 import io.sentry.Sentry;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskRepository, TaskProxy> {
@@ -190,16 +192,9 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
         });
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
-    private void execute() {
+    private void executeTask(Task executableTask) {
 
-        Optional<Task> optionalTask = this.getProxy().fetchEntity(repo -> repo.getFirst(TaskStatus.SCHEDULED));
-
-        if (optionalTask.isEmpty()) {
-            return;
-        }
-
-        Task task = optionalTask.get();
+        Task task = executableTask;
 
         String factoryName = task.getFactoryName();
         Optional<TaskFactory<?>> optionalFactory = this.factories
@@ -297,6 +292,30 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
             }
             timer.endAction();
         }
+    }
+
+    @Scheduled(cron = "0/5 * * * * *")
+    private void executeHeavy() {
+
+        String             factoryName  = this.getFactory(MediaImportFactory.class).getName();
+        Collection<String> factoryNames = Collections.singleton(factoryName);
+
+        Optional<Task> optionalTask = this.getProxy()
+                                          .fetchEntity(repo -> repo.findNextOf(TaskStatus.SCHEDULED, factoryNames));
+
+        optionalTask.ifPresent(this::executeTask);
+    }
+
+    @Scheduled(cron = "0/5 * * * * *")
+    private void executeLight() {
+
+        String             factoryName  = this.getFactory(MediaImportFactory.class).getName();
+        Collection<String> factoryNames = Collections.singleton(factoryName);
+
+        Optional<Task> optionalTask = this.getProxy()
+                                          .fetchEntity(repo -> repo.findNextNotOf(TaskStatus.SCHEDULED, factoryNames));
+
+        optionalTask.ifPresent(this::executeTask);
     }
 
     @PostConstruct
