@@ -32,6 +32,7 @@ export default class Collapse {
         if (isNameMatching || filter === '') {
             this.show();
             this.items.forEach(item => item.show());
+            this.el.open = false;
             return true;
         }
 
