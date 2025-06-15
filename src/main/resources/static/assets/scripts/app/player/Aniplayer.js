@@ -1,4 +1,7 @@
 import Logger from "../Logger.js";
+import Trackbar from "../ui/Trackbar.js";
+import ActivityTracker from "./ActivityTracker.js";
+import {toFormattedDuration} from "../Utils.js";
 
 const languageMap = {
     'jpn': 'Japonais',
@@ -21,12 +24,6 @@ const languageMap = {
  * @property {Track[]} tracks Array of track composing the episode
  */
 
-/**
- * Callback receiving a number
- *
- * @callback NumberCallback
- * @param {number} value The value.
- */
 
 export default class Aniplayer {
 
@@ -69,11 +66,14 @@ export default class Aniplayer {
         }
 
         this.isHoverControls = false;
-        this.activity = new ActivityManager(this.ui.container, 3);
+        this.activityTracker = new ActivityTracker(this.ui.container, 3);
 
         this.trackbars = {
             media: new Trackbar(this.ui.timingBar, {
-                onChange: value => this.ui.video.fastSeek(value)
+                onChange: value => {
+                    this.ui.video.fastSeek(value)
+                    this.ui.video.focus();
+                }
             }),
             volume: new Trackbar(this.ui.volumeBar, {
                 onUpdate: value => this.ui.video.volume = value,
@@ -81,7 +81,7 @@ export default class Aniplayer {
             }),
         }
 
-        this.trackbars.volume.setMaximum(1);
+        this.trackbars.volume.maximum = 1;
 
         /**
          * @type {{audio: HTMLElement[], subs: HTMLElement[]}}
@@ -91,48 +91,29 @@ export default class Aniplayer {
             subs: []
         }
 
-        this.doubleClickTimer = -1;
         setInterval(() => this.clock(), 100)
 
         this.onPause();
         this.onExitFullscreen();
 
-        this.ui.video.addEventListener('playing', (e) => {
-            this.onPlay();
-        });
-        this.ui.video.addEventListener('pause', (e) => {
-            this.onPause();
-        });
-
+        this.ui.video.addEventListener('playing', () => this.onPlay());
+        this.ui.video.addEventListener('pause', () => this.onPause());
         this.ui.playBtn.addEventListener('click', () => this.play());
         this.ui.pauseBtn.addEventListener('click', () => this.pause());
         this.ui.maximizeBtn.addEventListener('click', () => this.enterFullscreen());
         this.ui.minimizeBtn.addEventListener('click', () => this.exitFullscreen());
         this.ui.settingsBtn.addEventListener('click', () => this.toggleSettings());
+        this.ui.noMouse.addEventListener('dblclick', () => this.toggleFullscreen())
+
         this.ui.noMouse.addEventListener('click', () => {
-
-            if (this.doubleClickTimer > -1) {
-                // Double click.
-                clearTimeout(this.doubleClickTimer);
-                this.doubleClickTimer = -1;
-                this.toggleFullscreen();
-                return;
+            if (this.isSettingOpened()) {
+                this.hideSettings();
+            } else {
+                this.togglePlay();
             }
-
-            this.doubleClickTimer = setTimeout(() => {
-                this.doubleClickTimer = -1;
-                if (this.isSettingOpened()) {
-                    this.hideSettings();
-                } else {
-                    this.togglePlay();
-                }
-            }, 400)
         });
 
-        this.ui.noMouse.addEventListener('mousemove', () => {
-            this.activity.signalActivity();
-        });
-
+        this.ui.noMouse.addEventListener('mousemove', () => this.activityTracker.signalActivity());
         this.ui.playerBar.addEventListener('mouseenter', () => this.isHoverControls = true);
         this.ui.playerBar.addEventListener('mouseleave', () => this.isHoverControls = false);
 
@@ -149,32 +130,19 @@ export default class Aniplayer {
     }
 
     clock() {
-        this.activity.setLock(this.ui.video.paused || this.isSettingOpened() || this.isHoverControls);
-        this.trackbars.media.setMaximum(this.ui.video.duration);
-        this.trackbars.media.setValue(this.ui.video.currentTime);
-        this.trackbars.volume.setValue(this.ui.video.volume);
+        this.activityTracker.setLock(this.ui.video.paused || this.isSettingOpened() || this.isHoverControls);
+        this.trackbars.media.maximum = this.ui.video.duration;
+        this.trackbars.media.value = this.ui.video.currentTime;
 
-        const formatted = time => {
-            const seconds = Math.floor(time); // Drop decimals fast
-            const h = (seconds / 3600) | 0;
-            const m = ((seconds % 3600) / 60) | 0;
-            const s = seconds % 60;
-
-            const pad = (n) => (n < 10 ? '0' : '') + n;
-
-            if (h > 0) {
-                return h + ':' + pad(m) + ':' + pad(s);
-            }
-            return pad(m) + ':' + pad(s);
-        }
-
-        this.ui.totalTime.innerText = formatted(isNaN(this.ui.video.duration) ? 0 : this.ui.video.duration);
-        this.ui.currentTime.innerText = formatted(this.ui.video.currentTime);
+        this.ui.totalTime.innerText = toFormattedDuration(isNaN(this.ui.video.duration) ? 0 : this.ui.video.duration);
+        this.ui.currentTime.innerText = toFormattedDuration(this.ui.video.currentTime);
     }
 
     setVolume(volume) {
         this.ui.video.volume = volume;
-        localStorage.setItem(Aniplayer.SETTING_VOLUME, `${volume}`)
+        localStorage.setItem(Aniplayer.SETTING_VOLUME, `${volume}`);
+        this.activityTracker.signalActivity();
+        this.ui.video.focus();
     }
 
     async init() {
@@ -188,25 +156,29 @@ export default class Aniplayer {
         this.ui.playBtn.classList.remove('hidden');
         this.ui.pauseBtn.classList.add('hidden');
         this.ui.video.focus();
-        this.activity.signalActivity();
+        this.activityTracker.signalActivity();
+        this.ui.video.focus();
     }
 
     onPlay() {
         this.ui.playBtn.classList.add('hidden');
         this.ui.pauseBtn.classList.remove('hidden');
-        this.activity.signalActivity();
+        this.activityTracker.signalActivity();
+        this.ui.video.focus();
     }
 
     onEnterFullscreen() {
         this.ui.maximizeBtn.classList.add('hidden');
         this.ui.minimizeBtn.classList.remove('hidden');
-        this.activity.signalActivity();
+        this.activityTracker.signalActivity();
+        this.ui.video.focus();
     }
 
     onExitFullscreen() {
         this.ui.maximizeBtn.classList.remove('hidden');
         this.ui.minimizeBtn.classList.add('hidden');
-        this.activity.signalActivity();
+        this.activityTracker.signalActivity();
+        this.ui.video.focus();
     }
 
     /**
@@ -399,166 +371,3 @@ export default class Aniplayer {
     }
 }
 
-/**
- * Class allowing to track if the user has been showing sign of activity, very useful for players to hide controls
- * after a certain amount of inactivity.
- */
-class ActivityManager {
-
-    /**
-     * Create a new Activity Manager.
-     * @param {HTMLElement} element The element on which the 'inactive' class will be toggled.
-     * @param {number} timeout Amount of seconds after which the user will be considered as inactive.
-     */
-    constructor(element, timeout) {
-        this.element = element;
-        this.inactiveSince = 0;
-        this._lock = false;
-        this.timeout = timeout * 10;
-
-        this.timer = setInterval(() => this._tick(), 100);
-    }
-
-    /**
-     * Main clock of the activity manager.
-     */
-    _tick() {
-        if (this._lock) {
-            this.signalActivity()
-            return
-        }
-
-        this.inactiveSince++;
-
-        if (this.inactiveSince >= this.timeout) {
-            this.element.classList.add('inactive');
-        }
-    }
-
-    /**
-     * Lock the activity state. This is useful if your user is hovering a part of your UI and you don't want it to get
-     * hidden away.
-     */
-    lock() {
-        this._lock = true;
-    }
-
-    /**
-     * Unlock the activity state, allowing the manager to run as it is supposed to.
-     */
-    unlock() {
-        this._lock = false;
-    }
-
-    /**
-     * Define the lock state of this activity manager.
-     * @param {boolean} value True if locked, false otherwise.
-     */
-    setLock(value) {
-        this._lock = value;
-    }
-
-    /**
-     * Signal the manager that the user was active and resets the timeout.
-     */
-    signalActivity() {
-        this.inactiveSince = 0;
-        this.element.classList.remove('inactive');
-    }
-}
-
-class Trackbar {
-
-    /**
-     * @param {HTMLElement} element The HTML Element carrying the '--progress' CSS property.
-     * @param {NumberCallback=} onChange Called when the value should be changed (user clicking/releasing the trackbar)
-     * @param {NumberCallback=} onUpdate Called when the value is being changed (user dragging the trackbar)
-     */
-    constructor(element, {onChange, onUpdate}) {
-        this.element = element;
-        this.bar = this.element.querySelector('.bar');
-        this.dragging = false;
-
-        this.onChange = onChange ?? (num => {
-        });
-        this.onUpdate = onUpdate ?? (num => {
-        });
-
-        this.data = {
-            minimum: 0,
-            maximum: 100,
-            value: 0,
-            override: -1,
-        }
-
-        this.bar.addEventListener('mousedown', e => this._onDragStart(e));
-    }
-
-    _getValueFromEvent(e) {
-        const rect = this.bar.getBoundingClientRect();
-        const x = Math.min(Math.max(0, e.clientX - rect.left), rect.width);
-        const ratio = x / rect.width;
-        return this.data.minimum + ratio * (this.data.maximum - this.data.minimum);
-    }
-
-    _onDragStart(event) {
-        this.dragging = true;
-
-        window.addEventListener('mousemove', this._onDragBound = e => this._onDrag(e));
-        window.addEventListener('mouseup', this._onDragEndBound = e => this._onDragEnd(e));
-
-        const value = this._getValueFromEvent(event);
-        this.onUpdate(value);
-    }
-
-    _onDrag(event) {
-        if (!this.dragging) return;
-        const value = this._getValueFromEvent(event);
-        this.onUpdate(value);
-        this.data.override = value;
-        this.refresh();
-    }
-
-    _onDragEnd(event) {
-        if (!this.dragging) return;
-        this.dragging = false;
-
-        window.removeEventListener('mousemove', this._onDragBound);
-        window.removeEventListener('mouseup', this._onDragEndBound);
-
-        const value = this._getValueFromEvent(event);
-        this.onUpdate(value);
-        this.onChange(value);
-        this.data.override = -1;
-    }
-
-    setMinimum(value) {
-        this.data.minimum = value;
-        this.refresh();
-    }
-
-    setMaximum(value) {
-        this.data.maximum = value;
-        this.refresh();
-    }
-
-    setValue(value) {
-        this.data.value = value;
-        this.refresh();
-    }
-
-    refresh() {
-        const {minimum, maximum, value, override} = this.data;
-
-        const targetValue = override > -1 ? override : value;
-        const range = maximum - minimum;
-
-        if (isNaN(range) || range === 0) {
-            this.element.style.setProperty('--progress', '0%');
-            return;
-        }
-
-        const progress = ((targetValue - minimum) / range) * 100;
-        this.element.style.setProperty('--progress', `${progress}%`);
-    }
-}
