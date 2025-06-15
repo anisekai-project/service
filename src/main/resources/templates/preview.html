@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Anisekai - Toshiko AniDB</title>
+
+    <link rel="stylesheet" href="/assets/styles/style.css">
+
+    <link rel="icon" type="image/png" href="/favicon.png"/>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<nav>
+    <div class="web-icon">
+        <img src="/assets/images/toshiko.png" alt="Toshiko"/>
+    </div>
+
+    <div class="search">
+        <label for="search-input" hidden>Search</label>
+        <input id="search-input" placeholder="Rechercher..."/>
+    </div>
+
+    <div class="logout">
+        <a href="/logout">Déconnexion</a>
+    </div>
+</nav>
+
+<div id="tree-view">
+    <details th:each="group : ${groups}" th:id="'group-' + ${group.name}">
+        <summary th:text="${group.name}"></summary>
+        <div class="content">
+            <details th:each="anime : ${group.animes}" th:id="'anime-' + ${anime.id}">
+                <summary th:text="${anime.title}"></summary>
+                <div class="content">
+                    <div class="file" th:each="episode : ${anime.episodes}"
+                         th:id="'episode-' + ${episode.id}">
+                        <span th:text="${episode.getName()}"></span>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </details>
+</div>
+
+<div class="no-results" data-if="empty">
+    Aucun résultat
+</div>
+
+</body>
+<script src="/assets/libs/shaka/shaka-player.compiled.js"></script>
+<script src="/assets/libs/subtitles-octopus/subtitles-octopus.js"></script>
+<script src="/assets/libs/feather/feather.min.js"></script>
+<script type="module" src="/assets/scripts/script.js"></script>
+</html>

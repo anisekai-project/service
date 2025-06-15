@@ -5,7 +5,11 @@ export default class Anisekai {
 
     constructor() {
 
-        this.player = new Aniplayer();
+        if (document.getElementById('player-container')) {
+            this.player = new Aniplayer();
+        } else {
+            this.player = null;
+        }
 
         this.elements = {
             tree: document.getElementById('tree-view'),
@@ -22,14 +26,18 @@ export default class Anisekai {
 
         this.elements.tree.querySelectorAll(':scope > details').forEach(node => this.data.push(new Collapse(node)));
         this.elements.search.addEventListener('input', (ev) => this.search(ev.target.value));
-        this.elements.backBtn.addEventListener('click', () => this.closeMedia());
 
-        document.querySelectorAll('[data-play]').forEach(node => {
-            node.addEventListener('click', () => {
-                const mediaId = parseInt(node.getAttribute('data-play'));
-                this.playMedia(mediaId).then();
+        if (this.player) {
+            this.elements.backBtn.addEventListener('click', () => this.closeMedia());
+
+            document.querySelectorAll('[data-play]').forEach(node => {
+                node.addEventListener('click', () => {
+                    const mediaId = parseInt(node.getAttribute('data-play'));
+                    this.playMedia(mediaId).then();
+                })
             })
-        })
+        }
+
     }
 
     /**
@@ -38,7 +46,9 @@ export default class Anisekai {
      */
     async init() {
         this.search('')
-        await this.player.init();
+        if (this.player) {
+            await this.player.init();
+        }
         feather.replace();
     }
 
@@ -50,6 +60,13 @@ export default class Anisekai {
         let hasResults = false;
 
         this.data.forEach(anime => {
+            if (filter === '') {
+                // Quick filter
+                anime.show();
+                hasResults = true;
+                return;
+            }
+
             const display = anime.name.toLowerCase().indexOf(filter.toLowerCase()) > -1;
 
             if (display) {
@@ -73,6 +90,10 @@ export default class Anisekai {
      * @returns {Promise<MediaDescriptor>}
      */
     async playMedia(mediaId) {
+        if (this.player == null) {
+            throw new Error('No player available.')
+        }
+
         const response = await fetch(`/media/describe/${mediaId}`);
         const descriptor = await response.json();
         await this.player.load(descriptor);
@@ -81,8 +102,12 @@ export default class Anisekai {
         this.elements.tree.classList.add('hidden');
         this.elements.playerContainer.classList.remove('hidden');
     }
-D
+
     closeMedia() {
+        if (this.player == null) {
+            throw new Error('No player available.')
+        }
+
         this.elements.tree.classList.remove('hidden');
         this.elements.playerContainer.classList.add('hidden');
         this.player.dispose();

@@ -4,8 +4,8 @@ import fr.anisekai.server.entities.Episode;
 
 public class EpisodeDto {
 
-    public long id;
-    public int  number;
+    public Long id;
+    public long number;
 
     public EpisodeDto(Episode episode) {
 
@@ -16,6 +16,11 @@ public class EpisodeDto {
     public String getName() {
 
         return String.format("Épisode %s", this.number);
+    }
+
+    public EpisodeDto(long number) {
+
+        this.number = number;
     }
 
 }

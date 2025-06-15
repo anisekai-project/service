@@ -30,12 +30,10 @@ public class WebController {
     @RequestMapping("/")
     public String index(DiscordUser user, Model model) {
 
-        if (user == null) return "login";
-
         model.addAttribute("logged", true);
         model.addAttribute("user", user);
 
-        if (user.isGuest()) return "forbidden";
+        if (user == null || user.isGuest()) return "forbidden";
 
         List<Anime>          animes     = this.animeService.getProxy().getRepository().findAll();
         List<String>         groupNames = animes.stream().map(Anime::getGroup).distinct().sorted().toList();
@@ -46,7 +44,7 @@ public class WebController {
             group.animes = animes.stream()
                                  .filter(anime -> anime.getGroup().equals(groupName))
                                  .sorted(Comparator.comparing(Anime::getOrder))
-                                 .map(AnimeDto::new)
+                                 .map(anime -> new AnimeDto(anime, anime.getEpisodes()))
                                  .filter(dto -> !dto.episodes.isEmpty())
                                  .toList();
 
@@ -74,10 +72,31 @@ public class WebController {
         return "redirect:/";
     }
 
-    @RequestMapping("/debug")
-    public String debug() {
+    @RequestMapping("/preview")
+    public String preview(DiscordUser user, Model model) {
 
-        return "debug";
+        model.addAttribute("logged", true);
+        model.addAttribute("user", user);
+
+        if (user == null || user.isGuest() || !user.isAdministrator()) return "redirect:/";
+
+        List<Anime>          animes     = this.animeService.getProxy().getRepository().findAll();
+        List<String>         groupNames = animes.stream().map(Anime::getGroup).distinct().sorted().toList();
+        Collection<GroupDto> groups     = new ArrayList<>();
+
+        for (String groupName : groupNames) {
+            GroupDto group = new GroupDto(groupName);
+            group.animes = animes.stream()
+                                 .filter(anime -> anime.getGroup().equals(groupName))
+                                 .sorted(Comparator.comparing(Anime::getOrder))
+                                 .map(AnimeDto::new)
+                                 .toList();
+
+            groups.add(group);
+        }
+
+        model.addAttribute("groups", groups);
+        return "preview";
     }
 
 }
