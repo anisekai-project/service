@@ -1,5 +1,7 @@
 package fr.anisekai.discord.tasks.watchlist.update;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import jakarta.annotation.PostConstruct;
@@ -78,13 +80,18 @@ public class WatchlistUpdateFactory implements TaskFactory<WatchlistUpdateTask> 
         AnisekaiJson arguments = new AnisekaiJson();
         arguments.put(WatchlistUpdateTask.OPTION_WATCHLIST, list.name().toLowerCase());
 
-        return this.service.queue(this, name, arguments, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .name(name)
+                           .args(arguments)
+                           .priority(priority)
+        );
     }
 
     @PostConstruct
     private void postConstruct() {
 
-        this.service.registerFactory(this);
+        this.service.registerFactory(TaskPipeline.SOFT, this);
     }
 
 }

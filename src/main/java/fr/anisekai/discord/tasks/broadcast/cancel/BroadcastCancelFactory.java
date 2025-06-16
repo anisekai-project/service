@@ -1,5 +1,7 @@
 package fr.anisekai.discord.tasks.broadcast.cancel;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 import jakarta.annotation.PostConstruct;
@@ -45,13 +47,18 @@ public class BroadcastCancelFactory extends BroadcastFactory<BroadcastCancelTask
         AnisekaiJson arguments = new AnisekaiJson();
         arguments.put(BroadcastTask.OPT_BROADCAST, broadcast.getId());
 
-        return this.getService().queue(this, name, arguments, priority);
+        return this.getService().queue(
+                TaskBuilder.of(this)
+                           .name(name)
+                           .args(arguments)
+                           .priority(priority)
+        );
     }
 
     @PostConstruct
     public void postConstruct() {
 
-        this.getService().registerFactory(this);
+        this.getService().registerFactory(TaskPipeline.SOFT, this);
     }
 
 }

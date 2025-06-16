@@ -1,5 +1,7 @@
 package fr.anisekai.discord.tasks.anime.count;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.server.entities.Task;
@@ -49,13 +51,16 @@ public class AnimeCountFactory implements TaskFactory<AnimeCountTask> {
 
     public Task queue(byte priority) {
 
-        return this.service.queue(this, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .priority(priority)
+        );
     }
 
     @PostConstruct
     private void postConstruct() {
 
-        this.service.registerFactory(this);
+        this.service.registerFactory(TaskPipeline.MESSAGING, this);
     }
 
 }

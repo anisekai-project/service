@@ -1,5 +1,7 @@
 package fr.anisekai.library.tasks.factories;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.library.tasks.executors.TorrentSourcingTask;
@@ -12,12 +14,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class TorrentSourcingFactory implements TaskFactory<TorrentSourcingTask> {
 
-    private static final String             NAME = "torrent:sourcing";
-    private final        TaskService        service;
-    private final        AnimeService       animeService;
-    private final        EpisodeService     episodeService;
-    private final        TorrentService     torrentService;
-    private final        TorrentFileService torrentFileService;
+    private static final String NAME = "torrent:sourcing";
+
+    private final TaskService        service;
+    private final AnimeService       animeService;
+    private final EpisodeService     episodeService;
+    private final TorrentService     torrentService;
+    private final TorrentFileService torrentFileService;
 
     public TorrentSourcingFactory(TaskService service, AnimeService animeService, EpisodeService episodeService, TorrentService torrentService, TorrentFileService torrentFileService) {
 
@@ -51,12 +54,6 @@ public class TorrentSourcingFactory implements TaskFactory<TorrentSourcingTask> 
         return false;
     }
 
-    @PostConstruct
-    private void postConstruct() {
-
-        this.service.registerFactory(this);
-    }
-
     public Task queue(String source) {
 
         return this.queue(source, Task.PRIORITY_AUTOMATIC_LOW);
@@ -66,7 +63,17 @@ public class TorrentSourcingFactory implements TaskFactory<TorrentSourcingTask> 
 
         AnisekaiJson arguments = new AnisekaiJson();
         arguments.put(TorrentSourcingTask.OPTION_SOURCE, source);
-        return this.service.queue(this, this.getName(), arguments, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .args(arguments)
+                           .priority(priority)
+        );
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+
+        this.service.registerFactory(TaskPipeline.SOFT, this);
     }
 
 }

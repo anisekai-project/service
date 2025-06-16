@@ -12,6 +12,7 @@ import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.InterestService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.utils.DiscordUtils;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -66,9 +67,11 @@ public class AnnouncementTask implements TaskExecutor {
     }
 
     @Override
-    public boolean validateParams(AnisekaiJson params) {
+    public void validateParams(AnisekaiJson params) {
 
-        return params.has(OPTION_ANIME);
+        params.validate(
+                new JsonObjectRule(OPTION_ANIME, true, int.class, long.class)
+        );
     }
 
     private TextChannel getAnnouncementChannel() {

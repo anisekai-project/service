@@ -2,6 +2,7 @@ package fr.anisekai.discord.tasks.watchlist.update;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.responses.embeds.WatchlistEmbed;
@@ -37,9 +38,11 @@ public class WatchlistUpdateTask implements TaskExecutor {
     }
 
     @Override
-    public boolean validateParams(AnisekaiJson params) {
+    public void validateParams(AnisekaiJson params) {
 
-        return params.has(OPTION_WATCHLIST);
+        params.validate(
+                new JsonObjectRule(OPTION_WATCHLIST, true, String.class)
+        );
     }
 
     @Override

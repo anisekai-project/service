@@ -3,6 +3,7 @@ package fr.anisekai.library.tasks.executors;
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.server.entities.*;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
 import fr.anisekai.wireless.api.services.Nyaa;
 import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.wireless.utils.MapUtils;
@@ -38,9 +39,12 @@ public class TorrentSourcingTask implements TaskExecutor {
     }
 
     @Override
-    public boolean validateParams(AnisekaiJson params) {
+    public void validateParams(AnisekaiJson params) {
 
-        return params.has(OPTION_PRIORITY) && params.has(OPTION_SOURCE);
+        params.validate(
+                new JsonObjectRule(OPTION_PRIORITY, false, int.class, short.class, byte.class),
+                new JsonObjectRule(OPTION_SOURCE, true, String.class)
+        );
     }
 
     @Override

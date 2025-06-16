@@ -3,12 +3,13 @@ package fr.anisekai.library.tasks.factories;
 import fr.anisekai.library.LibraryService;
 import fr.anisekai.library.tasks.executors.TorrentRetentionControlTask;
 import fr.anisekai.server.entities.Task;
+import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.services.SettingService;
 import fr.anisekai.server.services.TaskService;
 import fr.anisekai.server.services.TorrentFileService;
 import fr.anisekai.server.services.TorrentService;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.server.tasking.TaskFactory;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -18,15 +19,15 @@ public class TorrentRetentionControlFactory implements TaskFactory<TorrentRetent
 
     public static final String NAME = "torrent:cleanup";
 
-    private final TaskService        taskService;
+    private final TaskService        service;
     private final SettingService     settingService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
     private final LibraryService     libraryService;
 
-    public TorrentRetentionControlFactory(TaskService taskService, SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, LibraryService libraryService) {
+    public TorrentRetentionControlFactory(TaskService service, SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, LibraryService libraryService) {
 
-        this.taskService        = taskService;
+        this.service            = service;
         this.settingService     = settingService;
         this.torrentService     = torrentService;
         this.torrentFileService = torrentFileService;
@@ -56,12 +57,6 @@ public class TorrentRetentionControlFactory implements TaskFactory<TorrentRetent
         return false;
     }
 
-    @PostConstruct
-    private void postConstruct() {
-
-        this.taskService.registerFactory(this);
-    }
-
     public Task queue() {
 
         return this.queue(Task.PRIORITY_AUTOMATIC_LOW);
@@ -69,9 +64,16 @@ public class TorrentRetentionControlFactory implements TaskFactory<TorrentRetent
 
     public Task queue(byte priority) {
 
-        AnisekaiJson arguments = new AnisekaiJson();
-        return this.taskService.queue(this, this.getName(), arguments, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .priority(priority)
+        );
     }
 
+    @PostConstruct
+    private void postConstruct() {
+
+        this.service.registerFactory(TaskPipeline.SOFT, this);
+    }
 
 }

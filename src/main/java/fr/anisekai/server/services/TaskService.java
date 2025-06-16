@@ -1,9 +1,13 @@
 package fr.anisekai.server.services;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.library.tasks.factories.MediaImportFactory;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.exceptions.task.FactoryAlreadyRegisteredException;
+import fr.anisekai.server.exceptions.task.FactoryNotFoundException;
+import fr.anisekai.server.tasking.TaskBuilder;
+import fr.anisekai.wireless.api.json.exceptions.JSONValidationException;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
+import fr.anisekai.wireless.remote.interfaces.TaskEntity;
 import io.sentry.Sentry;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.discord.JDAStore;
@@ -15,6 +19,7 @@ import fr.anisekai.server.repositories.TaskRepository;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.server.tasking.TaskFactory;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
 @Service
 public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskRepository, TaskProxy> {
@@ -30,7 +35,7 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
     private final static Logger LOGGER           = LoggerFactory.getLogger(TaskService.class);
     private final static int    MAX_TASK_FAILURE = 3;
 
-    private final Collection<TaskFactory<?>> factories = new ArrayList<>();
+    private final Map<TaskPipeline, Collection<TaskFactory<?>>> factoryPipelines = new HashMap<>();
 
     public TaskService(TaskProxy proxy, JDAStore store) {
 
@@ -38,14 +43,26 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
     }
 
     /**
-     * Register the {@link TaskFactory} into this {@link TaskService}.
+     * Register the {@link TaskFactory} into this {@link TaskService}. {@link TaskPipeline}s.
      *
+     * @param pipeline
+     *         The {@link TaskPipeline} into which the {@link TaskFactory} will be registered.
      * @param factory
      *         The {@link TaskFactory} to register.
      */
-    public void registerFactory(@NotNull TaskFactory<?> factory) {
+    public void registerFactory(@NotNull TaskPipeline pipeline, @NotNull TaskFactory<?> factory) {
 
-        this.factories.add(factory);
+        if (!this.factoryPipelines.containsKey(pipeline)) {
+            this.factoryPipelines.put(pipeline, new HashSet<>());
+        }
+
+        for (Map.Entry<TaskPipeline, Collection<TaskFactory<?>>> entry : this.factoryPipelines.entrySet()) {
+            if (entry.getValue().contains(factory)) {
+                throw new FactoryAlreadyRegisteredException(entry.getKey(), factory);
+            }
+        }
+
+        this.factoryPipelines.get(pipeline).add(factory);
     }
 
     /**
@@ -60,13 +77,15 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
      */
     public <T extends TaskFactory<?>> T getFactory(@NotNull Class<T> factoryClass) {
 
-        return this.factories.stream()
-                             .filter(factoryClass::isInstance)
-                             .map(factory -> (T) factory)
-                             .findFirst()
-                             .orElseThrow(
-                                     () -> new IllegalArgumentException("Tried to retrieve an unregistered factory " + factoryClass.getName())
-                             );
+        return this
+                .factoryPipelines
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(factoryClass::isInstance)
+                .map(factory -> (T) factory)
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("Tried to retrieve an unregistered factory " + factoryClass.getName()));
     }
 
     /**
@@ -112,60 +131,35 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
     /**
      * Create a new {@link Task} and queue it.
      *
-     * @param factory
-     *         The {@link TaskFactory} to use to create the {@link TaskExecutor}.
-     * @param priority
-     *         A priority for {@link Task} to create.
-     */
-    public Task queue(TaskFactory<?> factory, byte priority) {
-
-        return this.queue(factory, factory.getName(), new AnisekaiJson(), priority);
-    }
-
-    /**
-     * Create a new {@link Task} and queue it.
-     *
-     * @param factory
-     *         The {@link TaskFactory} to use to create the {@link TaskExecutor}.
-     * @param priority
-     *         A priority for the {@link Task} to create.
-     */
-    public Task queue(Class<? extends TaskFactory<?>> factory, byte priority) {
-
-        TaskFactory<?> factoryInstance = this.getFactory(factory);
-        return this.queue(factoryInstance, factoryInstance.getName(), new AnisekaiJson(), priority);
-    }
-
-    /**
-     * Create a new {@link Task} and queue it.
-     *
-     * @param factory
-     *         The {@link TaskFactory} to use to create the {@link TaskExecutor}.
-     * @param name
-     *         A name for the {@link Task} to create.
-     * @param arguments
-     *         A {@link AnisekaiJson} to use as arguments for the {@link TaskExecutor}.
-     * @param priority
-     *         A priority for the {@link Task} to create.
+     * @param builder
+     *         The {@link TaskBuilder} to use to create the {@link Task}.
      *
      * @return The queued {@link Task}, or {@code null} if nothing has been queued.
      */
-    public Task queue(TaskFactory<?> factory, String name, AnisekaiJson arguments, byte priority) {
+    public Task queue(TaskBuilder builder) {
 
-        if (!this.factories.contains(factory)) { // Safeguard, just in case we forgot to call registerFactory()
-            throw new IllegalStateException("Tried to register a task on a unregistered factory " + factory.getName());
+        boolean isFactoryRegistered = this.factoryPipelines
+                .values()
+                .stream()
+                .anyMatch(pipeline -> pipeline.contains(builder.getFactory()));
+
+        if (!isFactoryRegistered) { // Safeguard, just in case we forgot to call registerFactory()
+            throw new IllegalStateException("Tried to register a task on a unregistered factory " + builder.getName());
         }
 
         // This allows any task to inherit their own priority on subtasks if necessary.
-        arguments.put(TaskExecutor.OPTION_PRIORITY, priority);
+        builder.getArgs().put(TaskExecutor.OPTION_PRIORITY, builder.getPriority());
 
-        if (!factory.allowDuplicated()) {
-            Optional<Task> optionalTask = this.find(name);
+        if (!builder.getFactory().allowDuplicated()) {
+            Optional<Task> optionalTask = this.find(builder.getName());
             if (optionalTask.isPresent()) {
                 Task task = optionalTask.get();
 
-                if (task.getPriority() >= priority) {
-                    LOGGER.debug("Queuing of task '{}' dropped: The task already exists with a higher priority.", name);
+                if (task.getPriority() >= builder.getPriority()) {
+                    LOGGER.debug(
+                            "Queuing of task '{}' dropped: The task already exists with a higher priority.",
+                            builder.getName()
+                    );
                     return task;
                 }
 
@@ -173,110 +167,133 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
                         "Updating task '{}' priority from {} to {}",
                         task.getName(),
                         task.getPriority(),
-                        priority
+                        builder.getPriority()
                 );
 
-                return this.mod(task.getId(), entity -> entity.setPriority(priority));
+                return this.mod(task.getId(), entity -> entity.setPriority(builder.getPriority()));
             }
         }
 
-        LOGGER.info("Queuing task '{}' with a priority of {}.", name, priority);
-        LOGGER.debug(" :: Arguments = {}", arguments);
+        LOGGER.info("Queuing task '{}' with a priority of {}.", builder.getName(), builder.getPriority());
+        LOGGER.debug(" :: Arguments = {}", builder.getArgs());
 
-        return this.getProxy().create(task -> {
-            task.setFactoryName(factory.getName());
-            task.setName(name);
-            task.setPriority(priority);
-            task.setStatus(TaskStatus.SCHEDULED);
-            task.setArguments(arguments);
-        });
+        return this.getProxy().create(builder.build());
     }
 
-    private void executeTask(Task executableTask) {
+    @Scheduled(cron = "0/5 * * * * *")
+    private void executeHeavy() {
 
-        Task task = executableTask;
+        this.runPipeline(TaskPipeline.HEAVY);
+    }
+
+    @Scheduled(cron = "0/5 * * * * *")
+    private void executeSoft() {
+
+        this.runPipeline(TaskPipeline.SOFT);
+    }
+
+    @Scheduled(cron = "0/5 * * * * *")
+    private void executeMessaging() {
+
+        this.runPipeline(TaskPipeline.MESSAGING);
+    }
+
+    @PostConstruct
+    private void controlData() {
+
+        List<Task> tasks = this.fetchAll(repo -> repo.findAllByStatus(TaskStatus.EXECUTING));
+
+        for (Task task : tasks) {
+            LOGGER.warn("Task {} was still running when the application stopped.", task.getId());
+            this.mod(task.getId(), entity -> entity.setStatus(TaskStatus.SCHEDULED));
+        }
+    }
+
+    /**
+     * Find the next {@link Task} to execute in the provided {@link TaskPipeline}.
+     *
+     * @param pipeline
+     *         The {@link TaskPipeline} into which the next {@link Task} will be retrieved.
+     *
+     * @return An {@link Optional} {@link Task}.
+     */
+    private Optional<Task> findNextTask(TaskPipeline pipeline) {
+
+        Collection<TaskFactory<?>> factories = this.factoryPipelines
+                .getOrDefault(pipeline, Collections.emptyList())
+                .stream()
+                .toList();
+
+        if (factories.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Collection<String> factoryNames = factories.stream().map(TaskFactory::getName).toList();
+
+        return this.getProxy()
+                   .fetchEntity(repo -> repo.findNextOf(TaskStatus.SCHEDULED, factoryNames));
+    }
+
+    /**
+     * Retrieve the {@link TaskFactory} of the provided {@link TaskEntity}.
+     *
+     * @param task
+     *         The {@link TaskEntity} for which the {@link TaskFactory} must be retrieved.
+     *
+     * @return A {@link TaskFactory}.
+     */
+    private @NotNull TaskFactory<?> getTaskFactory(TaskEntity task) {
 
         String factoryName = task.getFactoryName();
-        Optional<TaskFactory<?>> optionalFactory = this.factories
-                .stream()
-                .filter(factory -> factory.getName().equals(factoryName))
-                .findAny();
 
-        if (optionalFactory.isEmpty()) {
-            this.mod(task.getId(), entity -> entity.setStatus(TaskStatus.FAILED));
+        return this.factoryPipelines
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(factory -> factory.getName().equals(factoryName))
+                .findAny()
+                .orElseThrow(() -> new FactoryNotFoundException(task));
+    }
+
+    /**
+     * Run the next {@link Task} found within the provided {@link TaskPipeline}. The method will return early if no task
+     * are waiting to be executed.
+     *
+     * @param pipeline
+     *         The {@link TaskPipeline} from which the {@link Task} should be executed.
+     */
+    private void runPipeline(TaskPipeline pipeline) {
+
+        Optional<Task> optionalTask = this.findNextTask(pipeline);
+        if (optionalTask.isEmpty()) {
             return;
         }
+
+        Task task = optionalTask.get();
 
         try (ITimedAction timer = ITimedAction.create()) {
             timer.open("task", task.getFactoryName(), "Execution of the task");
 
-            timer.action("prepare", "Update basic task data");
-            TaskFactory<?> factory  = optionalFactory.get();
-            TaskExecutor   executor = factory.create();
+            task = this.mod(task.getId(), this.flagExecuting());
 
-            if (executor.validateParams(task.getArguments())) {
-                LOGGER.debug("(Task {}) Parameters validation successful.", task.getName());
-
-                task = this.mod(
-                        task.getId(), entity -> {
-                            entity.setStatus(TaskStatus.EXECUTING);
-                            entity.setStartedAt(ZonedDateTime.now());
-                            entity.setCompletedAt(null);
-                        }
-                );
-
-            } else {
-                LOGGER.warn("(Task {}) Parameters validation failed.", task.getName());
-
-                task = this.mod(
-                        task.getId(),
-                        entity -> {
-                            entity.setStatus(TaskStatus.FAILED);
-                            entity.setStartedAt(null);
-                            entity.setCompletedAt(null);
-                        }
-                );
-
-                throw new IllegalArgumentException("Failed to validate arguments for task " + task.getId());
-            }
-            timer.endAction();
-
-            timer.action("exec", "Run the queued task");
             try {
+                timer.action("prepare", "Perform basic task checks");
+                TaskExecutor executor = this.getTaskFactory(task).create();
+                executor.validateParams(task.getArguments());
+                timer.endAction();
 
+                timer.action("exec", "Run the queued task");
                 LOGGER.debug("(Task {}) Executing task...", task.getName());
                 executor.execute(timer, task.getArguments());
                 LOGGER.debug("(Task {}) Done.", task.getId());
-
-                timer.action("success", "Handle task execution success");
-
-                task = this.mod(
-                        task.getId(),
-                        entity -> {
-                            entity.setStatus(TaskStatus.SUCCEEDED);
-                            entity.setCompletedAt(ZonedDateTime.now());
-                        }
-                );
-
                 timer.endAction();
+
+                task = this.mod(task.getId(), this.flagSuccessful());
 
             } catch (Exception e) {
                 timer.action("failure", "Handle task execution failure");
-
                 LOGGER.error("(Task {}) Execution failure.", task.getName(), e);
-
-                task = this.mod(
-                        task.getId(),
-                        entity -> {
-                            entity.setStatus(TaskStatus.SCHEDULED);
-                            entity.setStartedAt(null);
-
-                            if (entity.failure() == MAX_TASK_FAILURE) {
-                                entity.setStatus(TaskStatus.FAILED);
-                            }
-                        }
-                );
-
+                task = this.mod(task.getId(), this.isFatal(e) ? this.flagImmediateFailure() : this.flagFailure());
                 timer.endAction();
 
                 Map<String, Object> context = new HashMap<>();
@@ -294,39 +311,51 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
         }
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
-    private void executeHeavy() {
+    private Consumer<TaskEventAdapter> flagExecuting() {
 
-        String             factoryName  = this.getFactory(MediaImportFactory.class).getName();
-        Collection<String> factoryNames = Collections.singleton(factoryName);
-
-        Optional<Task> optionalTask = this.getProxy()
-                                          .fetchEntity(repo -> repo.findNextOf(TaskStatus.SCHEDULED, factoryNames));
-
-        optionalTask.ifPresent(this::executeTask);
+        return entity -> {
+            entity.setStatus(TaskStatus.EXECUTING);
+            entity.setStartedAt(ZonedDateTime.now());
+            entity.setCompletedAt(null);
+        };
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
-    private void executeLight() {
+    private Consumer<TaskEventAdapter> flagSuccessful() {
 
-        String             factoryName  = this.getFactory(MediaImportFactory.class).getName();
-        Collection<String> factoryNames = Collections.singleton(factoryName);
-
-        Optional<Task> optionalTask = this.getProxy()
-                                          .fetchEntity(repo -> repo.findNextNotOf(TaskStatus.SCHEDULED, factoryNames));
-
-        optionalTask.ifPresent(this::executeTask);
+        return entity -> {
+            entity.setStatus(TaskStatus.SUCCEEDED);
+            entity.setCompletedAt(ZonedDateTime.now());
+        };
     }
 
-    @PostConstruct
-    private void controlData() {
+    private Consumer<TaskEventAdapter> flagFailure() {
 
-        List<Task> tasks = this.fetchAll(repo -> repo.findAllByStatus(TaskStatus.EXECUTING));
+        return entity -> {
 
-        for (Task task : tasks) {
-            LOGGER.warn("Task {} was still running when the application stopped.", task.getId());
-            this.mod(task.getId(), entity -> entity.setStatus(TaskStatus.SCHEDULED));
-        }
+            if (entity.failure() >= MAX_TASK_FAILURE) {
+                entity.setStatus(TaskStatus.FAILED);
+            } else {
+                entity.setStatus(TaskStatus.SCHEDULED);
+            }
+
+            entity.setStartedAt(null);
+            entity.setCompletedAt(null);
+        };
+    }
+
+    private Consumer<TaskEventAdapter> flagImmediateFailure() {
+
+        return entity -> {
+            entity.failure();
+            entity.setStatus(TaskStatus.FAILED);
+            entity.setStartedAt(null);
+            entity.setCompletedAt(null);
+        };
+    }
+
+    private boolean isFatal(Exception ex) {
+
+        return ex instanceof JSONValidationException || ex instanceof FactoryNotFoundException;
     }
 
 }

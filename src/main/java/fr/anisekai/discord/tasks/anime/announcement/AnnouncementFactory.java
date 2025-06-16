@@ -1,5 +1,7 @@
 package fr.anisekai.discord.tasks.anime.announcement;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import jakarta.annotation.PostConstruct;
@@ -59,13 +61,18 @@ public class AnnouncementFactory implements TaskFactory<AnnouncementTask> {
         AnisekaiJson arguments = new AnisekaiJson();
         arguments.put(AnnouncementTask.OPTION_ANIME, anime.getId());
 
-        return this.service.queue(this, name, arguments, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .name(name)
+                           .args(arguments)
+                           .priority(priority)
+        );
     }
 
     @PostConstruct
     public void postConstruct() {
 
-        this.service.registerFactory(this);
+        this.service.registerFactory(TaskPipeline.MESSAGING, this);
     }
 
 }
