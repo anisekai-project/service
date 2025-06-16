@@ -9,6 +9,7 @@ import fr.anisekai.server.proxy.TorrentProxy;
 import fr.anisekai.server.repositories.TorrentRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,9 +33,19 @@ public class TorrentService extends DataService<Torrent, String, TorrentEventAda
 
         List<Transmission.TorrentStatus> statuses = Arrays.stream(Transmission.TorrentStatus.values())
                                                           .filter(status -> !status.isFinished())
+                                                          .filter(status -> status != Transmission.TorrentStatus.UNKNOWN)
                                                           .toList();
 
         return this.getProxy().fetchEntities(repository -> repository.findByStatusIn(statuses));
+    }
+
+    public List<Torrent> getAllFinishedBefore(ZonedDateTime start) {
+
+        List<Transmission.TorrentStatus> statuses = Arrays.stream(Transmission.TorrentStatus.values())
+                                                          .filter(Transmission.TorrentStatus::isFinished)
+                                                          .toList();
+        return this.getProxy()
+                   .fetchEntities(repository -> repository.findByStatusInAndUpdatedAtLessThan(statuses, start));
     }
 
 }

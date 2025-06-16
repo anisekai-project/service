@@ -4,6 +4,7 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import fr.anisekai.library.tasks.factories.TorrentRetentionControlFactory;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import fr.anisekai.discord.annotations.InteractionBean;
@@ -102,6 +103,19 @@ public class TaskInteractions {
         }
 
         return DiscordResponse.success("Les listes vont être actualisée.");
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ task/purge-torrents ─ Delete the torrent files following the retention setting.">
+    @Interact(
+            name = "task/purge-torrents",
+            description = "\uD83D\uDD12 — Supprime les fichiers de torrents selon l'option de rétention."
+    )
+    public SlashResponse purgeTorrents(UserEntity user) {
+
+        requireAdministrator(user);
+        this.service.getFactory(TorrentRetentionControlFactory.class).queue();
+        return DiscordResponse.success("Les torrents vont être nettoyés.");
     }
     // </editor-fold>
 
