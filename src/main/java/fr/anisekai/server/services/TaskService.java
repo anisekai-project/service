@@ -4,6 +4,7 @@ import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.exceptions.task.FactoryAlreadyRegisteredException;
 import fr.anisekai.server.exceptions.task.FactoryNotFoundException;
+import fr.anisekai.server.exceptions.task.FatalTaskException;
 import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.exceptions.JSONValidationException;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
@@ -19,7 +20,6 @@ import fr.anisekai.server.repositories.TaskRepository;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.server.tasking.TaskFactory;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -355,7 +355,7 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
 
     private boolean isFatal(Exception ex) {
 
-        return ex instanceof JSONValidationException || ex instanceof FactoryNotFoundException;
+        return ex instanceof JSONValidationException || ex instanceof FactoryNotFoundException || ex instanceof FatalTaskException;
     }
 
 }

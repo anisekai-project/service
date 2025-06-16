@@ -1,7 +1,6 @@
 package fr.anisekai.discord.tasks.anime.announcement;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.exceptions.tasks.UndefinedAnnouncementChannelException;
 import fr.anisekai.discord.exceptions.tasks.UndefinedAnnouncementRoleException;
@@ -11,24 +10,16 @@ import fr.anisekai.server.entities.Interest;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.InterestService;
 import fr.anisekai.server.tasking.TaskExecutor;
-import fr.anisekai.utils.DiscordUtils;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 
-public class AnnouncementTask implements TaskExecutor {
+public abstract class AnnouncementTask implements TaskExecutor {
 
     public static final String OPTION_ANIME = "anime";
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(AnnouncementTask.class);
 
     private final AnimeService    animeService;
     private final InterestService interestService;
@@ -41,6 +32,11 @@ public class AnnouncementTask implements TaskExecutor {
         this.store           = store;
     }
 
+    public AnimeService getAnimeService() {
+
+        return this.animeService;
+    }
+
     @Override
     public void execute(ITimedAction timer, AnisekaiJson params) {
 
@@ -50,21 +46,10 @@ public class AnnouncementTask implements TaskExecutor {
         List<Interest>   interests = this.interestService.getInterests(anime);
         AnimeCardMessage card      = new AnimeCardMessage(anime, interests, role);
 
-        Optional<Message> optionalMessage = DiscordUtils.findExistingMessage(channel, anime);
-
-        if (optionalMessage.isEmpty()) { // No message exists yet
-            MessageCreateBuilder builder = new MessageCreateBuilder();
-            card.getHandler().accept(builder);
-            Message message = channel.sendMessage(builder.build()).complete();
-            this.animeService.mod(anime.getId(), entity -> entity.setAnnouncementId(message.getIdLong()));
-            return;
-        }
-
-        Message            message = optionalMessage.get();
-        MessageEditBuilder builder = new MessageEditBuilder();
-        card.getHandler().accept(builder);
-        message.editMessage(builder.build()).complete();
+        this.doAnnouncementStuff(channel, role, anime, interests, card);
     }
+
+    public abstract void doAnnouncementStuff(TextChannel channel, Role role, Anime anime, List<Interest> interests, AnimeCardMessage card);
 
     @Override
     public void validateParams(AnisekaiJson params) {

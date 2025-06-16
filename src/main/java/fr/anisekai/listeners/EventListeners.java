@@ -1,9 +1,11 @@
 package fr.anisekai.listeners;
 
+import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateFactory;
+import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateTask;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
-import fr.anisekai.discord.tasks.anime.announcement.AnnouncementFactory;
+import fr.anisekai.discord.tasks.anime.announcement.create.AnnouncementCreateFactory;
 import fr.anisekai.discord.tasks.broadcast.schedule.BroadcastScheduleFactory;
 import fr.anisekai.discord.tasks.watchlist.update.WatchlistUpdateFactory;
 import fr.anisekai.server.entities.Anime;
@@ -58,7 +60,7 @@ public class EventListeners {
     public void onAnimeCreated(AnimeCreatedEvent event) {
 
         if (this.settingService.isAnimeAnnouncementEnabled()) {
-            this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity());
+            this.taskService.getFactory(AnnouncementCreateFactory.class).queue(event.getEntity());
         }
 
         if (event.getEntity().getList().hasProperty(AnimeList.Property.SHOW)) {
@@ -76,7 +78,9 @@ public class EventListeners {
     })
     public void onAnimeGenericUpdated(AnimeUpdatedEvent<?> event) {
 
-        this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity());
+        if (event.getEntity().getAnnouncementId() != null) {
+            this.taskService.getFactory(AnnouncementUpdateFactory.class).queue(event.getEntity());
+        }
     }
 
     @EventListener({
@@ -208,14 +212,14 @@ public class EventListeners {
     @EventListener
     public void onInterestCreate(InterestCreatedEvent event) {
 
-        this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity().getAnime());
+        this.taskService.getFactory(AnnouncementCreateFactory.class).queue(event.getEntity().getAnime());
         this.taskService.getFactory(WatchlistUpdateFactory.class).queue(event.getEntity().getAnime().getList());
     }
 
     @EventListener
     public void onInterestUpdated(InterestLevelUpdatedEvent event) {
 
-        this.taskService.getFactory(AnnouncementFactory.class).queue(event.getEntity().getAnime());
+        this.taskService.getFactory(AnnouncementCreateFactory.class).queue(event.getEntity().getAnime());
         this.taskService.getFactory(WatchlistUpdateFactory.class).queue(event.getEntity().getAnime().getList());
     }
 

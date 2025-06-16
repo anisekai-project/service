@@ -1,23 +1,23 @@
 package fr.anisekai.discord.tasks.anime.announcement;
 
-import fr.anisekai.server.enums.TaskPipeline;
-import fr.anisekai.server.tasking.TaskBuilder;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
-import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
-import jakarta.annotation.PostConstruct;
 import fr.anisekai.discord.JDAStore;
+import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateTask;
 import fr.anisekai.server.entities.Task;
+import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.InterestService;
 import fr.anisekai.server.services.TaskService;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.server.tasking.TaskFactory;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
+import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-@Component
-public class AnnouncementFactory implements TaskFactory<AnnouncementTask> {
+public abstract class AnnouncementFactory<T extends AnnouncementTask> implements TaskFactory<T> {
 
-    public static final String NAME = "announcement";
+    public static final String PREFIX = "announcement";
 
     private final TaskService     service;
     private final JDAStore        store;
@@ -32,22 +32,35 @@ public class AnnouncementFactory implements TaskFactory<AnnouncementTask> {
         this.interestService = interestService;
     }
 
-    @Override
-    public @NotNull String getName() {
+    public String getPrefix() {
 
-        return NAME;
-    }
-
-    @Override
-    public @NotNull AnnouncementTask create() {
-
-        return new AnnouncementTask(this.animeService, this.interestService, this.store);
+        return PREFIX;
     }
 
     @Override
     public boolean hasNamedTask() {
 
         return true;
+    }
+
+    public TaskService getService() {
+
+        return this.service;
+    }
+
+    public JDAStore getStore() {
+
+        return this.store;
+    }
+
+    public AnimeService getAnimeService() {
+
+        return this.animeService;
+    }
+
+    public InterestService getInterestService() {
+
+        return this.interestService;
     }
 
     public Task queue(AnimeEntity<?> anime) {
@@ -67,12 +80,6 @@ public class AnnouncementFactory implements TaskFactory<AnnouncementTask> {
                            .args(arguments)
                            .priority(priority)
         );
-    }
-
-    @PostConstruct
-    public void postConstruct() {
-
-        this.service.registerFactory(TaskPipeline.MESSAGING, this);
     }
 
 }
