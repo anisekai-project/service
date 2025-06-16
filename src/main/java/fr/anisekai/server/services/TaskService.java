@@ -180,7 +180,7 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
         return this.getProxy().create(builder.build());
     }
 
-    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0 * * * * *")
     private void executeHeavy() {
 
         this.runPipeline(TaskPipeline.HEAVY);
