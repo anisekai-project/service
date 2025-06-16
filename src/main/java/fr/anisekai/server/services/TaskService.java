@@ -1,24 +1,24 @@
 package fr.anisekai.server.services;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.annotations.FatalTask;
+import fr.anisekai.discord.JDAStore;
+import fr.anisekai.server.entities.Task;
+import fr.anisekai.server.entities.adapters.TaskEventAdapter;
 import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.exceptions.task.FactoryAlreadyRegisteredException;
 import fr.anisekai.server.exceptions.task.FactoryNotFoundException;
-import fr.anisekai.server.exceptions.task.FatalTaskException;
+import fr.anisekai.server.persistence.DataService;
+import fr.anisekai.server.proxy.TaskProxy;
+import fr.anisekai.server.repositories.TaskRepository;
 import fr.anisekai.server.tasking.TaskBuilder;
+import fr.anisekai.server.tasking.TaskExecutor;
+import fr.anisekai.server.tasking.TaskFactory;
 import fr.anisekai.wireless.api.json.exceptions.JSONValidationException;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
 import fr.anisekai.wireless.remote.interfaces.TaskEntity;
 import io.sentry.Sentry;
 import jakarta.annotation.PostConstruct;
-import fr.anisekai.discord.JDAStore;
-import fr.anisekai.server.entities.Task;
-import fr.anisekai.server.entities.adapters.TaskEventAdapter;
-import fr.anisekai.server.persistence.DataService;
-import fr.anisekai.server.proxy.TaskProxy;
-import fr.anisekai.server.repositories.TaskRepository;
-import fr.anisekai.server.tasking.TaskExecutor;
-import fr.anisekai.server.tasking.TaskFactory;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -355,7 +355,7 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
 
     private boolean isFatal(Exception ex) {
 
-        return ex instanceof JSONValidationException || ex instanceof FactoryNotFoundException || ex instanceof FatalTaskException;
+        return ex instanceof JSONValidationException || ex.getClass().isAnnotationPresent(FatalTask.class);
     }
 
 }
