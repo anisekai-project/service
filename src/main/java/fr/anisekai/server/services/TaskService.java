@@ -283,16 +283,16 @@ public class TaskService extends DataService<Task, Long, TaskEventAdapter, TaskR
                 timer.endAction();
 
                 timer.action("exec", "Run the queued task");
-                LOGGER.debug("(Task {}) Executing task...", task.getName());
+                LOGGER.debug("[{}] Executing task...", task.getName());
                 executor.execute(timer, task.getArguments());
-                LOGGER.debug("(Task {}) Done.", task.getId());
+                LOGGER.debug("[{}] Done.", task.getName());
                 timer.endAction();
 
                 task = this.mod(task.getId(), this.flagSuccessful());
 
             } catch (Exception e) {
                 timer.action("failure", "Handle task execution failure");
-                LOGGER.error("(Task {}) Execution failure.", task.getName(), e);
+                LOGGER.error("[{}] Execution failure.", task.getName(), e);
                 task = this.mod(task.getId(), this.isFatal(e) ? this.flagImmediateFailure() : this.flagFailure());
                 timer.endAction();
 
