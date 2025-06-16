@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 
 @Controller
 @RequestMapping("/media")
@@ -103,27 +104,23 @@ public class MediaController {
     }
 
     @GetMapping("/event-image/{animeId:[0-9]+}")
-    public ResponseEntity<InputStreamResource> getImage(@PathVariable long animeId) throws IOException {
+    public ResponseEntity<?> getImage(@PathVariable long animeId) throws IOException {
 
         Anime anime = this.animeService.fetch(animeId);
         File  file  = this.libraryService.retrieveAnimeEventImage(anime);
 
-        InputStreamResource resource;
-        long                length;
-
-        if (file.exists()) {
-            resource = new InputStreamResource(new FileInputStream(file));
-            length   = file.length();
-        } else {
-            // Load the default image from classpath
-            ClassPathResource defaultImage = new ClassPathResource("static/assets/images/unknown.png");
-            resource = new InputStreamResource(defaultImage.getInputStream());
-            length   = defaultImage.contentLength();
+        if (!file.exists()) {
+            URI redirectUri = URI.create("/assets/images/unknown.png");
+            return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+                                 .location(redirectUri)
+                                 .build();
         }
 
-        return ResponseEntity.status(file.exists() ? HttpStatus.OK : HttpStatus.NOT_FOUND)
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+        return ResponseEntity.ok()
                              .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                             .contentLength(length)
+                             .contentLength(file.length())
                              .contentType(MediaType.IMAGE_PNG)
                              .body(resource);
     }
