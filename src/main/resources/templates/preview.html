@@ -34,11 +34,11 @@
         <div class="content">
             <details th:each="anime : ${group.animes}" class="anime">
                 <summary th:style="'--image: url(\'' + ${anime.imageUrl} + '\')'">
-                    <img alt="" th:src="${anime.imageUrl}"/>
+                    <img alt="" src="" th:data-src="${anime.imageUrl}"/>
                     <span th:text="${anime.title}"></span>
                 </summary>
                 <div class="content">
-                    <div class="episode file" th:each="episode : ${anime.episodes}">
+                    <div class="episode" th:each="episode : ${anime.episodes}">
                         <span th:text="${episode.getName()}"></span>
                     </div>
                 </div>

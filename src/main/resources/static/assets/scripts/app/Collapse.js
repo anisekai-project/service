@@ -18,7 +18,16 @@ export default class Collapse {
         this.el.addEventListener('toggle', () => {
             this.items.forEach(item => {
                 item.collapse();
-            })
+            });
+
+            if (this.el.open) {
+                this.el.querySelectorAll(':scope > .content > details > summary > img').forEach(node => {
+                    if (node.hasAttribute('data-src')) {
+                        node.src = node.getAttribute('data-src');
+                        node.removeAttribute('data-src');
+                    }
+                });
+            }
         })
     }
 

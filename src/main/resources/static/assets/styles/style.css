@@ -175,11 +175,11 @@ nav .logout a:hover {
     padding: 0 1em;
 }
 
-#tree-view details, #tree-view .file {
+details, .episode {
     line-height: 2em;
 }
 
-#tree-view summary, #tree-view .file {
+summary, .episode {
     border-left: 3px solid transparent;
     padding-left: 1em;
     background-color: transparent;
@@ -188,27 +188,27 @@ nav .logout a:hover {
     transition: border-color 0.15s ease-in, background-color 0.15s ease-in;
 }
 
-#tree-view summary {
+summary {
     cursor: pointer;
     list-style: none;
 }
 
-#tree-view details > summary {
+details > summary {
     border-color: rgba(255, 255, 255, 0.2);
     background-color: rgba(255, 255, 255, 0.02);
 }
 
-#tree-view details > summary:hover {
+details > summary:hover {
     color: white;
     border-color: white;
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-#tree-view details > .content {
+details > .content {
     margin-left: 1em;
 }
 
-#tree-view .file {
+.episode {
     display: flex;
     border-color: rgba(0, 255, 255, 0.2);
     background-color: rgba(0, 255, 255, 0.02);
@@ -216,12 +216,12 @@ nav .logout a:hover {
     cursor: pointer;
 }
 
-#tree-view .file:hover {
+.episode:hover {
     border-color: rgba(0, 255, 255, 1);
     background-color: rgba(0, 255, 255, 0.05);
 }
 
-#tree-view .file span {
+.episode span {
     flex-grow: 1;
 }
 
@@ -282,7 +282,7 @@ nav .logout a:hover {
     margin: 1em auto;
 }
 
-#tree-view .anime > summary {
+.anime > summary {
     position: relative;
     display: flex;
     height: 100px;
@@ -294,8 +294,10 @@ nav .logout a:hover {
     align-items: center;
 }
 
-#tree-view .anime > summary img {
+.anime > summary img {
     height: 100%;
+    aspect-ratio: 5 / 2;
+    background-image: url("/assets/images/unknown.png");
 }
 
 .anime > summary::before {
@@ -305,9 +307,13 @@ nav .logout a:hover {
     bottom: 0;
     left: 0;
     right: 0;
-    background-image: var(--image);
+    background-image: none;
     background-position: center;
     background-size: cover;
     opacity: 0.1;
     filter: blur(8px);
+}
+
+details[open] summary::before {
+    background-image: var(--image);
 }
