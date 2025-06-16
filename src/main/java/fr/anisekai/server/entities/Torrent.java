@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Torrent implements TorrentEventAdapter {
@@ -40,6 +41,9 @@ public class Torrent implements TorrentEventAdapter {
 
     @Column(nullable = false)
     private ZonedDateTime updatedAt = ZonedDateTime.now();
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "torrent")
+    private Set<TorrentFile> files;
 
     @Override
     public String getId() {
@@ -137,6 +141,11 @@ public class Torrent implements TorrentEventAdapter {
         return this.updatedAt;
     }
 
+    public Set<TorrentFile> getFiles() {
+
+        return this.files;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -154,6 +163,17 @@ public class Torrent implements TorrentEventAdapter {
     public void beforeSave() {
 
         this.updatedAt = ZonedDateTime.now();
+    }
+
+    public Transmission.Torrent asTransmissionIdentifier() {
+
+        return new Transmission.Torrent(
+                this.id,
+                this.status,
+                this.downloadDirectory,
+                this.progress,
+                this.getFiles().stream().map(TorrentFile::getName).toList()
+        );
     }
 
 }

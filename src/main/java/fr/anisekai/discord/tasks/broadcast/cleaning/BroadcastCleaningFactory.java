@@ -1,5 +1,7 @@
 package fr.anisekai.discord.tasks.broadcast.cleaning;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.server.entities.Task;
@@ -47,13 +49,16 @@ public class BroadcastCleaningFactory implements TaskFactory<BroadcastCleaningTa
 
     public Task queue(byte priority) {
 
-        return this.service.queue(this, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .priority(priority)
+        );
     }
 
     @PostConstruct
     private void postConstruct() {
 
-        this.service.registerFactory(this);
+        this.service.registerFactory(TaskPipeline.SOFT, this);
     }
 
 }

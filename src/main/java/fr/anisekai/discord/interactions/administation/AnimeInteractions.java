@@ -8,7 +8,7 @@ import fr.anisekai.Texts;
 import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
-import fr.anisekai.discord.tasks.anime.announcement.AnnouncementFactory;
+import fr.anisekai.discord.tasks.anime.announcement.create.AnnouncementCreateFactory;
 import fr.anisekai.library.LibraryService;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Task;
@@ -103,7 +103,7 @@ public class AnimeInteractions {
 
         requireAdministrator(user);
         Anime anime = this.service.fetch(animeId);
-        this.taskService.getFactory(AnnouncementFactory.class).queue(anime, Task.PRIORITY_MANUAL_LOW);
+        this.taskService.getFactory(AnnouncementCreateFactory.class).queue(anime, Task.PRIORITY_MANUAL_LOW);
         if (anime.getAnnouncementId() == null) {
             return DiscordResponse.info("L'annonce pour l'anime **%s** sera envoyée d'ici peu.", anime.getTitle());
         } else {

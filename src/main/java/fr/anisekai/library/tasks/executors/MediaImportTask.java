@@ -3,6 +3,7 @@ package fr.anisekai.library.tasks.executors;
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.server.services.EpisodeService;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
 import fr.anisekai.wireless.api.media.MediaFile;
 import fr.anisekai.wireless.api.media.MediaStream;
 import fr.anisekai.wireless.api.media.bin.FFMpeg;
@@ -53,9 +54,11 @@ public class MediaImportTask implements TaskExecutor {
     }
 
     @Override
-    public boolean validateParams(AnisekaiJson params) {
+    public void validateParams(AnisekaiJson params) {
 
-        return params.has(OPTION_TORRENT);
+        params.validate(
+                new JsonObjectRule(OPTION_TORRENT, true, String.class)
+        );
     }
 
     @Override

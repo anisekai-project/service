@@ -249,5 +249,36 @@ public class SettingInteractions {
     }
     // </editor-fold>
 
+    // <editor-fold desc="@ setting/download-retention ─ Set the amount of day to wait to delete a torrent. [value: integer]">
+    @Interact(
+            name = "setting/download-retention",
+            description = "\uD83D\uDD12 — Défini le nombre de jour avant la suppression d'un torrent.",
+            target = SlashTarget.ALL,
+            options = {
+                    @Option(
+                            name = "value",
+                            description = "Nombre de jour (0 pour infini)",
+                            type = OptionType.INTEGER,
+                            required = true
+                    )
+            }
+    )
+    public SlashResponse settingDownloadRetention(UserEntity user, @Param("value") long value) {
+
+        requireAdministrator(user);
+
+        if (value < 0 || value > 300) {
+            return DiscordResponse.error("Merci de rentrer une valeur comprise entre 0 (inclus) et 300 (inclus)");
+        }
+
+        this.service.setSetting(SettingService.DOWNLOAD_RETENTION, String.valueOf(value));
+
+        if (value == 0) {
+            return DiscordResponse.info("Les torrents ne seront jamais supprimés.");
+        }
+
+        return DiscordResponse.info("Les torrents seront gardés pour un maximum de **%s** jours.", value);
+    }
+    // </editor-fold>
 
 }

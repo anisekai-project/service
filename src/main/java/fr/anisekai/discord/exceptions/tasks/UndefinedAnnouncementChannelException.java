@@ -1,8 +1,10 @@
 package fr.anisekai.discord.exceptions.tasks;
 
+import fr.anisekai.annotations.FatalTask;
 import fr.anisekai.discord.exceptions.SilentDiscordException;
 import org.jetbrains.annotations.NotNull;
 
+@FatalTask
 public class UndefinedAnnouncementChannelException extends SilentDiscordException {
 
     public UndefinedAnnouncementChannelException() {

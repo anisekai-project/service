@@ -66,7 +66,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
 
         JDABuilder builder = JDABuilder.create(
                 this.configuration.getToken(),
-                GatewayIntent.getIntents(GatewayIntent.ALL_INTENTS)
+                GatewayIntent.getIntents(GatewayIntent.DEFAULT)
         );
 
         LOGGER.info("Registering JDA listeners...");

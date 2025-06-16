@@ -1,6 +1,8 @@
 package fr.anisekai.library.tasks.factories;
 
+import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.services.*;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.library.LibraryService;
@@ -57,12 +59,6 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
         return true;
     }
 
-    @PostConstruct
-    private void postConstruct() {
-
-        this.service.registerFactory(this);
-    }
-
     public Task queue(String torrent) {
 
         return this.queue(torrent, Task.PRIORITY_AUTOMATIC_LOW);
@@ -73,7 +69,19 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
         String       name      = String.format("%s:%s", this.getName(), torrent.toUpperCase());
         AnisekaiJson arguments = new AnisekaiJson();
         arguments.put(MediaImportTask.OPTION_TORRENT, torrent);
-        return this.service.queue(this, name, arguments, priority);
+
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .name(name)
+                           .args(arguments)
+                           .priority(priority)
+        );
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+
+        this.service.registerFactory(TaskPipeline.HEAVY, this);
     }
 
 }

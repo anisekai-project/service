@@ -21,13 +21,13 @@ public class SettingService extends DataService<Setting, String, SettingEventAda
     public static final String DOWNLOAD_ENABLED     = "application.downloads.enabled";
     public static final String DOWNLOAD_SERVER      = "application.downloads.server";
     public static final String DOWNLOAD_SOURCE      = "application.downloads.source";
+    public static final String DOWNLOAD_RETENTION   = "application.downloads.retention";
     public static final String ANIME_AUTO_ANNOUNCE  = "application.announces.anime";
 
     public SettingService(SettingProxy proxy) {
 
         super(proxy);
     }
-
 
     private Optional<String> getSetting(String id) {
 
@@ -36,9 +36,9 @@ public class SettingService extends DataService<Setting, String, SettingEventAda
                    .map(Setting::getValue);
     }
 
-    public Setting setSetting(String id, String value) {
+    public void setSetting(String id, String value) {
 
-        return this.getProxy().upsertEntity(
+        this.getProxy().upsertEntity(
                 id,
                 SettingCreatedEvent::new,
                 setting -> {
@@ -97,6 +97,11 @@ public class SettingService extends DataService<Setting, String, SettingEventAda
     public Optional<String> getDownloadSource() {
 
         return this.getSetting(DOWNLOAD_SOURCE);
+    }
+
+    public Optional<Long> getDownloadRetention() {
+
+        return this.getSetting(DOWNLOAD_RETENTION).map(Long::parseLong);
     }
 
     // </editor-fold>

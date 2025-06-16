@@ -1,6 +1,7 @@
 package fr.anisekai.discord.tasks.broadcast;
 
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
 import fr.anisekai.wireless.api.persistence.interfaces.Entity;
 import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
@@ -50,9 +51,11 @@ public abstract class BroadcastTask implements TaskExecutor {
     }
 
     @Override
-    public boolean validateParams(AnisekaiJson params) {
+    public void validateParams(AnisekaiJson params) {
 
-        return params.has("broadcast");
+        params.validate(
+                new JsonObjectRule(OPT_BROADCAST, true, int.class, long.class)
+        );
     }
 
     public static class EventData {

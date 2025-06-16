@@ -1,5 +1,7 @@
 package fr.anisekai.library.tasks.factories;
 
+import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.tasking.TaskBuilder;
 import jakarta.annotation.PostConstruct;
 import fr.anisekai.library.tasks.executors.TorrentSynchronizationTask;
 import fr.anisekai.server.entities.Task;
@@ -40,12 +42,6 @@ public class TorrentSynchronizationFactory implements TaskFactory<TorrentSynchro
         return false;
     }
 
-    @PostConstruct
-    private void postConstruct() {
-
-        this.service.registerFactory(this);
-    }
-
     public Task queue() {
 
         return this.queue(Task.PRIORITY_AUTOMATIC_LOW);
@@ -53,7 +49,16 @@ public class TorrentSynchronizationFactory implements TaskFactory<TorrentSynchro
 
     public Task queue(byte priority) {
 
-        return this.service.queue(this, priority);
+        return this.service.queue(
+                TaskBuilder.of(this)
+                           .priority(priority)
+        );
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+
+        this.service.registerFactory(TaskPipeline.SOFT, this);
     }
 
 }

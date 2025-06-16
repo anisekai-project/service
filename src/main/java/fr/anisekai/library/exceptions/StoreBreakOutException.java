@@ -1,12 +1,13 @@
 package fr.anisekai.library.exceptions;
 
 
+import fr.anisekai.annotations.FatalTask;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.io.File;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ResponseStatus(HttpStatus.BAD_REQUEST) @FatalTask
 public class StoreBreakOutException extends RuntimeException {
 
     private final File file;

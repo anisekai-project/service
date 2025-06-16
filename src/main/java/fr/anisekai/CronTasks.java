@@ -1,6 +1,7 @@
 package fr.anisekai;
 
 import fr.alexpado.jda.interactions.ext.sentry.NoopTimedAction;
+import fr.anisekai.library.tasks.factories.TorrentRetentionControlFactory;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.discord.tasks.broadcast.cleaning.BroadcastCleaningFactory;
 import fr.anisekai.library.tasks.executors.TorrentSourcingTask;
@@ -30,9 +31,13 @@ public class CronTasks {
     }
 
     @Scheduled(cron = "0 0 4 * * *")
-    public void runBroadcastCleaning() throws Exception {
+    public void runCleaning() throws Exception {
 
         this.service.getFactory(BroadcastCleaningFactory.class)
+                    .create()
+                    .execute(new NoopTimedAction(), new AnisekaiJson());
+
+        this.service.getFactory(TorrentRetentionControlFactory.class)
                     .create()
                     .execute(new NoopTimedAction(), new AnisekaiJson());
     }
