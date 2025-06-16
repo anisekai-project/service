@@ -29,6 +29,9 @@ public class TorrentFile implements TorrentFileEventAdapter {
     private String name;
 
     @Column(nullable = false)
+    private boolean removed = false;
+
+    @Column(nullable = false)
     private final ZonedDateTime createdAt = ZonedDateTime.now();
 
     @Column(nullable = false)
@@ -80,6 +83,18 @@ public class TorrentFile implements TorrentFileEventAdapter {
     public void setName(@NotNull String name) {
 
         this.name = name;
+    }
+
+    @Override
+    public boolean isRemoved() {
+
+        return this.removed;
+    }
+
+    @Override
+    public void setRemoved(boolean removed) {
+
+        this.removed = removed;
     }
 
     @Override
