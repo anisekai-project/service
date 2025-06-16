@@ -5,6 +5,7 @@ export default class Anisekai {
 
     constructor() {
 
+        console.time('anisekai::construct');
         if (document.getElementById('player-container')) {
             this.player = new Aniplayer();
         } else {
@@ -37,6 +38,7 @@ export default class Anisekai {
                 })
             })
         }
+        console.timeEnd('anisekai::construct');
 
     }
 
@@ -45,11 +47,13 @@ export default class Anisekai {
      * @returns {Promise<void>}
      */
     async init() {
+        console.time('anisekai::init');
         this.search('')
         if (this.player) {
             await this.player.init();
         }
         feather.replace();
+        console.timeEnd('anisekai::init');
     }
 
     /**
@@ -57,7 +61,7 @@ export default class Anisekai {
      * @param {string} filter
      */
     search(filter) {
-
+        console.time('anisekai::search');
         let hasMatched = false;
 
         for (let item of this.data) {
@@ -71,6 +75,7 @@ export default class Anisekai {
         } else {
             this.elements.empty.classList.remove('hidden');
         }
+        console.timeEnd('anisekai::search')
     }
 
     /**
