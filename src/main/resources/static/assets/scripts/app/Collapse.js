@@ -14,6 +14,12 @@ export default class Collapse {
         this.el.querySelectorAll(':scope > .content > details').forEach(node => {
             this.items.push(new Collapse(node));
         });
+
+        this.el.addEventListener('toggle', () => {
+            this.items.forEach(item => {
+                item.collapse();
+            })
+        })
     }
 
     /**
@@ -67,6 +73,9 @@ export default class Collapse {
     collapse() {
         if (this.el.tagName === "DETAILS") {
             this.el.open = false;
+            this.items.forEach(item => {
+                item.collapse();
+            })
         }
     }
 
