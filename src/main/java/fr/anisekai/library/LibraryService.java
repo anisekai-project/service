@@ -6,12 +6,12 @@ import fr.anisekai.library.exceptions.IncompatibleStoreException;
 import fr.anisekai.library.exceptions.IncompatibleTrackException;
 import fr.anisekai.library.exceptions.StoreBreakOutException;
 import fr.anisekai.library.exceptions.StoreUnavailableException;
+import fr.anisekai.utils.FileUrlStreamer;
 import fr.anisekai.wireless.api.media.MediaFile;
 import fr.anisekai.wireless.api.media.bin.FFMpeg;
 import fr.anisekai.wireless.api.media.enums.CodecType;
 import fr.anisekai.wireless.api.persistence.interfaces.Entity;
 import fr.anisekai.wireless.remote.interfaces.*;
-import fr.anisekai.wireless.utils.FileDownloader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 import java.util.Random;
 
@@ -114,6 +113,27 @@ public class LibraryService {
     }
 
     /**
+     * Check if the provided {@link File} is within the expected {@link LibraryStore}. This check avoid any 'break-out'
+     * of the library using relative paths.
+     *
+     * @param store
+     *         The {@link LibraryStore} into which the file should be located.
+     * @param entity
+     *         The {@link Entity} for which the file should be located.
+     * @param file
+     *         The {@link File} to check for.
+     *
+     * @return True if the {@link File} is within the expected folder, false otherwise.
+     */
+    public boolean isWithinStore(LibraryStore store, Entity<?> entity, File file) {
+
+        Path storePath = this.getStoreOf(store, entity).toPath().toAbsolutePath().normalize();
+        Path filePath  = file.toPath().toAbsolutePath().normalize();
+
+        return filePath.startsWith(storePath);
+    }
+
+    /**
      * Request a temporary file with the provided extension. The returned file will not be automatically created, and
      * will never exist.
      * <p>
@@ -160,16 +180,9 @@ public class LibraryService {
         File store  = this.getStoreOf(LibraryStore.EVENT_IMAGES);
         File target = new File(store, "%s.png".formatted(anime.getId()));
 
-        FileDownloader downloader = new FileDownloader(imageUrl);
-        byte[]         data       = downloader.complete();
-
-        Files.write(
-                target.toPath(),
-                data,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING,
-                StandardOpenOption.WRITE
-        );
+        if (!new FileUrlStreamer(target, imageUrl).complete()) {
+            throw new IllegalStateException("The file was not downloaded.");
+        }
     }
 
     /**
