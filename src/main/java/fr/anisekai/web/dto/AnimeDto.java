@@ -15,6 +15,7 @@ public class AnimeDto {
     public String           group;
     public byte             order;
     public String           title;
+    public String           url;
     public String           imageUrl;
     public List<EpisodeDto> episodes;
 
@@ -24,6 +25,7 @@ public class AnimeDto {
         this.group    = anime.getGroup();
         this.order    = anime.getOrder();
         this.title    = anime.getTitle();
+        this.url      = anime.getUrl();
         this.imageUrl = String.format("/media/event-image/%s", anime.getId());
         this.episodes = episodes.stream()
                                 .sorted(Comparator.comparing(Episode::getNumber))
@@ -37,6 +39,7 @@ public class AnimeDto {
         this.group    = anime.getGroup();
         this.order    = anime.getOrder();
         this.title    = anime.getTitle();
+        this.url      = anime.getUrl();
         this.imageUrl = String.format("/media/event-image/%s", anime.getId());
         this.episodes = new ArrayList<>();
 

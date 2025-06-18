@@ -35,7 +35,11 @@
             <details th:each="anime : ${group.animes}" class="anime">
                 <summary th:style="'--image: url(\'' + ${anime.imageUrl} + '\')'">
                     <img alt="" src="" th:data-src="${anime.imageUrl}"/>
-                    <span th:text="${anime.title}"></span>
+                    <span style="position: relative; z-index: 10">
+                        <span th:text="${anime.title}"></span>
+                        <br />
+                        <a style="display: inline; color: cyan; font-size: 0.8em;" th:href="${anime.url}" target="_blank">Nautiljon</a>
+                    </span>
                 </summary>
                 <div class="content">
                     <div class="episode" th:each="episode : ${anime.episodes}">
