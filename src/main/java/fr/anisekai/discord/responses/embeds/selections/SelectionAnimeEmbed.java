@@ -6,6 +6,7 @@ import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
 import net.dv8tion.jda.api.EmbedBuilder;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ public class SelectionAnimeEmbed extends EmbedBuilder {
 
 
         String animes = selection.getAnimes().stream()
+                                 .sorted(Comparator.comparing(Anime::getId))
                                  .map(anime -> {
                                      if (votes.containsKey(anime)) {
                                          DiscordUser voter = votes.get(anime);

@@ -1,13 +1,14 @@
 package fr.anisekai.discord.responses.embeds.selections;
 
-import fr.anisekai.wireless.remote.enums.SelectionStatus;
-import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
 import fr.anisekai.Texts;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.entities.Voter;
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
+import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
 import net.dv8tion.jda.api.EmbedBuilder;
 
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public class SelectionClosedEmbed extends EmbedBuilder {
@@ -21,6 +22,7 @@ public class SelectionClosedEmbed extends EmbedBuilder {
             this.appendDescription("\n\n");
 
             String animes = selection.getAnimes().stream()
+                                     .sorted(Comparator.comparing(Anime::getId))
                                      .map(anime -> String.format("- [%s](%s)", anime.getTitle(), anime.getUrl()))
                                      .collect(Collectors.joining("\n"));
 
@@ -37,6 +39,7 @@ public class SelectionClosedEmbed extends EmbedBuilder {
             String username = String.format("- %s <@%s>", user.getEmote(), user.getId());
             String votes = voter.getVotes()
                                 .stream()
+                                .sorted(Comparator.comparing(Anime::getId))
                                 .map(anime -> String.format("  - [%s](%s)", anime.getTitle(), anime.getUrl()))
                                 .collect(Collectors.joining("\n"));
 

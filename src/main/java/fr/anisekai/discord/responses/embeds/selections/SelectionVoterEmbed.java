@@ -1,9 +1,9 @@
 package fr.anisekai.discord.responses.embeds.selections;
 
-import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
 import fr.anisekai.Texts;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Voter;
+import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.util.Collection;
