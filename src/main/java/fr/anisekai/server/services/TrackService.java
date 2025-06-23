@@ -1,12 +1,12 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.api.media.MediaFile;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Track;
 import fr.anisekai.server.entities.adapters.TrackEventAdapter;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.TrackProxy;
 import fr.anisekai.server.repositories.TrackRepository;
+import fr.anisekai.wireless.api.media.MediaFile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +33,11 @@ public class TrackService extends DataService<Track, Long, TrackEventAdapter, Tr
                             track.setCodec(stream.getCodec());
                             track.setLanguage(stream.getMetadata().get("language"));
                         })).toList();
+    }
+
+    public void clearTracks(Episode episode) {
+
+        this.getProxy().getRepository().deleteByEpisode(episode);
     }
 
 }

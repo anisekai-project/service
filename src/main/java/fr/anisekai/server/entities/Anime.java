@@ -1,11 +1,12 @@
 package fr.anisekai.server.entities;
 
 
+import fr.anisekai.server.entities.adapters.AnimeEventAdapter;
+import fr.anisekai.wireless.api.storage.interfaces.ScopedEntity;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.AnimeEventAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +15,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @Entity
-public class Anime implements AnimeEventAdapter, Comparable<Anime> {
+public class Anime implements AnimeEventAdapter, ScopedEntity, Comparable<Anime> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -306,6 +307,13 @@ public class Anime implements AnimeEventAdapter, Comparable<Anime> {
                 Comparator.comparing(Anime::getList),
                 Comparator.comparing(Anime::getTitle)
         );
+    }
+
+    @Override
+    public @NotNull String getScopedName() {
+
+        if (this.isNew()) throw new IllegalStateException("Cannot use a non persisted entity as scoped entity.");
+        return String.valueOf(this.getId());
     }
 
 }

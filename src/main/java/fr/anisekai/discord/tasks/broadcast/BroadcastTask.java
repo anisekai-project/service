@@ -81,6 +81,7 @@ public abstract class BroadcastTask implements TaskExecutor {
 
         private static @NotNull Icon getIcon(Planifiable<? extends Entity<?>> planifiable) throws Exception {
 
+            // TODO: Use LibraryManager to access File instance
             FileDownloader downloader = new FileDownloader(String.format(
                     "https://media.anisekai.fr/%s.png",
                     planifiable.getWatchTarget().getId()

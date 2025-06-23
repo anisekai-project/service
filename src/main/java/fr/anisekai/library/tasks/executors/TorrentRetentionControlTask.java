@@ -1,7 +1,7 @@
 package fr.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.library.LibraryService;
+import fr.anisekai.library.Library;
 import fr.anisekai.library.services.SpringTransmissionClient;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
@@ -14,7 +14,8 @@ import fr.anisekai.wireless.api.services.Transmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +28,9 @@ public class TorrentRetentionControlTask implements TaskExecutor {
     private final SettingService     settingService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
-    private final LibraryService     libraryService;
+    private final Library            libraryService;
 
-    public TorrentRetentionControlTask(SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, LibraryService libraryService) {
+    public TorrentRetentionControlTask(SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, Library libraryService) {
 
         this.settingService     = settingService;
         this.torrentService     = torrentService;
@@ -54,17 +55,14 @@ public class TorrentRetentionControlTask implements TaskExecutor {
             for (TorrentFile file : files) {
                 if (file.isRemoved()) continue;
 
-                Optional<File> optionalFile = this.libraryService.retrieveDownload(file);
+                Optional<Path> optionalFile = this.libraryService.findDownload(file);
 
                 if (optionalFile.isEmpty()) {
                     LOGGER.debug("Unable to find file {}", file.getIndex());
                     continue;
                 }
 
-                if (!optionalFile.get().delete()) {
-                    LOGGER.warn("Failed to remove file {}", file.getIndex());
-                    continue;
-                }
+                Files.delete(optionalFile.get());
 
                 LOGGER.debug("File {} removed", file.getIndex());
                 this.torrentFileService.mod(file.getId(), entity -> entity.setRemoved(true));

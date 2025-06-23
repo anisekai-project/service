@@ -13,20 +13,22 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FileUrlStreamer extends RestAction<Boolean> {
 
-    private final File   file;
+    private final Path   file;
     private final String url;
 
-    public FileUrlStreamer(File file, String url) {
+    public FileUrlStreamer(Path file, String url) {
 
         this.file = file;
         this.url  = url;
 
-        if (this.file.isDirectory()) {
+        if (Files.isDirectory(file)) {
             throw new IllegalArgumentException(file + " is a directory");
         }
     }
@@ -54,7 +56,7 @@ public class FileUrlStreamer extends RestAction<Boolean> {
             urlStr = this.getRequestURL();
         }
 
-        URLConnection     connection = URI.create(this.url).toURL().openConnection();
+        URLConnection     connection = URI.create(urlStr).toURL().openConnection();
         HttpURLConnection http       = ((HttpURLConnection) connection);
 
         http.setRequestMethod(this.getRequestMethod().name());
@@ -87,7 +89,7 @@ public class FileUrlStreamer extends RestAction<Boolean> {
 
         if (isOk) {
             try (InputStream is = http.getInputStream()) {
-                try (OutputStream os = new FileOutputStream(this.file)) {
+                try (OutputStream os = new FileOutputStream(this.file.toFile())) {
                     is.transferTo(os);
                 }
             }

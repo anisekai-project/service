@@ -1,9 +1,10 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.EpisodeEventAdapter;
+import fr.anisekai.wireless.api.storage.interfaces.ScopedEntity;
 import fr.anisekai.wireless.remote.interfaces.EpisodeEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.EpisodeEventAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
@@ -11,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Episode implements EpisodeEventAdapter {
+public class Episode implements EpisodeEventAdapter, ScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -111,6 +112,13 @@ public class Episode implements EpisodeEventAdapter {
     public void beforeSave() {
 
         this.updatedAt = ZonedDateTime.now();
+    }
+
+    @Override
+    public @NotNull String getScopedName() {
+
+        if (this.isNew()) throw new IllegalStateException("Cannot use a non persisted entity as scoped entity.");
+        return String.valueOf(this.getId());
     }
 
 }

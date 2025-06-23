@@ -1,14 +1,14 @@
 package fr.anisekai.library.tasks.factories;
 
+import fr.anisekai.library.Library;
+import fr.anisekai.library.tasks.executors.MediaImportTask;
+import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.services.*;
 import fr.anisekai.server.tasking.TaskBuilder;
+import fr.anisekai.server.tasking.TaskFactory;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import jakarta.annotation.PostConstruct;
-import fr.anisekai.library.LibraryService;
-import fr.anisekai.library.tasks.executors.MediaImportTask;
-import fr.anisekai.server.entities.Task;
-import fr.anisekai.server.tasking.TaskFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -18,17 +18,17 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
     public static final String NAME = "media:import";
 
     private final TaskService        service;
-    private final LibraryService     libraryService;
+    private final Library            library;
     private final TrackService       trackService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
     private final EpisodeService     episodeService;
 
 
-    public MediaImportFactory(TaskService service, LibraryService libraryService, TorrentService torrentService, TrackService trackService, TorrentFileService torrentFileService, EpisodeService episodeService) {
+    public MediaImportFactory(TaskService service, Library library, TorrentService torrentService, TrackService trackService, TorrentFileService torrentFileService, EpisodeService episodeService) {
 
         this.service            = service;
-        this.libraryService     = libraryService;
+        this.library            = library;
         this.torrentService     = torrentService;
         this.trackService       = trackService;
         this.torrentFileService = torrentFileService;
@@ -45,7 +45,7 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
     public @NotNull MediaImportTask create() {
 
         return new MediaImportTask(
-                this.libraryService,
+                this.library,
                 this.trackService,
                 this.torrentService,
                 this.torrentFileService,

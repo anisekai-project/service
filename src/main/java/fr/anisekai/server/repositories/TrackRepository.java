@@ -12,4 +12,6 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
 
     List<Track> findByEpisode(Episode episode);
 
+    long deleteByEpisode(Episode episode);
+
 }

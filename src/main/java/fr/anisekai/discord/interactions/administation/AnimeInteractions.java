@@ -9,17 +9,21 @@ import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
 import fr.anisekai.discord.tasks.anime.announcement.create.AnnouncementCreateFactory;
-import fr.anisekai.library.LibraryService;
+import fr.anisekai.library.Library;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.TaskService;
+import fr.anisekai.utils.FileUrlStreamer;
+import fr.anisekai.wireless.api.storage.containers.AccessScope;
+import fr.anisekai.wireless.api.storage.interfaces.StorageIsolationContext;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -27,15 +31,15 @@ import java.util.regex.Pattern;
 @InteractionBean
 public class AnimeInteractions {
 
-    private final TaskService    taskService;
-    private final LibraryService libraryService;
-    private final AnimeService   service;
+    private final TaskService  taskService;
+    private final Library      library;
+    private final AnimeService service;
 
-    public AnimeInteractions(TaskService taskService, LibraryService libraryService, AnimeService service) {
+    public AnimeInteractions(TaskService taskService, Library library, AnimeService service) {
 
-        this.taskService    = taskService;
-        this.libraryService = libraryService;
-        this.service        = service;
+        this.taskService = taskService;
+        this.library     = library;
+        this.service     = service;
     }
 
     private static void requireAdministrator(UserEntity user) {
@@ -324,7 +328,16 @@ public class AnimeInteractions {
         }
 
         Anime anime = this.service.fetch(animeId);
-        this.libraryService.storeAnimeEventImage(anime, attachment.getUrl());
+
+        AccessScope scope = new AccessScope(Library.EVENT_IMAGES, anime);
+
+        try (StorageIsolationContext context = this.library.createIsolation(scope)) {
+            Path destination = context.resolveFile(Library.EVENT_IMAGES, anime);
+            if (!new FileUrlStreamer(destination, attachment.getUrl()).complete()) {
+                throw new IllegalStateException("The file was not downloaded.");
+            }
+            context.commit();
+        }
 
         return DiscordResponse.info("L'image a bien été mise à jour.").setImage(attachment.getProxyUrl());
     }

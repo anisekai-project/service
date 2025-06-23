@@ -1,6 +1,6 @@
 package fr.anisekai.library.tasks.factories;
 
-import fr.anisekai.library.LibraryService;
+import fr.anisekai.library.Library;
 import fr.anisekai.library.tasks.executors.TorrentRetentionControlTask;
 import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.enums.TaskPipeline;
@@ -23,15 +23,15 @@ public class TorrentRetentionControlFactory implements TaskFactory<TorrentRetent
     private final SettingService     settingService;
     private final TorrentService     torrentService;
     private final TorrentFileService torrentFileService;
-    private final LibraryService     libraryService;
+    private final Library            library;
 
-    public TorrentRetentionControlFactory(TaskService service, SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, LibraryService libraryService) {
+    public TorrentRetentionControlFactory(TaskService service, SettingService settingService, TorrentService torrentService, TorrentFileService torrentFileService, Library library) {
 
         this.service            = service;
         this.settingService     = settingService;
         this.torrentService     = torrentService;
         this.torrentFileService = torrentFileService;
-        this.libraryService     = libraryService;
+        this.library            = library;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class TorrentRetentionControlFactory implements TaskFactory<TorrentRetent
                 this.settingService,
                 this.torrentService,
                 this.torrentFileService,
-                this.libraryService
+                this.library
         );
     }
 

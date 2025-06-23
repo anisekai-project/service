@@ -1,6 +1,6 @@
 package fr.anisekai.web.controllers;
 
-import fr.anisekai.library.LibraryService;
+import fr.anisekai.library.Library;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Track;
@@ -10,7 +10,6 @@ import fr.anisekai.server.services.TrackService;
 import fr.anisekai.utils.DataUtils;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.media.enums.CodecType;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,14 +30,14 @@ import java.net.URI;
 @RequestMapping("/media")
 public class MediaController {
 
-    private final LibraryService libraryService;
+    private final Library        library;
     private final AnimeService   animeService;
     private final EpisodeService episodeService;
     private final TrackService   trackService;
 
-    public MediaController(LibraryService libraryService, AnimeService animeService, EpisodeService episodeService, TrackService trackService) {
+    public MediaController(Library library, AnimeService animeService, EpisodeService episodeService, TrackService trackService) {
 
-        this.libraryService = libraryService;
+        this.library        = library;
         this.animeService   = animeService;
         this.episodeService = episodeService;
         this.trackService   = trackService;
@@ -47,27 +46,22 @@ public class MediaController {
     @GetMapping("/chunks/{episodeId:[0-9]+}/{name}")
     public ResponseEntity<InputStreamResource> getChunksContent(@PathVariable long episodeId, @PathVariable String name) throws IOException {
 
-        Episode episode       = this.episodeService.fetch(episodeId);
-        File    requestedFile = this.libraryService.retrieveEpisodeChunk(episode, name);
+        Episode episode = this.episodeService.fetch(episodeId);
+        File    target  = this.library.resolveFile(Library.CHUNKS, episode, name).toFile();
 
-        if (!requestedFile.exists()) return ResponseEntity.notFound().build();
+        if (!target.exists()) return ResponseEntity.notFound().build();
 
-        InputStreamResource resource = new InputStreamResource(new FileInputStream(requestedFile));
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(target));
 
-        if (requestedFile.getName().equals("meta.mpd")) {
-            return ResponseEntity
-                    .ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                    .contentLength(requestedFile.length())
-                    .contentType(MediaType.parseMediaType("application/dash+xml"))
-                    .body(resource);
-        }
+        boolean   isDashMeta  = target.getName().endsWith(".mpd");
+        MediaType dashMime    = MediaType.parseMediaType("application/dash+xml");
+        MediaType defaultMime = MediaType.APPLICATION_OCTET_STREAM;
 
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                .contentLength(requestedFile.length())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(target.length())
+                .contentType(isDashMeta ? dashMime : defaultMime)
                 .body(resource);
     }
 
@@ -89,9 +83,9 @@ public class MediaController {
     public ResponseEntity<InputStreamResource> read(@PathVariable long trackId) throws FileNotFoundException {
 
         Track track = this.trackService.fetch(trackId);
-        File  file  = this.libraryService.retrieveSubtitle(track);
-
         if (track.getCodec().getType() != CodecType.SUBTITLE) return ResponseEntity.badRequest().build();
+
+        File file = this.library.resolveFile(Library.SUBTITLES, track.getEpisode(), track.asFilename()).toFile();
         if (!file.exists()) return ResponseEntity.notFound().build();
 
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
@@ -107,7 +101,7 @@ public class MediaController {
     public ResponseEntity<?> getImage(@PathVariable long animeId) throws IOException {
 
         Anime anime = this.animeService.fetch(animeId);
-        File  file  = this.libraryService.retrieveAnimeEventImage(anime);
+        File  file  = this.library.resolveFile(Library.EVENT_IMAGES, anime).toFile();
 
         if (!file.exists()) {
             URI redirectUri = URI.create("/assets/images/unknown.png");
