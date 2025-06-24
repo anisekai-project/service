@@ -1,5 +1,6 @@
 package fr.anisekai.discord.tasks.broadcast.cancel;
 
+import fr.anisekai.library.Library;
 import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
@@ -19,9 +20,9 @@ public class BroadcastCancelFactory extends BroadcastFactory<BroadcastCancelTask
 
     private static final String NAME = "cancel";
 
-    public BroadcastCancelFactory(TaskService service, JDAStore store, BroadcastService broadcastService) {
+    public BroadcastCancelFactory(Library library, TaskService service, JDAStore store, BroadcastService broadcastService) {
 
-        super(service, store, broadcastService);
+        super(library, service, store, broadcastService);
     }
 
     @Override
@@ -33,7 +34,7 @@ public class BroadcastCancelFactory extends BroadcastFactory<BroadcastCancelTask
     @Override
     public @NotNull BroadcastCancelTask create() {
 
-        return new BroadcastCancelTask(this.getStore(), this.getBroadcastService());
+        return new BroadcastCancelTask(this.getLibrary(), this.getStore(), this.getBroadcastService());
     }
 
     public Task queue(BroadcastEntity<?> broadcast) {

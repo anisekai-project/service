@@ -1,22 +1,25 @@
 package fr.anisekai.discord.tasks.broadcast;
 
-import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 import fr.anisekai.discord.JDAStore;
+import fr.anisekai.library.Library;
 import fr.anisekai.server.services.BroadcastService;
 import fr.anisekai.server.services.TaskService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.server.tasking.TaskFactory;
+import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 
 public abstract class BroadcastFactory<T extends TaskExecutor> implements TaskFactory<T> {
 
     public static final String PREFIX = "broadcast";
 
+    private final Library          library;
     private final TaskService      service;
     private final JDAStore         store;
     private final BroadcastService broadcastService;
 
-    public BroadcastFactory(TaskService service, JDAStore store, BroadcastService broadcastService) {
+    public BroadcastFactory(Library library, TaskService service, JDAStore store, BroadcastService broadcastService) {
 
+        this.library          = library;
         this.service          = service;
         this.store            = store;
         this.broadcastService = broadcastService;
@@ -25,6 +28,11 @@ public abstract class BroadcastFactory<T extends TaskExecutor> implements TaskFa
     public String getPrefix() {
 
         return PREFIX;
+    }
+
+    public Library getLibrary() {
+
+        return this.library;
     }
 
     public TaskService getService() {

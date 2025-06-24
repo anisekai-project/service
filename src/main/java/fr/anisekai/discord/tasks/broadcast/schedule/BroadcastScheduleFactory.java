@@ -1,16 +1,17 @@
 package fr.anisekai.discord.tasks.broadcast.schedule;
 
+import fr.anisekai.discord.JDAStore;
+import fr.anisekai.discord.tasks.broadcast.BroadcastFactory;
+import fr.anisekai.discord.tasks.broadcast.BroadcastTask;
+import fr.anisekai.library.Library;
+import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.enums.TaskPipeline;
+import fr.anisekai.server.services.BroadcastService;
+import fr.anisekai.server.services.TaskService;
 import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 import jakarta.annotation.PostConstruct;
-import fr.anisekai.discord.JDAStore;
-import fr.anisekai.discord.tasks.broadcast.BroadcastFactory;
-import fr.anisekai.discord.tasks.broadcast.BroadcastTask;
-import fr.anisekai.server.entities.Task;
-import fr.anisekai.server.services.BroadcastService;
-import fr.anisekai.server.services.TaskService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +20,9 @@ public class BroadcastScheduleFactory extends BroadcastFactory<BroadcastSchedule
 
     private static final String NAME = "schedule";
 
-    public BroadcastScheduleFactory(TaskService service, JDAStore store, BroadcastService broadcastService) {
+    public BroadcastScheduleFactory(Library library, TaskService service, JDAStore store, BroadcastService broadcastService) {
 
-        super(service, store, broadcastService);
+        super(library, service, store, broadcastService);
     }
 
     @Override
@@ -33,7 +34,7 @@ public class BroadcastScheduleFactory extends BroadcastFactory<BroadcastSchedule
     @Override
     public @NotNull BroadcastScheduleTask create() {
 
-        return new BroadcastScheduleTask(this.getStore(), this.getBroadcastService());
+        return new BroadcastScheduleTask(this.getLibrary(), this.getStore(), this.getBroadcastService());
     }
 
     public Task queue(BroadcastEntity<?> broadcast) {

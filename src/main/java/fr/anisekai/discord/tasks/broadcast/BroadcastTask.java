@@ -1,29 +1,32 @@
 package fr.anisekai.discord.tasks.broadcast;
 
-import fr.anisekai.wireless.api.json.AnisekaiJson;
-import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
-import fr.anisekai.wireless.api.persistence.interfaces.Entity;
-import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
-import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
-import fr.anisekai.wireless.utils.FileDownloader;
 import fr.anisekai.discord.JDAStore;
+import fr.anisekai.library.Library;
+import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.services.BroadcastService;
 import fr.anisekai.server.tasking.TaskExecutor;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
+import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Icon;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 
 public abstract class BroadcastTask implements TaskExecutor {
 
 
     public static final String           OPT_BROADCAST = "broadcast";
+    private final       Library          library;
     private final       JDAStore         store;
     private final       BroadcastService service;
 
-    public BroadcastTask(JDAStore store, BroadcastService service) {
+    public BroadcastTask(Library library, JDAStore store, BroadcastService service) {
 
+        this.library = library;
         this.store   = store;
         this.service = service;
     }
@@ -45,9 +48,9 @@ public abstract class BroadcastTask implements TaskExecutor {
                    .orElseThrow(() -> new Exception("The Guild is not available."));
     }
 
-    public EventData getEventData(Planifiable<? extends AnimeEntity<?>> planifiable) throws Exception {
+    public EventData getEventData(Planifiable<Anime> planifiable) throws Exception {
 
-        return new EventData(planifiable);
+        return new EventData(this.library, planifiable);
     }
 
     @Override
@@ -60,34 +63,38 @@ public abstract class BroadcastTask implements TaskExecutor {
 
     public static class EventData {
 
-        public final String         title;
-        public final String         description;
-        public final Icon           icon;
-        public final OffsetDateTime startTime;
-        public final OffsetDateTime endTime;
+        private final Library        library;
+        public final  String         title;
+        public final  String         description;
+        public final  Icon           icon;
+        public final  OffsetDateTime startTime;
+        public final  OffsetDateTime endTime;
 
-        public EventData(Planifiable<? extends AnimeEntity<?>> planifiable) throws Exception {
+        public EventData(Library library, Planifiable<Anime> planifiable) throws Exception {
 
+            this.library     = library;
             this.title       = "Soirée Anime";
             this.description = String.format(
                     "**%s**\nÉpisode(s): %s",
                     planifiable.getWatchTarget().getTitle(),
                     getEpisodeText(planifiable)
             );
-            this.icon        = getIcon(planifiable);
+            this.icon        = this.getIcon(planifiable);
             this.startTime   = planifiable.getStartingAt().toOffsetDateTime();
             this.endTime     = planifiable.getEndingAt().toOffsetDateTime();
         }
 
-        private static @NotNull Icon getIcon(Planifiable<? extends Entity<?>> planifiable) throws Exception {
+        private Icon getIcon(Planifiable<Anime> planifiable) throws Exception {
 
-            // TODO: Use LibraryManager to access File instance
-            FileDownloader downloader = new FileDownloader(String.format(
-                    "https://media.anisekai.fr/%s.png",
-                    planifiable.getWatchTarget().getId()
-            ));
+            Path path = this.library.resolveFile(
+                    fr.anisekai.library.Library.EVENT_IMAGES,
+                    planifiable.getWatchTarget()
+            );
 
-            return Icon.from(downloader.complete());
+            if (Files.exists(path)) {
+                return Icon.from(path.toFile(), Icon.IconType.PNG);
+            }
+            return null;
         }
 
         private static @NotNull String getEpisodeText(Planifiable<?> broadcast) {

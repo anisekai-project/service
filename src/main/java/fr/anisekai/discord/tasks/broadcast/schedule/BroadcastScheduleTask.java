@@ -1,6 +1,7 @@
 package fr.anisekai.discord.tasks.broadcast.schedule;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.library.Library;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import fr.anisekai.discord.JDAStore;
@@ -16,9 +17,9 @@ public class BroadcastScheduleTask extends BroadcastTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastScheduleTask.class);
 
-    public BroadcastScheduleTask(JDAStore store, BroadcastService service) {
+    public BroadcastScheduleTask(Library library, JDAStore store, BroadcastService service) {
 
-        super(store, service);
+        super(library, store, service);
     }
 
     @Override

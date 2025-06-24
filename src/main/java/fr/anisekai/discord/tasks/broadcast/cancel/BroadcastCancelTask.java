@@ -1,6 +1,7 @@
 package fr.anisekai.discord.tasks.broadcast.cancel;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
+import fr.anisekai.library.Library;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.tasks.broadcast.BroadcastTask;
@@ -15,9 +16,9 @@ public class BroadcastCancelTask extends BroadcastTask {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(BroadcastCancelTask.class);
 
-    public BroadcastCancelTask(JDAStore store, BroadcastService service) {
+    public BroadcastCancelTask(Library library, JDAStore store, BroadcastService service) {
 
-        super(store, service);
+        super(library, store, service);
     }
 
     @Override
