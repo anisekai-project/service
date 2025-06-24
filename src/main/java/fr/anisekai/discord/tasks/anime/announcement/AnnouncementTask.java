@@ -55,7 +55,7 @@ public abstract class AnnouncementTask implements TaskExecutor {
     public void validateParams(AnisekaiJson params) {
 
         params.validate(
-                new JsonObjectRule(OPTION_ANIME, true, int.class, long.class)
+                new JsonObjectRule(OPTION_ANIME, true, int.class, long.class, Integer.class, Long.class)
         );
     }
 

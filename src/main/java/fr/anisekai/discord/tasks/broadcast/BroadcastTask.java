@@ -54,7 +54,7 @@ public abstract class BroadcastTask implements TaskExecutor {
     public void validateParams(AnisekaiJson params) {
 
         params.validate(
-                new JsonObjectRule(OPT_BROADCAST, true, int.class, long.class)
+                new JsonObjectRule(OPT_BROADCAST, true, int.class, long.class, Integer.class, Long.class)
         );
     }
 

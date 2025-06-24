@@ -42,7 +42,7 @@ public class TorrentSourcingTask implements TaskExecutor {
     public void validateParams(AnisekaiJson params) {
 
         params.validate(
-                new JsonObjectRule(OPTION_PRIORITY, false, int.class, short.class, byte.class),
+                new JsonObjectRule(OPTION_PRIORITY, false, int.class, long.class, Integer.class, Long.class),
                 new JsonObjectRule(OPTION_SOURCE, true, String.class)
         );
     }
