@@ -4,11 +4,6 @@ import fr.alexpado.jda.interactions.annotations.Interact;
 import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
-import fr.anisekai.wireless.api.plannifier.data.CalibrationResult;
-import fr.anisekai.wireless.api.plannifier.interfaces.Scheduler;
-import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import fr.anisekai.wireless.utils.DateTimeUtils;
-import fr.anisekai.wireless.utils.StringUtils;
 import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
@@ -18,6 +13,12 @@ import fr.anisekai.server.entities.adapters.BroadcastEventAdapter;
 import fr.anisekai.server.enums.BroadcastFrequency;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.BroadcastService;
+import fr.anisekai.utils.DiscordUtils;
+import fr.anisekai.wireless.api.plannifier.data.CalibrationResult;
+import fr.anisekai.wireless.api.plannifier.interfaces.Scheduler;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import fr.anisekai.wireless.utils.DateTimeUtils;
+import fr.anisekai.wireless.utils.StringUtils;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 
@@ -98,12 +99,14 @@ public class BroadcastInteractions {
 
         List<Broadcast> scheduled = this.service.schedule(anime, starting, frequency, amount);
 
-        return DiscordResponse.info(StringUtils.count(
-                scheduled.size(),
-                "Aucune séance n'a été plannifiée.",
-                "Une séance a été plannifiée.",
-                "%s ont été plannifiées."
-        ));
+        return DiscordResponse.info(switch (scheduled.size()) {
+            case 0 -> "Aucune séance n'a été plannifiée.";
+            case 1 -> "Une séance a été plannifiée pour l'anime **%s**.".formatted(DiscordUtils.link(anime));
+            default -> "**%s** séances ont été plannifiées pour l'anime **%s**.".formatted(
+                    scheduled.size(),
+                    DiscordUtils.link(anime)
+            );
+        });
     }
     // </editor-fold>
 
