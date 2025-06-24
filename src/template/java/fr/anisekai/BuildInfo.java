@@ -1,4 +1,4 @@
-package fr.anisekai.toshiko;
+package fr.anisekai;
 
 public class BuildInfo {
     public static String getVersion() {

@@ -1,6 +1,6 @@
 package fr.anisekai.web.oauth2;
 
-import fr.anisekai.toshiko.BuildInfo;
+import fr.anisekai.BuildInfo;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

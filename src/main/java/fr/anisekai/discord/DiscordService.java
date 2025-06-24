@@ -12,13 +12,15 @@ import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutoCom
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutocompleteInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
-import io.sentry.Sentry;
-import io.sentry.SentryLevel;
+import fr.anisekai.BuildInfo;
 import fr.anisekai.discord.annotations.InteractAt;
 import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.utils.InteractionType;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -147,6 +149,8 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
     @Override
     public void onReady(ReadyEvent event) {
 
+        LOGGER.info("Setting app version...");
+        event.getJDA().getPresence().setPresence(Activity.customStatus(BuildInfo.getVersion()), false);
         LOGGER.info("Scanning for interactions...");
         this.beanFactory.getBeansWithAnnotation(InteractionBean.class).values().forEach(this::register);
         LOGGER.info("Registering commands....");
