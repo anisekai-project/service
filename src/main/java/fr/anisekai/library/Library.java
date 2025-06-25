@@ -1,15 +1,16 @@
 package fr.anisekai.library;
 
+import fr.anisekai.sanctum.Sanctum;
+import fr.anisekai.sanctum.enums.StorePolicy;
+import fr.anisekai.sanctum.interfaces.FileStore;
+import fr.anisekai.sanctum.interfaces.resolvers.StorageResolver;
+import fr.anisekai.sanctum.stores.RawStorage;
+import fr.anisekai.sanctum.stores.ScopedDirectoryStorage;
+import fr.anisekai.sanctum.stores.ScopedFileStorage;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
-import fr.anisekai.wireless.api.storage.LibraryManager;
-import fr.anisekai.wireless.api.storage.containers.stores.EntityDirectoryStore;
-import fr.anisekai.wireless.api.storage.containers.stores.EntityFileStore;
-import fr.anisekai.wireless.api.storage.containers.stores.RawStorageStore;
-import fr.anisekai.wireless.api.storage.enums.StorePolicy;
-import fr.anisekai.wireless.api.storage.interfaces.StorageStore;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,12 +20,12 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 @Component
-public class Library extends LibraryManager {
+public class Library extends Sanctum {
 
-    public static final StorageStore CHUNKS       = new EntityDirectoryStore("chunks", Episode.class);
-    public static final StorageStore DOWNLOADS    = new RawStorageStore("downloads");
-    public static final StorageStore EVENT_IMAGES = new EntityFileStore("event-images", Anime.class, "png");
-    public static final StorageStore SUBTITLES    = new EntityDirectoryStore("subs", Episode.class);
+    public static final FileStore CHUNKS       = new ScopedDirectoryStorage("chunks", Episode.class);
+    public static final FileStore DOWNLOADS    = new RawStorage("downloads");
+    public static final FileStore EVENT_IMAGES = new ScopedFileStorage("event-images", Anime.class, "png");
+    public static final FileStore SUBTITLES    = new ScopedDirectoryStorage("subs", Episode.class);
 
     public Library(@Value("${disk.media}") String location) {
 
@@ -38,12 +39,13 @@ public class Library extends LibraryManager {
 
     public Optional<Path> findDownload(TorrentFile torrentFile) {
 
-        Path direct = this.resolveFile(DOWNLOADS, torrentFile.getName());
+        StorageResolver resolver = this.getResolver(DOWNLOADS);
+
+        Path direct = resolver.file(torrentFile.getName());
         if (Files.isRegularFile(direct)) return Optional.of(direct);
 
         Torrent torrent   = torrentFile.getTorrent();
-        Path    store     = this.resolveDirectory(DOWNLOADS);
-        Path    directory = store.resolve(torrent.getName());
+        Path    directory = resolver.directory(torrent.getName());
         if (!Files.isDirectory(directory)) return Optional.empty();
 
         Path target = directory.resolve(torrentFile.getName());

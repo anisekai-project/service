@@ -1,6 +1,7 @@
 package fr.anisekai.web.controllers;
 
 import fr.anisekai.library.Library;
+import fr.anisekai.sanctum.interfaces.resolvers.StorageResolver;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Track;
@@ -46,8 +47,10 @@ public class MediaController {
     @GetMapping("/chunks/{episodeId:[0-9]+}/{name}")
     public ResponseEntity<InputStreamResource> getChunksContent(@PathVariable long episodeId, @PathVariable String name) throws IOException {
 
-        Episode episode = this.episodeService.fetch(episodeId);
-        File    target  = this.library.resolveFile(Library.CHUNKS, episode, name).toFile();
+        Episode         episode  = this.episodeService.fetch(episodeId);
+        StorageResolver resolver = this.library.getResolver(Library.CHUNKS);
+
+        File target = resolver.file(episode, name).toFile();
 
         if (!target.exists()) return ResponseEntity.notFound().build();
 
@@ -85,14 +88,16 @@ public class MediaController {
         Track track = this.trackService.fetch(trackId);
         if (track.getCodec().getType() != CodecType.SUBTITLE) return ResponseEntity.badRequest().build();
 
-        File file = this.library.resolveFile(Library.SUBTITLES, track.getEpisode(), track.asFilename()).toFile();
-        if (!file.exists()) return ResponseEntity.notFound().build();
+        StorageResolver resolver = this.library.getResolver(Library.SUBTITLES);
+        File            target   = resolver.file(track.getEpisode(), track.asFilename()).toFile();
 
-        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+        if (!target.exists()) return ResponseEntity.notFound().build();
+
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(target));
 
         return ResponseEntity.ok()
                              .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                             .contentLength(file.length())
+                             .contentLength(target.length())
                              .contentType(MediaType.parseMediaType(track.getCodec().getMimeType()))
                              .body(resource);
     }
@@ -101,20 +106,22 @@ public class MediaController {
     public ResponseEntity<?> getImage(@PathVariable long animeId) throws IOException {
 
         Anime anime = this.animeService.fetch(animeId);
-        File  file  = this.library.resolveFile(Library.EVENT_IMAGES, anime).toFile();
 
-        if (!file.exists()) {
+        StorageResolver resolver = this.library.getResolver(Library.EVENT_IMAGES);
+        File            target   = resolver.file(anime).toFile();
+
+        if (!target.exists()) {
             URI redirectUri = URI.create("/assets/images/unknown.png");
             return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
                                  .location(redirectUri)
                                  .build();
         }
 
-        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(target));
 
         return ResponseEntity.ok()
                              .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                             .contentLength(file.length())
+                             .contentLength(target.length())
                              .contentType(MediaType.IMAGE_PNG)
                              .body(resource);
     }

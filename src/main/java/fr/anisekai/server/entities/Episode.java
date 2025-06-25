@@ -1,7 +1,7 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.sanctum.interfaces.ScopedEntity;
 import fr.anisekai.server.entities.adapters.EpisodeEventAdapter;
-import fr.anisekai.wireless.api.storage.interfaces.ScopedEntity;
 import fr.anisekai.wireless.remote.interfaces.EpisodeEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;

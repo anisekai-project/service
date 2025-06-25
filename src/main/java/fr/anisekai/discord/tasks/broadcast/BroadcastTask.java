@@ -86,10 +86,7 @@ public abstract class BroadcastTask implements TaskExecutor {
 
         private Icon getIcon(Planifiable<Anime> planifiable) throws Exception {
 
-            Path path = this.library.resolveFile(
-                    fr.anisekai.library.Library.EVENT_IMAGES,
-                    planifiable.getWatchTarget()
-            );
+            Path path = this.library.getResolver(Library.EVENT_IMAGES).file(planifiable.getWatchTarget());
 
             if (Files.exists(path)) {
                 return Icon.from(path.toFile(), Icon.IconType.PNG);

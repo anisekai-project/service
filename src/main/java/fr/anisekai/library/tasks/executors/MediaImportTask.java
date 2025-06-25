@@ -2,6 +2,8 @@ package fr.anisekai.library.tasks.executors;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.library.Library;
+import fr.anisekai.sanctum.AccessScope;
+import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
@@ -19,8 +21,6 @@ import fr.anisekai.wireless.api.media.bin.FFMpeg;
 import fr.anisekai.wireless.api.media.enums.Codec;
 import fr.anisekai.wireless.api.media.enums.CodecType;
 import fr.anisekai.wireless.api.media.enums.Disposition;
-import fr.anisekai.wireless.api.storage.containers.AccessScope;
-import fr.anisekai.wireless.api.storage.interfaces.StorageIsolationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,10 +81,10 @@ public class MediaImportTask implements TaskExecutor {
 
             Set<AccessScope> scopes = Set.of(chunksScope, subtitleScope);
 
-            try (StorageIsolationContext context = this.library.createIsolation(scopes)) {
+            try (IsolationSession context = this.library.createIsolation(scopes)) {
                 Path temporary    = context.requestTemporaryFile("mkv");
-                Path chunkStorage = context.resolveScope(chunksScope);
-                Path subStorage   = context.resolveScope(subtitleScope);
+                Path chunkStorage = context.resolve(chunksScope);
+                Path subStorage   = context.resolve(subtitleScope);
 
                 LOGGER.info("[{}:{}] Converting Video/Audio...", torrent.getId(), file.getIndex());
                 FFMpeg.convert(media)

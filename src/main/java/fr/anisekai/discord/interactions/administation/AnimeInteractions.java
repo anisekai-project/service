@@ -10,13 +10,13 @@ import fr.anisekai.discord.exceptions.RequireAdministratorException;
 import fr.anisekai.discord.responses.DiscordResponse;
 import fr.anisekai.discord.tasks.anime.announcement.create.AnnouncementCreateFactory;
 import fr.anisekai.library.Library;
+import fr.anisekai.sanctum.AccessScope;
+import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Task;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.TaskService;
 import fr.anisekai.utils.FileUrlStreamer;
-import fr.anisekai.wireless.api.storage.containers.AccessScope;
-import fr.anisekai.wireless.api.storage.interfaces.StorageIsolationContext;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import net.dv8tion.jda.api.entities.Message;
@@ -331,8 +331,9 @@ public class AnimeInteractions {
 
         AccessScope scope = new AccessScope(Library.EVENT_IMAGES, anime);
 
-        try (StorageIsolationContext context = this.library.createIsolation(scope)) {
-            Path destination = context.resolveFile(Library.EVENT_IMAGES, anime);
+        try (IsolationSession context = this.library.createIsolation(scope)) {
+            Path destination = context.resolve(scope);
+
             if (!new FileUrlStreamer(destination, attachment.getUrl()).complete()) {
                 throw new IllegalStateException("The file was not downloaded.");
             }

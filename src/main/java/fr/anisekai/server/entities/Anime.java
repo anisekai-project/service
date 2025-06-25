@@ -1,8 +1,7 @@
 package fr.anisekai.server.entities;
 
-
+import fr.anisekai.sanctum.interfaces.ScopedEntity;
 import fr.anisekai.server.entities.adapters.AnimeEventAdapter;
-import fr.anisekai.wireless.api.storage.interfaces.ScopedEntity;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
