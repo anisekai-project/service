@@ -21,7 +21,7 @@ services:
       - './data/torrents:/app/data/torrents'
       - './data/web:/app/data/library'
   mariadb:
-    image: 'mariadb:lts-ubi'
+    image: 'mariadb:11.8.2'
     user: '1000:1000'
     ports:
       - '10001:${DB_PORT}'
@@ -36,9 +36,11 @@ services:
     networks:
       - anisekai
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
-      retries: 3
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
       timeout: 5s
+      retries: 3
   transmission:
     build:
       context: .
