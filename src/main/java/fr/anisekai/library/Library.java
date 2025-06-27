@@ -2,6 +2,7 @@ package fr.anisekai.library;
 
 import fr.anisekai.sanctum.Sanctum;
 import fr.anisekai.sanctum.enums.StorePolicy;
+import fr.anisekai.sanctum.exceptions.StorageException;
 import fr.anisekai.sanctum.interfaces.FileStore;
 import fr.anisekai.sanctum.interfaces.resolvers.StorageResolver;
 import fr.anisekai.sanctum.stores.RawStorage;
@@ -17,7 +18,10 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Component
 public class Library extends Sanctum {
@@ -26,6 +30,7 @@ public class Library extends Sanctum {
     public static final FileStore DOWNLOADS    = new RawStorage("downloads");
     public static final FileStore EVENT_IMAGES = new ScopedFileStorage("event-images", Anime.class, "webp");
     public static final FileStore SUBTITLES    = new ScopedDirectoryStorage("subs", Episode.class);
+    public static final FileStore IMPORTS      = new RawStorage("imports");
 
     public Library(@Value("${disk.media}") String location) {
 
@@ -35,6 +40,7 @@ public class Library extends Sanctum {
         this.registerStore(DOWNLOADS, StorePolicy.PRIVATE);
         this.registerStore(EVENT_IMAGES, StorePolicy.OVERWRITE);
         this.registerStore(SUBTITLES, StorePolicy.FULL_SWAP);
+        this.registerStore(IMPORTS, StorePolicy.PRIVATE);
     }
 
     public Optional<Path> findDownload(TorrentFile torrentFile) {
@@ -51,6 +57,38 @@ public class Library extends Sanctum {
         Path target = directory.resolve(torrentFile.getName());
         if (Files.isRegularFile(target)) return Optional.of(target);
         return Optional.empty();
+    }
+
+    private List<String> getImportable(Predicate<Path> filter) {
+
+        Path         directory = this.getResolver(IMPORTS).directory();
+        List<String> content;
+
+        try (Stream<Path> stream = Files.list(directory)) {
+            content = stream
+                    .filter(filter)
+                    .map(path -> path.getFileName().toString())
+                    .sorted()
+                    .toList();
+        } catch (Exception e) {
+            throw new StorageException(e);
+        }
+
+        if (content.stream().anyMatch(name -> name.length() > 100)) {
+            throw new StorageException("Some import names are over 100 characters long !");
+        }
+
+        return content;
+    }
+
+    public List<String> getImportableDirectories() {
+
+        return this.getImportable(Files::isDirectory);
+    }
+
+    public List<String> getImportableFiles() {
+
+        return this.getImportable(Files::isRegularFile);
     }
 
     @PreDestroy

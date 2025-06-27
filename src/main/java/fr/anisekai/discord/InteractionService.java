@@ -4,14 +4,15 @@ import fr.alexpado.jda.interactions.InteractionExtension;
 import fr.alexpado.jda.interactions.entities.DispatchEvent;
 import fr.alexpado.jda.interactions.interfaces.interactions.Injection;
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutoCompleteProvider;
-import fr.anisekai.wireless.remote.enums.AnimeList;
-import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import fr.anisekai.wireless.utils.StringUtils;
 import fr.anisekai.Texts;
+import fr.anisekai.library.Library;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.enums.BroadcastFrequency;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.UserService;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import fr.anisekai.wireless.utils.StringUtils;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
@@ -24,11 +25,13 @@ import java.util.stream.Stream;
 @Service
 public class InteractionService {
 
+    private final Library      library;
     private final UserService  userService;
     private final AnimeService animeService;
 
-    public InteractionService(UserService userService, AnimeService animeService) {
+    public InteractionService(Library library, UserService userService, AnimeService animeService) {
 
+        this.library      = library;
         this.userService  = userService;
         this.animeService = animeService;
     }
@@ -43,6 +46,8 @@ public class InteractionService {
         completionMap.put("anime", this::animeCompletion);
         completionMap.put("watchlist", this::watchlistCompletion);
         completionMap.put("frequency", this::frequencyCompletion);
+        completionMap.put("importable:directories", this::importableDirectories);
+        completionMap.put("importable:files", this::importableFiles);
     }
 
     private <T extends Interaction> Injection<DispatchEvent<T>, DiscordUser> entityUserMapper() {
@@ -86,6 +91,22 @@ public class InteractionService {
                      .filter(frequency -> frequency.getDisplayName().toLowerCase().contains(value.toLowerCase()))
                      .map(frequency -> new Command.Choice(frequency.getDisplayName(), frequency.name()))
                      .toList();
+    }
+
+    private List<Command.Choice> importableDirectories(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
+
+        return this.library.getImportableDirectories()
+                           .stream()
+                           .map(directory -> new Command.Choice(directory, directory))
+                           .toList();
+    }
+
+    private List<Command.Choice> importableFiles(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
+
+        return this.library.getImportableFiles()
+                           .stream()
+                           .map(directory -> new Command.Choice(directory, directory))
+                           .toList();
     }
 
 }

@@ -2,9 +2,14 @@ package fr.anisekai.library.tasks.factories;
 
 import fr.anisekai.library.Library;
 import fr.anisekai.library.tasks.executors.MediaImportTask;
+import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Task;
+import fr.anisekai.server.entities.Torrent;
+import fr.anisekai.server.entities.TorrentFile;
 import fr.anisekai.server.enums.TaskPipeline;
-import fr.anisekai.server.services.*;
+import fr.anisekai.server.services.EpisodeService;
+import fr.anisekai.server.services.TaskService;
+import fr.anisekai.server.services.TrackService;
 import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.server.tasking.TaskFactory;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
@@ -12,27 +17,26 @@ import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class MediaImportFactory implements TaskFactory<MediaImportTask> {
 
     public static final String NAME = "media:import";
 
-    private final TaskService        service;
-    private final Library            library;
-    private final TrackService       trackService;
-    private final TorrentService     torrentService;
-    private final TorrentFileService torrentFileService;
-    private final EpisodeService     episodeService;
+    private final TaskService    service;
+    private final Library        library;
+    private final TrackService   trackService;
+    private final EpisodeService episodeService;
 
+    public MediaImportFactory(TaskService service, Library library, TrackService trackService, EpisodeService episodeService) {
 
-    public MediaImportFactory(TaskService service, Library library, TorrentService torrentService, TrackService trackService, TorrentFileService torrentFileService, EpisodeService episodeService) {
-
-        this.service            = service;
-        this.library            = library;
-        this.torrentService     = torrentService;
-        this.trackService       = trackService;
-        this.torrentFileService = torrentFileService;
-        this.episodeService     = episodeService;
+        this.service        = service;
+        this.library        = library;
+        this.trackService   = trackService;
+        this.episodeService = episodeService;
     }
 
     @Override
@@ -47,8 +51,6 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
         return new MediaImportTask(
                 this.library,
                 this.trackService,
-                this.torrentService,
-                this.torrentFileService,
                 this.episodeService
         );
     }
@@ -59,16 +61,38 @@ public class MediaImportFactory implements TaskFactory<MediaImportTask> {
         return true;
     }
 
-    public Task queue(String torrent) {
+    public List<Task> queue(Torrent torrent) {
 
-        return this.queue(torrent, Task.PRIORITY_AUTOMATIC_LOW);
+        List<Task> tasks = new ArrayList<>();
+        for (TorrentFile file : torrent.getFiles()) {
+            Path source = this.library
+                    .findDownload(file)
+                    .orElseThrow(() -> new IllegalStateException(
+                            String.format(
+                                    "Could not determine path to file %s of torrent %s",
+                                    file.getIndex(),
+                                    file.getTorrent().getId()
+                            )));
+
+            Episode episode = file.getEpisode();
+            tasks.add(this.queue(source, episode, torrent.getPriority()));
+        }
+
+        return tasks;
     }
 
-    public Task queue(String torrent, byte priority) {
+    public Task queue(Path source, Episode episode) {
 
-        String       name      = String.format("%s:%s", this.getName(), torrent.toUpperCase());
+        return this.queue(source, episode, Task.PRIORITY_AUTOMATIC_LOW);
+    }
+
+    public Task queue(Path source, Episode episode, byte priority) {
+
+        String       name      = String.format("%s:%s", episode.getAnime().getId(), episode.getNumber());
         AnisekaiJson arguments = new AnisekaiJson();
-        arguments.put(MediaImportTask.OPTION_TORRENT, torrent);
+
+        arguments.put(MediaImportTask.OPTION_SOURCE, source.toString());
+        arguments.put(MediaImportTask.OPTION_EPISODE, episode.getId());
 
         return this.service.queue(
                 TaskBuilder.of(this)
