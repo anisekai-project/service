@@ -24,9 +24,20 @@ public class SecurityConfiguration {
         OAuth2UserService<OAuth2UserRequest, OAuth2User>                     userProvider = new OAuth2UserProvider(this.restOperations());
 
         return httpSecurity
-                // 🔐 Allow anonymous access to API
+                // 🔐 Allow anonymous access to API and some pages
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v3/**", "/error", "/login").permitAll()
+                        .requestMatchers(
+                                // Web
+                                "/",
+                                "/login",
+                                "/error",
+                                "/assets/**",
+                                // Actuator
+                                "/actuator",
+                                "/actuator/**",
+                                // API
+                                "/api/v3/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 // ❌ CSRF is useless for APIs

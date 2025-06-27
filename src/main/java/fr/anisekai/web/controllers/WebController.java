@@ -26,14 +26,14 @@ public class WebController {
         this.animeService = animeService;
     }
 
-
     @RequestMapping("/")
     public String index(DiscordUser user, Model model) {
 
         model.addAttribute("logged", true);
         model.addAttribute("user", user);
 
-        if (user == null || user.isGuest()) return "forbidden";
+        if (user == null) return "login";
+        if (user.isGuest()) return "forbidden";
 
         List<Anime>          animes     = this.animeService.getProxy().getRepository().findAll();
         List<String>         groupNames = animes.stream().map(Anime::getGroup).distinct().sorted().toList();
