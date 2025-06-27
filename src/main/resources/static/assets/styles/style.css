@@ -297,7 +297,7 @@ details > .content {
 .anime > summary img {
     height: 100%;
     aspect-ratio: 5 / 2;
-    background-image: url("/assets/images/unknown.png");
+    background-image: url("/assets/images/unknown.webp");
 }
 
 .anime > summary::before {

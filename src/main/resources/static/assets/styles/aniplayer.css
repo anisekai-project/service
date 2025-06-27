@@ -6,7 +6,7 @@
     max-height: min(100%, 100vh);
     aspect-ratio: 16 / 9;
 
-    background-image: url("/assets/images/player.png");
+    background-image: url("/assets/images/player.webp");
     background-size: 20%;
     background-repeat: no-repeat;
     background-position: bottom 28px right;

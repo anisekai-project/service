@@ -24,7 +24,7 @@ public class Library extends Sanctum {
 
     public static final FileStore CHUNKS       = new ScopedDirectoryStorage("chunks", Episode.class);
     public static final FileStore DOWNLOADS    = new RawStorage("downloads");
-    public static final FileStore EVENT_IMAGES = new ScopedFileStorage("event-images", Anime.class, "png");
+    public static final FileStore EVENT_IMAGES = new ScopedFileStorage("event-images", Anime.class, "webp");
     public static final FileStore SUBTITLES    = new ScopedDirectoryStorage("subs", Episode.class);
 
     public Library(@Value("${disk.media}") String location) {

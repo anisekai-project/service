@@ -315,8 +315,8 @@ public class AnimeInteractions {
 
         requireAdministrator(user);
 
-        if (!attachment.isImage() || !"png".equals(attachment.getFileExtension())) {
-            return DiscordResponse.error("Merci de fournir une image.\n***800x320 (png)***");
+        if (!attachment.isImage() || !"webp".equals(attachment.getFileExtension())) {
+            return DiscordResponse.error("Merci de fournir une image.\n***800x320 (webp)***");
         }
 
         if (attachment.getWidth() != 800 || attachment.getHeight() != 320) {

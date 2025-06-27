@@ -111,7 +111,7 @@ public class MediaController {
         File            target   = resolver.file(anime).toFile();
 
         if (!target.exists()) {
-            URI redirectUri = URI.create("/assets/images/unknown.png");
+            URI redirectUri = URI.create("/assets/images/unknown.webp");
             return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
                                  .location(redirectUri)
                                  .build();
