@@ -19,6 +19,7 @@ public class DataUtils {
             trackJson.put("codec", track.getCodec().name().toLowerCase());
             trackJson.put("type", track.getCodec().getType().name().toLowerCase());
             trackJson.put("language", track.getLanguage());
+            trackJson.put("forced", track.isForced());
 
             tracks.put(trackJson);
         }

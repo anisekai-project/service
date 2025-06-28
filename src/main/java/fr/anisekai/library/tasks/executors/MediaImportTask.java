@@ -116,6 +116,7 @@ public class MediaImportTask implements TaskExecutor {
                 Track track = this.trackService.getProxy().create(entity -> {
                     entity.setEpisode(episode);
                     entity.setName("Track %s".formatted(stream.getId()));
+                    entity.setLabel(stream.getMetadata().get("title"));
                     entity.setCodec(stream.getCodec());
                     entity.setLanguage(stream.getMetadata().get("language"));
                     entity.setForced(stream.getDispositions().contains(Disposition.FORCED));
@@ -130,7 +131,7 @@ public class MediaImportTask implements TaskExecutor {
             FFMpeg.convert(media)
                   .noVideo()
                   .noAudio()
-                  .copySubtitle()
+                  .subtitle(Codec.SSA)
                   .into(subStorage)
                   .split((stream, codec) -> nameMapping.get(stream))
                   .timeout(1, TimeUnit.HOURS)

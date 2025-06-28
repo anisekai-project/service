@@ -16,6 +16,7 @@ const languageMap = {
  * @property {string} name Name of the track
  * @property {string|null} label Custom label for the track
  * @property {string|null} language Language of the track
+ * @property {boolean} forced If it's a forced track
  */
 
 /**
@@ -243,7 +244,13 @@ export default class Aniplayer {
 
         for (let track of this.getAvailableSubtitles()) {
             const element = document.createElement('li');
-            element.innerText = track.label ?? languageMap[track.language] ?? track.language;
+            let trackName = track.label ?? languageMap[track.language] ?? track.label;
+
+            if (track.forced) {
+                trackName = `${trackName} (Forcé)`
+            }
+
+            element.innerText = trackName;
             element.setAttribute('track-id', `${track.id}`);
             element.addEventListener('click', () => {
                 this.useSubtitles(track.id);
