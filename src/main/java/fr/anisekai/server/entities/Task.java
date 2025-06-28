@@ -191,4 +191,12 @@ public class Task implements TaskEventAdapter {
         this.updatedAt = ZonedDateTime.now();
     }
 
+    public String toDiscordName() {
+        return String.format(
+                "Tâche **%s** (**%s** : `%s`)",
+                this.getId(),
+                this.getFactoryName(),
+                this.getName()
+        );
+    }
 }

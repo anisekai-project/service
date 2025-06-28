@@ -28,7 +28,11 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @InteractionBean
@@ -134,7 +138,6 @@ public class TaskInteractions {
     }
     // </editor-fold>
 
-
     // <editor-fold desc="@ task/import-file ─ Import a media file as an episode for an anime">
     @Interact(
             name = "task/import-file",
@@ -163,7 +166,7 @@ public class TaskInteractions {
                     )
             }
     )
-    public SlashResponse importMediaFile(UserEntity user, @Param("anime") long animeId, @Param("file") String file, @Param("episode") long episodeNumber) {
+    public SlashResponse importMedia(UserEntity user, @Param("anime") long animeId, @Param("file") String file, @Param("episode") long episodeNumber) {
 
         requireAdministrator(user);
         Anime anime  = this.animeService.fetch(animeId);
@@ -176,7 +179,7 @@ public class TaskInteractions {
         long max = Math.abs(anime.getTotal());
 
         if (episodeNumber > max) {
-            return DiscordResponse.warn("Le nombre d'épisode maximum pour cet anime est de **%s**".formatted(max));
+            return DiscordResponse.warn("Le nombre d'épisode maximum pour cet anime est de **%s**", max);
         }
 
         Episode episode = anime.getEpisodes()
@@ -187,12 +190,97 @@ public class TaskInteractions {
 
         Task task = this.service.getFactory(MediaImportFactory.class).queue(source, episode);
 
-        return DiscordResponse.info(String.format(
-                "L'épisode **%s** de l'anime **%s** va être importé.\nTâche: `%s`",
+        return DiscordResponse.info(
+                "L'épisode **%s** de l'anime **%s** va être importé.\n%s",
                 episode.getNumber(),
                 DiscordUtils.link(anime),
-                task.getName()
-        ));
+                task.toDiscordName()
+        );
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ task/import-directory ─ Import a media directory where each file is an episode for an anime">
+    @Interact(
+            name = "task/import-directory",
+            description = "\uD83D\uDD12 — Importe un dossier media où chaque fichier correspond à un épisode d'un anime.",
+            options = {
+                    @Option(
+                            name = "anime",
+                            description = "Anime pour lequel le fichier sera importé",
+                            type = OptionType.INTEGER,
+                            required = true,
+                            autoComplete = true
+                    ),
+                    @Option(
+                            name = "directory",
+                            autoCompleteName = "importable:directories",
+                            description = "Dossier à importer",
+                            type = OptionType.STRING,
+                            required = true,
+                            autoComplete = true
+                    ),
+            }
+    )
+    public SlashResponse importMedia(UserEntity user, @Param("anime") long animeId, @Param("directory") String directory) throws Exception {
+
+        requireAdministrator(user);
+        Anime anime  = this.animeService.fetch(animeId);
+        Path  source = this.library.getResolver(Library.IMPORTS).directory(directory);
+
+        if (!Files.isDirectory(source)) {
+            return DiscordResponse.error("Le dossier choisi n'est pas valide.");
+        }
+
+        // Analyzing content
+        Map<Integer, Path> pathMapping = new HashMap<>();
+        Pattern            pattern     = Pattern.compile("(?<ep>\\d+)\\.(mkv|mp4)");
+        int                max         = Math.abs(anime.getTotal());
+
+        try (Stream<Path> stream = Files.list(source)) {
+            for (Path path : stream.toList()) {
+                String  name    = path.getFileName().toString();
+                Matcher matcher = pattern.matcher(name);
+
+                if (!matcher.matches()) {
+                    return DiscordResponse.error(
+                            "Impossible de determiner le numéro d'épisode pour le fichier `%s`.\nPattern: `%s`",
+                            name,
+                            pattern.pattern()
+                    );
+                }
+
+                int episodeNumber = Integer.parseInt(matcher.group("ep"));
+
+                if (episodeNumber > max) {
+                    return DiscordResponse.warn(
+                            "Le nombre d'épisode maximum pour cet anime est de **%s**.\nÉpisode détecté: **%s**",
+                            max,
+                            episodeNumber
+                    );
+                }
+
+                pathMapping.put(episodeNumber, path.toAbsolutePath().normalize());
+            }
+        }
+
+        List<Task> tasks = new ArrayList<>();
+        for (Map.Entry<Integer, Path> entry : pathMapping.entrySet()) {
+            Episode episode = anime.getEpisodes()
+                                   .stream()
+                                   .filter(item -> item.getNumber() == entry.getKey())
+                                   .findFirst()
+                                   .orElseGet(() -> this.episodeService.create(anime, entry.getKey()));
+
+            Task task = this.service.getFactory(MediaImportFactory.class).queue(entry.getValue(), episode);
+            tasks.add(task);
+        }
+
+        return DiscordResponse.info(
+                "Le dossier `%s` va être importé. **%s** tâches ont été créé.\n- %s",
+                directory,
+                tasks.size(),
+                tasks.stream().map(Task::toDiscordName).collect(Collectors.joining("\n- "))
+        );
     }
     // </editor-fold>
 
