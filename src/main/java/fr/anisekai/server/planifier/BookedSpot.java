@@ -11,9 +11,9 @@ public class BookedSpot<T extends WatchTarget> implements ScheduleSpotData<T> {
 
     private T             target;
     private ZonedDateTime startingAt;
-    private long          episodeCount;
+    private int          episodeCount;
 
-    public BookedSpot(T target, ZonedDateTime startingAt, long episodeCount) {
+    public BookedSpot(T target, ZonedDateTime startingAt, int episodeCount) {
 
         this.target       = target;
         this.startingAt   = startingAt;
@@ -45,13 +45,13 @@ public class BookedSpot<T extends WatchTarget> implements ScheduleSpotData<T> {
     }
 
     @Override
-    public long getEpisodeCount() {
+    public int getEpisodeCount() {
 
         return this.episodeCount;
     }
 
     @Override
-    public void setEpisodeCount(long episodeCount) {
+    public void setEpisodeCount(int episodeCount) {
 
         this.episodeCount = episodeCount;
     }

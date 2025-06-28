@@ -172,7 +172,7 @@ public class AnimeInteractions {
     public SlashResponse animeProgress(UserEntity user, @Param("anime") long animeId, @Param("progress") long progress) {
 
         requireAdministrator(user);
-        Anime anime = this.service.mod(animeId, entity -> entity.setWatched(progress));
+        Anime anime = this.service.mod(animeId, entity -> entity.setWatched((int) progress));
         return DiscordResponse.info(
                 "La progression de l'anime **%s** a bien été mis à jour.\n%s épisode(s) regardé(s)",
                 anime.getTitle(),
@@ -204,7 +204,7 @@ public class AnimeInteractions {
     public SlashResponse animeTotal(UserEntity user, @Param("anime") long animeId, @Param("total") long total) {
 
         requireAdministrator(user);
-        Anime anime = this.service.mod(animeId, entity -> entity.setTotal(total));
+        Anime anime = this.service.mod(animeId, entity -> entity.setTotal((int) total));
         return DiscordResponse.info(
                 "Le nombre total d'épisode de l'anime **%s** a bien été mis à jour.\n%s épisode(s) au total %s",
                 anime.getTitle(),
@@ -237,7 +237,7 @@ public class AnimeInteractions {
     public SlashResponse animeDuration(UserEntity user, @Param("anime") long animeId, @Param("duration") long duration) {
 
         requireAdministrator(user);
-        Anime anime = this.service.mod(animeId, entity -> entity.setEpisodeDuration(duration));
+        Anime anime = this.service.mod(animeId, entity -> entity.setEpisodeDuration((int) duration));
         return DiscordResponse.info(
                 "La durée d'un épisode pour l'anime **%s** a bien été mis à jour.\n%s minutes",
                 anime.getTitle(),

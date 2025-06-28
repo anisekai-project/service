@@ -43,8 +43,8 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         AnimeList status          = AnimeList.from(rawStatus);
         String    link            = source.getString("link");
         String    image           = source.getString("image");
-        long      total           = Long.parseLong(source.getString("episode"));
-        long      episodeDuration = Long.parseLong(source.getString("time"));
+        int      total           = Integer.parseInt(source.getString("episode"));
+        int      episodeDuration = Integer.parseInt(source.getString("time"));
         String    group           = source.getString("group");
         byte      order           = Byte.parseByte(source.getString("order"));
 
@@ -106,7 +106,7 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         );
     }
 
-    public Consumer<AnimeEventAdapter> defineProgression(long progression) {
+    public Consumer<AnimeEventAdapter> defineProgression(int progression) {
 
         return entity -> {
             entity.setWatched(progression);
@@ -116,7 +116,7 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         };
     }
 
-    public Consumer<AnimeEventAdapter> defineProgression(long progression, long total) {
+    public Consumer<AnimeEventAdapter> defineProgression(int progression, int total) {
 
         return entity -> {
             entity.setWatched(progression);

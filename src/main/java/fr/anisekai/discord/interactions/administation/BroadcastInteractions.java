@@ -97,7 +97,7 @@ public class BroadcastInteractions {
             return DiscordResponse.error("Impossible de plannifier des séances dans le passé.");
         }
 
-        List<Broadcast> scheduled = this.service.schedule(anime, starting, frequency, amount);
+        List<Broadcast> scheduled = this.service.schedule(anime, starting, frequency, (int) amount);
 
         return DiscordResponse.info(switch (scheduled.size()) {
             case 0 -> "Aucune séance n'a été plannifiée.";

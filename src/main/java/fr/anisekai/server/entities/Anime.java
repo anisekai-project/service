@@ -49,13 +49,13 @@ public class Anime implements AnimeEventAdapter, ScopedEntity, Comparable<Anime>
     private String titleRegex;
 
     @Column
-    private long watched = 0;
+    private int watched = 0;
 
     @Column
-    private long total = 0;
+    private int total = 0;
 
     @Column
-    private long episodeDuration = 0;
+    private int episodeDuration = 0;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private DiscordUser addedBy;
@@ -190,37 +190,37 @@ public class Anime implements AnimeEventAdapter, ScopedEntity, Comparable<Anime>
     }
 
     @Override
-    public long getWatched() {
+    public int getWatched() {
 
         return this.watched;
     }
 
     @Override
-    public void setWatched(long watched) {
+    public void setWatched(int watched) {
 
         this.watched = watched;
     }
 
     @Override
-    public long getTotal() {
+    public int getTotal() {
 
         return this.total;
     }
 
     @Override
-    public void setTotal(long total) {
+    public void setTotal(int total) {
 
         this.total = total;
     }
 
     @Override
-    public long getEpisodeDuration() {
+    public int getEpisodeDuration() {
 
         return this.episodeDuration;
     }
 
     @Override
-    public void setEpisodeDuration(long episodeDuration) {
+    public void setEpisodeDuration(int episodeDuration) {
 
         this.episodeDuration = episodeDuration;
     }

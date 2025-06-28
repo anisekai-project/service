@@ -108,7 +108,7 @@ public class EventListeners {
     }
 
     @EventListener({AnimeTotalUpdatedEvent.class, AnimeWatchedUpdatedEvent.class})
-    public void onAnimeEpisodeValueUpdated(AnimeUpdatedEvent<Long> event) {
+    public void onAnimeEpisodeValueUpdated(AnimeUpdatedEvent<Integer> event) {
 
         Anime   anime            = event.getEntity();
         boolean hasBeenFinished  = anime.getWatched() == anime.getTotal();

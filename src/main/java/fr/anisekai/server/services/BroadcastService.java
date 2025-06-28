@@ -1,12 +1,5 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.api.plannifier.EventScheduler;
-import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
-import fr.anisekai.wireless.api.plannifier.interfaces.Scheduler;
-import fr.anisekai.wireless.api.plannifier.interfaces.SchedulerManager;
-import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
-import fr.anisekai.wireless.remote.enums.BroadcastStatus;
-import fr.anisekai.server.planifier.BookedSpot;
 import fr.anisekai.discord.tasks.broadcast.cancel.BroadcastCancelFactory;
 import fr.anisekai.discord.tasks.broadcast.schedule.BroadcastScheduleFactory;
 import fr.anisekai.server.entities.Anime;
@@ -14,8 +7,15 @@ import fr.anisekai.server.entities.Broadcast;
 import fr.anisekai.server.entities.adapters.BroadcastEventAdapter;
 import fr.anisekai.server.enums.BroadcastFrequency;
 import fr.anisekai.server.persistence.DataService;
+import fr.anisekai.server.planifier.BookedSpot;
 import fr.anisekai.server.proxy.BroadcastProxy;
 import fr.anisekai.server.repositories.BroadcastRepository;
+import fr.anisekai.wireless.api.plannifier.EventScheduler;
+import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
+import fr.anisekai.wireless.api.plannifier.interfaces.Scheduler;
+import fr.anisekai.wireless.api.plannifier.interfaces.SchedulerManager;
+import fr.anisekai.wireless.api.plannifier.interfaces.entities.Planifiable;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.springframework.stereotype.Service;
 
@@ -108,9 +108,9 @@ public class BroadcastService extends DataService<Broadcast, Long, BroadcastEven
         return new EventScheduler<>(this, broadcasts);
     }
 
-    public List<Broadcast> schedule(Anime anime, ZonedDateTime starting, BroadcastFrequency frequency, long amount) {
+    public List<Broadcast> schedule(Anime anime, ZonedDateTime starting, BroadcastFrequency frequency, int amount) {
 
-        long total = Math.abs(anime.getTotal());
+        int total = Math.abs(anime.getTotal());
 
         if (total == 0) {
             throw new IllegalArgumentException("Unknown amount of episodes");
@@ -120,11 +120,11 @@ public class BroadcastService extends DataService<Broadcast, Long, BroadcastEven
 
         if (frequency.hasDateModifier()) {
             Collection<ScheduleSpotData<Anime>> spots       = new ArrayList<>();
-            long                                schedulable = total - anime.getWatched();
+            int                                 schedulable = total - anime.getWatched();
             ZonedDateTime                       spotTime    = starting;
 
             while (schedulable > 0) {
-                long              spotAmount = schedulable - amount < 0 ? schedulable : amount;
+                int               spotAmount = schedulable - amount < 0 ? schedulable : amount;
                 BookedSpot<Anime> spot       = new BookedSpot<>(anime, spotTime, spotAmount);
 
                 if (!scheduler.canSchedule(spot)) {

@@ -32,10 +32,10 @@ public class Broadcast implements BroadcastEventAdapter {
     private BroadcastStatus status;
 
     @Column(nullable = false)
-    private long episodeCount;
+    private int episodeCount;
 
     @Column(nullable = false)
-    private long firstEpisode;
+    private int firstEpisode;
 
     @Column(nullable = false)
     private boolean skipEnabled;
@@ -101,25 +101,25 @@ public class Broadcast implements BroadcastEventAdapter {
     }
 
     @Override
-    public long getEpisodeCount() {
+    public int getEpisodeCount() {
 
         return this.episodeCount;
     }
 
     @Override
-    public void setEpisodeCount(long episodeCount) {
+    public void setEpisodeCount(int episodeCount) {
 
         this.episodeCount = episodeCount;
     }
 
     @Override
-    public long getFirstEpisode() {
+    public int getFirstEpisode() {
 
         return this.firstEpisode;
     }
 
     @Override
-    public void setFirstEpisode(long firstEpisode) {
+    public void setFirstEpisode(int firstEpisode) {
 
         this.firstEpisode = firstEpisode;
     }

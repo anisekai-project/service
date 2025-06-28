@@ -20,7 +20,7 @@ public interface BroadcastEventAdapter extends BroadcastEntity<Anime> {
 
     @Override
     @TriggerEvent(BroadcastFirstEpisodeUpdatedEvent.class)
-    void setFirstEpisode(long firstEpisode);
+    void setFirstEpisode(int firstEpisode);
 
     @Override
     @TriggerEvent(BroadcastStartingAtUpdatedEvent.class)
@@ -28,6 +28,6 @@ public interface BroadcastEventAdapter extends BroadcastEntity<Anime> {
 
     @Override
     @TriggerEvent(BroadcastEpisodeCountUpdatedEvent.class)
-    void setEpisodeCount(long episodeCount);
+    void setEpisodeCount(int episodeCount);
 
 }

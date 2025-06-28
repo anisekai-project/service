@@ -38,14 +38,14 @@ public interface AnimeEventAdapter extends AnimeEntity<DiscordUser> {
 
     @Override
     @TriggerEvent(AnimeWatchedUpdatedEvent.class)
-    void setWatched(long watched);
+    void setWatched(int watched);
 
     @Override
     @TriggerEvent(AnimeTotalUpdatedEvent.class)
-    void setTotal(long total);
+    void setTotal(int total);
 
     @Override
     @TriggerEvent(AnimeEpisodeDurationUpdatedEvent.class)
-    void setEpisodeDuration(long episodeDuration);
+    void setEpisodeDuration(int episodeDuration);
 
 }
