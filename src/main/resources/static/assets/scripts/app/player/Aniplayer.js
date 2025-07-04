@@ -5,7 +5,8 @@ import {toFormattedDuration} from "../Utils.js";
 
 const languageMap = {
     'jpn': 'Japonais',
-    'fre': 'Français'
+    'fre': 'Français',
+    'eng': 'Anglais'
 }
 
 /**
@@ -72,7 +73,7 @@ export default class Aniplayer {
         this.trackbars = {
             media: new Trackbar(this.ui.timingBar, {
                 onChange: value => {
-                    this.ui.video.fastSeek(value)
+                    this.ui.video.currentTime = value;
                     this.ui.video.focus();
                 }
             }),
