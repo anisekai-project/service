@@ -7,6 +7,7 @@ import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.TrackProxy;
 import fr.anisekai.server.repositories.TrackRepository;
 import fr.anisekai.wireless.api.media.MediaFile;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class TrackService extends DataService<Track, Long, TrackEventAdapter, Tr
                         })).toList();
     }
 
+    @Transactional
     public void clearTracks(Episode episode) {
 
         this.getProxy().getRepository().deleteByEpisode(episode);
