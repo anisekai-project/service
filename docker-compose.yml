@@ -8,7 +8,7 @@ services:
     image: akionakao/anisekai:alpha
     user: '1000:1000'
     ports:
-      - '10000:${SERVER_PORT:-8080}'
+      - '${FW_SERVICE_PORT:-8080}:${SERVER_PORT:-8080}'
     networks:
       - anisekai
     links:
@@ -22,9 +22,8 @@ services:
       - './data/web:/app/data/library'
   mariadb:
     image: 'mariadb:11.8.2'
-    user: '1000:1000'
     ports:
-      - '10001:${DB_PORT}'
+      - '${FW_DATABASE_PORT:-3306}:3306'
     environment:
       MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
       MYSQL_ROOT_HOST: "%"
@@ -48,8 +47,8 @@ services:
     image: akionakao/transmission:4.0.5
     user: '1000:1000'
     ports:
-      - '10003:9091'
-      - '10004:51423'
+      - '${FW_TRANSMISSION_RPC_PORT:-9091}:9091'
+      - '${FW_TRANSMISSION_PEER_PORT:-51423}:51423'
     networks:
       - anisekai
     volumes:
