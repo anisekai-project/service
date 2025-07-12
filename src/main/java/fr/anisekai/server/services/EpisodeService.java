@@ -8,6 +8,7 @@ import fr.anisekai.server.proxy.EpisodeProxy;
 import fr.anisekai.server.repositories.EpisodeRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,6 +30,11 @@ public class EpisodeService extends DataService<Episode, Long, EpisodeEventAdapt
             episode.setAnime(anime);
             episode.setNumber(number);
         });
+    }
+
+    public List<Episode> getAllReady() {
+
+        return this.fetchAll(EpisodeRepository::findAllByReadyTrue);
     }
 
 }
