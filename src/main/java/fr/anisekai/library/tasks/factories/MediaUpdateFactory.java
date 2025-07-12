@@ -77,7 +77,7 @@ public class MediaUpdateFactory implements TaskFactory<MediaUpdateTask> {
     @PostConstruct
     private void postConstruct() {
 
-        this.service.registerFactory(TaskPipeline.HEAVY, this);
+        this.service.registerFactory(TaskPipeline.SOFT, this);
     }
 
 }
