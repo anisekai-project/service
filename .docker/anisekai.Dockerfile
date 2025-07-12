@@ -16,8 +16,6 @@ RUN git clone https://github.com/$namespace/$project.git && \
 FROM openjdk:21-bookworm AS service
 LABEL authors="anisekai"
 
-ARG ffmpeg_version="7.0.2"
-
 WORKDIR /app
 
 # Install deps
@@ -28,7 +26,7 @@ RUN apt-get update &&  \
 # Installing ffmpeg
 RUN curl https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -O && \
     tar xvf 'ffmpeg-release-amd64-static.tar.xz' && \
-    mv ffmpeg-${ffmpeg_version}-amd64-static /var/opt/ffmpeg && \
+    mv ffmpeg-*-amd64-static /var/opt/ffmpeg && \
     ln -s /var/opt/ffmpeg/ffmpeg /usr/bin/ffmpeg && \
     ln -s /var/opt/ffmpeg/ffprobe /usr/bin/ffprobe && \
     rm 'ffmpeg-release-amd64-static.tar.xz'
