@@ -35,7 +35,7 @@ services:
     networks:
       - anisekai
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      test: [ "CMD", "mariadb", "-u", '${DB_USERNAME}', '-p${DB_PASSWORD}', '-e', 'EXIT']
       start_period: 10s
       interval: 10s
       timeout: 5s
