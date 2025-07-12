@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.TrackEventAdapter;
 import fr.anisekai.wireless.api.media.enums.Codec;
 import fr.anisekai.wireless.remote.interfaces.TrackEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.TrackEventAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,18 +24,15 @@ public class Track implements TrackEventAdapter {
     @Column(nullable = false)
     private String name;
 
-    @Column
-    private String label;
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     public Codec codec;
 
-    @Column(nullable = false)
-    private boolean forced = false;
-
     @Column
     private String language;
+
+    @Column(nullable = false)
+    private int dispositions;
 
     @Column(nullable = false)
     private final ZonedDateTime createdAt = ZonedDateTime.now();
@@ -74,18 +71,6 @@ public class Track implements TrackEventAdapter {
     }
 
     @Override
-    public String getLabel() {
-
-        return this.label;
-    }
-
-    @Override
-    public void setLabel(@NotNull String label) {
-
-        this.label = label;
-    }
-
-    @Override
     public @NotNull Codec getCodec() {
 
         return this.codec;
@@ -110,15 +95,15 @@ public class Track implements TrackEventAdapter {
     }
 
     @Override
-    public boolean isForced() {
+    public int getDispositions() {
 
-        return this.forced;
+        return this.dispositions;
     }
 
     @Override
-    public void setForced(boolean forced) {
+    public void setDispositions(int dispositions) {
 
-        this.forced = forced;
+        this.dispositions = dispositions;
     }
 
     @Override

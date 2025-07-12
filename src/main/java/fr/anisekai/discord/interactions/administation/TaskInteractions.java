@@ -11,6 +11,7 @@ import fr.anisekai.discord.tasks.watchlist.create.WatchlistCreateFactory;
 import fr.anisekai.discord.tasks.watchlist.update.WatchlistUpdateFactory;
 import fr.anisekai.library.Library;
 import fr.anisekai.library.tasks.factories.MediaImportFactory;
+import fr.anisekai.library.tasks.factories.MediaUpdateFactory;
 import fr.anisekai.library.tasks.factories.TorrentRetentionControlFactory;
 import fr.anisekai.library.tasks.factories.TorrentSourcingFactory;
 import fr.anisekai.server.entities.Anime;
@@ -280,6 +281,35 @@ public class TaskInteractions {
                 directory,
                 tasks.size(),
                 tasks.stream().map(Task::toDiscordName).collect(Collectors.joining("\n- "))
+        );
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="@ task/update-episode ─ Refresh an episode on the disk">
+    @Interact(
+            name = "task/update-episode",
+            description = "\uD83D\uDD12 — Actualise un épisode sur le disque.",
+            options = {
+                    @Option(
+                            name = "episode",
+                            autoComplete = true,
+                            description = "Episode pour lequel l'actualisation sera lancée.",
+                            type = OptionType.INTEGER,
+                            required = true
+                    )
+            }
+    )
+    public SlashResponse updateEpisode(UserEntity user, @Param("episode") long episodeId) {
+
+        requireAdministrator(user);
+        Episode episode = this.episodeService.fetch(episodeId);
+        Task    task    = this.service.getFactory(MediaUpdateFactory.class).queue(episode);
+
+        return DiscordResponse.info(
+                "L'épisode **%s** de l'anime **%s** va être actualisé.\n%s",
+                episode.getNumber(),
+                DiscordUtils.link(episode.getAnime()),
+                task.toDiscordName()
         );
     }
     // </editor-fold>

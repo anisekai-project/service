@@ -26,20 +26,26 @@ import java.util.stream.Stream;
 @Component
 public class Library extends Sanctum {
 
-    public static final FileStore CHUNKS       = new ScopedDirectoryStorage("chunks", Episode.class);
-    public static final FileStore DOWNLOADS    = new RawStorage("downloads");
+    public static final FileStore CHUNKS    = new ScopedDirectoryStorage("chunks", Episode.class);
+    public static final FileStore EPISODES  = new ScopedFileStorage("episodes", Episode.class, "mkv");
+    public static final FileStore SUBTITLES = new ScopedDirectoryStorage("subs", Episode.class);
+
     public static final FileStore EVENT_IMAGES = new ScopedFileStorage("event-images", Anime.class, "webp");
-    public static final FileStore SUBTITLES    = new ScopedDirectoryStorage("subs", Episode.class);
-    public static final FileStore IMPORTS      = new RawStorage("imports");
+
+    public static final FileStore DOWNLOADS = new RawStorage("downloads");
+    public static final FileStore IMPORTS   = new RawStorage("imports");
 
     public Library(@Value("${disk.media}") String location) {
 
         super(Path.of(location));
 
         this.registerStore(CHUNKS, StorePolicy.FULL_SWAP);
-        this.registerStore(DOWNLOADS, StorePolicy.PRIVATE);
-        this.registerStore(EVENT_IMAGES, StorePolicy.OVERWRITE);
+        this.registerStore(EPISODES, StorePolicy.OVERWRITE);
         this.registerStore(SUBTITLES, StorePolicy.FULL_SWAP);
+
+        this.registerStore(EVENT_IMAGES, StorePolicy.OVERWRITE);
+
+        this.registerStore(DOWNLOADS, StorePolicy.PRIVATE);
         this.registerStore(IMPORTS, StorePolicy.PRIVATE);
     }
 

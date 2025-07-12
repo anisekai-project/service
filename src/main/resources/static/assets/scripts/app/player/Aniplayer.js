@@ -3,21 +3,14 @@ import Trackbar from "../ui/Trackbar.js";
 import ActivityTracker from "./ActivityTracker.js";
 import {toFormattedDuration} from "../Utils.js";
 
-const languageMap = {
-    'jpn': 'Japonais',
-    'fre': 'Français',
-    'eng': 'Anglais'
-}
-
 /**
  * @typedef {Object} Track
- * @property {number} id ID of the track
- * @property {string} codec Codec used for the track
- * @property {'video'|'audio'|'subtitle'} type Type of the track
- * @property {string} name Name of the track
- * @property {string|null} label Custom label for the track
- * @property {string|null} language Language of the track
- * @property {boolean} forced If it's a forced track
+ * @property {number} id ID of the track.
+ * @property {string} name Name of the track.
+ * @property {string} codec Codec used for the track.
+ * @property {'video'|'audio'|'subtitle'} type Type of the track.
+ * @property {string|null} language Language of the track.
+ * @property {string[]} dispositions Dispositions of the track.
  */
 
 /**
@@ -221,9 +214,9 @@ export default class Aniplayer {
         for (let track of this.shaka.getAudioTracks()) {
             const element = document.createElement('li');
             if (track.active) element.classList.add('active');
-            element.innerText = languageMap[track.originalLanguage] ?? track.originalLanguage;
+            element.innerText = track.label;
             element.addEventListener('click', () => {
-                this.shaka.selectAudioLanguage(track.language);
+                this.shaka.selectAudioTrack(track);
                 this.menuEntries.audio.forEach(entry => entry.classList.remove('active'));
                 element.classList.add('active');
             });
@@ -245,13 +238,7 @@ export default class Aniplayer {
 
         for (let track of this.getAvailableSubtitles()) {
             const element = document.createElement('li');
-            let trackName = track.label ?? languageMap[track.language] ?? track.label;
-
-            if (track.forced) {
-                trackName = `${trackName} (Forcé)`
-            }
-
-            element.innerText = trackName;
+            element.innerText = track.name;
             element.setAttribute('track-id', `${track.id}`);
             element.addEventListener('click', () => {
                 this.useSubtitles(track.id);
