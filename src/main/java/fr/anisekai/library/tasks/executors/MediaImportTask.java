@@ -116,7 +116,7 @@ public class MediaImportTask implements TaskExecutor {
         }
     }
 
-    private Track createTrack(MediaStream stream) {
+    private Track createTrack(MediaStream stream, Codec codec) {
 
         Consumer<TrackEventAdapter> trackUpdater = entity -> {
             entity.setEpisode(this.episode);
@@ -127,13 +127,13 @@ public class MediaImportTask implements TaskExecutor {
                 entity.setName("Track %s".formatted(stream.getId()));
             }
 
-            switch (stream.getCodec().getType()) {
+            switch (codec.getType()) {
                 case VIDEO -> entity.setCodec(VIDEO_CODEC);
                 case AUDIO -> entity.setCodec(AUDIO_CODEC);
                 case SUBTITLE -> entity.setCodec(SUBTITLE_CODEC);
             }
 
-            entity.setCodec(stream.getCodec());
+            entity.setCodec(codec);
             entity.setLanguage(stream.getMetadata().get("language"));
             entity.setDispositions(Disposition.toBits(stream.getDispositions()));
         };
@@ -147,7 +147,7 @@ public class MediaImportTask implements TaskExecutor {
         AtomicInteger counter = new AtomicInteger(0);
 
         MediaStreamMapper mapper = ((MediaStreamMapper) (binary, stream, codec) -> {
-            Track track = this.createTrack(stream);
+            Track track = this.createTrack(stream, codec);
 
             binary.addArguments(
                     "-map",
