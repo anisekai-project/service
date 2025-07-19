@@ -167,7 +167,8 @@ public class MediaImportTask implements TaskExecutor {
             if (codec.getType() == CodecType.VIDEO) {
                 binary.addArguments("-crf", 25);
                 binary.addArguments("-vf", "format=yuv420p");
-                binary.addArguments("-color_range", "pc");
+            } else if (codec.getType() == CodecType.AUDIO) {
+                binary.addArguments("-ac", "2");
             }
 
         }).onlyIf((stream, codec) -> !CODEC_EXCLUSION.contains(stream.getCodec()));
