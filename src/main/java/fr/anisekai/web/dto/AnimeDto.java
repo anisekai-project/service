@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class AnimeDto {
+
+    private static final String IMAGE_URL = "/api/v3/library/event-images/%s";
 
     public long             id;
     public String           group;
@@ -26,7 +29,7 @@ public class AnimeDto {
         this.order    = anime.getOrder();
         this.title    = anime.getTitle();
         this.url      = anime.getUrl();
-        this.imageUrl = String.format("/media/event-image/%s", anime.getId());
+        this.imageUrl = String.format(IMAGE_URL, anime.getId());
         this.episodes = episodes.stream()
                                 .sorted(Comparator.comparing(Episode::getNumber))
                                 .filter(EpisodeEntity::isReady)
@@ -40,15 +43,22 @@ public class AnimeDto {
         this.order    = anime.getOrder();
         this.title    = anime.getTitle();
         this.url      = anime.getUrl();
-        this.imageUrl = String.format("/media/event-image/%s", anime.getId());
+        this.imageUrl = String.format(IMAGE_URL, anime.getId());
         this.episodes = new ArrayList<>();
 
-        long amount = Math.abs(anime.getTotal());
+        int amount = Math.abs(anime.getTotal());
 
-        for (long i = 1; i <= amount; i++) {
+        for (int i = 1; i <= amount; i++) {
             this.episodes.add(new EpisodeDto(i));
         }
     }
 
+    public static List<AnimeDto> toSortedDtos(Collection<Anime> animes, Function<Anime, AnimeDto> dtoFunction) {
+
+        return animes.stream()
+                     .sorted(Comparator.comparing(Anime::getGroup).thenComparing(Anime::getOrder))
+                     .map(dtoFunction)
+                     .toList();
+    }
 
 }

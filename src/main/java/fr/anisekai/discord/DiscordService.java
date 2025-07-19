@@ -57,7 +57,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
 
     public void login(ListableBeanFactory beanFactory) {
 
-        if (this.configuration.getToken().isBlank() || !this.configuration.isEnabled()) {
+        if (this.configuration.getBotToken().isBlank() || !this.configuration.isBotEnabled()) {
             LOGGER.info("Discord token is missing or the bot is disabled.");
             return;
         }
@@ -67,7 +67,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
         LOGGER.info("Booting up discord service...");
 
         JDABuilder builder = JDABuilder.create(
-                this.configuration.getToken(),
+                this.configuration.getBotToken(),
                 GatewayIntent.getIntents(GatewayIntent.DEFAULT)
         );
 

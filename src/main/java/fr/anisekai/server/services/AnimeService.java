@@ -1,15 +1,15 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
-import fr.anisekai.wireless.remote.enums.AnimeList;
-import fr.anisekai.server.entities.adapters.AnimeEventAdapter;
-import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
+import fr.anisekai.server.entities.adapters.AnimeEventAdapter;
 import fr.anisekai.server.events.AnimeCreatedEvent;
+import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.persistence.UpsertResult;
 import fr.anisekai.server.proxy.AnimeProxy;
 import fr.anisekai.server.repositories.AnimeRepository;
+import fr.anisekai.wireless.api.plannifier.interfaces.ScheduleSpotData;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,7 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         super(proxy);
     }
 
+    @Deprecated
     public UpsertResult<Anime> importAnime(DiscordUser sender, JSONObject source) {
 
         JSONArray genreArray = source.getJSONArray("genres");
@@ -43,8 +44,8 @@ public class AnimeService extends DataService<Anime, Long, AnimeEventAdapter, An
         AnimeList status          = AnimeList.from(rawStatus);
         String    link            = source.getString("link");
         String    image           = source.getString("image");
-        int      total           = Integer.parseInt(source.getString("episode"));
-        int      episodeDuration = Integer.parseInt(source.getString("time"));
+        int       total           = Integer.parseInt(source.getString("episode"));
+        int       episodeDuration = Integer.parseInt(source.getString("time"));
         String    group           = source.getString("group");
         byte      order           = Byte.parseByte(source.getString("order"));
 

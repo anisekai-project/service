@@ -4,6 +4,7 @@ import fr.anisekai.sanctum.Sanctum;
 import fr.anisekai.sanctum.enums.StorePolicy;
 import fr.anisekai.sanctum.exceptions.StorageException;
 import fr.anisekai.sanctum.interfaces.FileStore;
+import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
 import fr.anisekai.sanctum.interfaces.resolvers.StorageResolver;
 import fr.anisekai.sanctum.stores.RawStorage;
 import fr.anisekai.sanctum.stores.ScopedDirectoryStorage;
@@ -13,12 +14,13 @@ import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
 import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -35,9 +37,12 @@ public class Library extends Sanctum {
     public static final FileStore DOWNLOADS = new RawStorage("downloads");
     public static final FileStore IMPORTS   = new RawStorage("imports");
 
-    public Library(@Value("${disk.media}") String location) {
+    private final LibraryConfiguration          configuration;
 
-        super(Path.of(location));
+    public Library(LibraryConfiguration configuration) {
+
+        super(configuration.getLocation());
+        this.configuration = configuration;
 
         this.registerStore(CHUNKS, StorePolicy.FULL_SWAP);
         this.registerStore(EPISODES, StorePolicy.OVERWRITE);
@@ -47,6 +52,12 @@ public class Library extends Sanctum {
 
         this.registerStore(DOWNLOADS, StorePolicy.PRIVATE);
         this.registerStore(IMPORTS, StorePolicy.PRIVATE);
+    }
+
+
+    public Path relativize(Path other) {
+
+        return this.configuration.getLocation().relativize(other);
     }
 
     public Optional<Path> findDownload(TorrentFile torrentFile) {
