@@ -13,13 +13,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Component
-public final class WebUtils {
+public final class WebFile {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebFile.class);
 
     private final Library library;
 
-    public WebUtils(Library library) {
+    public WebFile(Library library) {
 
         this.library = library;
     }

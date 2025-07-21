@@ -9,7 +9,7 @@ import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.EpisodeService;
 import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.services.TrackService;
-import fr.anisekai.web.WebUtils;
+import fr.anisekai.web.WebFile;
 import fr.anisekai.web.annotations.RequireAuth;
 import fr.anisekai.wireless.api.media.enums.CodecType;
 import org.springframework.core.io.InputStreamResource;
@@ -35,17 +35,17 @@ public class LibraryController {
     private static final MediaType DASH    = MediaType.parseMediaType("application/dash+xml");
     private static final MediaType WEBP    = MediaType.parseMediaType("image/webp");
 
-    private final Library        library;
-    private final WebUtils       webUtils;
-    private final AnimeService   animeService;
+    private final Library      library;
+    private final WebFile      webFile;
+    private final AnimeService animeService;
     private final EpisodeService episodeService;
     private final TrackService   trackService;
     private final TorrentService torrentService;
 
-    public LibraryController(Library library, WebUtils webUtils, AnimeService animeService, EpisodeService episodeService, TrackService trackService, TorrentService torrentService) {
+    public LibraryController(Library library, WebFile webFile, AnimeService animeService, EpisodeService episodeService, TrackService trackService, TorrentService torrentService) {
 
         this.library        = library;
-        this.webUtils       = webUtils;
+        this.webFile        = webFile;
         this.animeService   = animeService;
         this.episodeService = episodeService;
         this.trackService   = trackService;
@@ -60,7 +60,7 @@ public class LibraryController {
         StorageResolver resolver = this.library.getResolver(Library.CHUNKS);
         Path            path     = resolver.file(episode, name);
 
-        return this.webUtils.serve(path, path.getFileName().toString().endsWith(".mpd") ? DASH : DEFAULT);
+        return this.webFile.serve(path, path.getFileName().toString().endsWith(".mpd") ? DASH : DEFAULT);
     }
 
     @RequireAuth(allowGuests = false)
@@ -73,7 +73,7 @@ public class LibraryController {
         String          filename = String.format("%s %02d.mkv", anime.getTitle(), episode.getNumber());
         Path            path     = resolver.file(episode);
 
-        return this.webUtils.serve(path, MKV, filename);
+        return this.webFile.serve(path, MKV, filename);
 
     }
 
@@ -87,7 +87,7 @@ public class LibraryController {
         StorageResolver resolver = this.library.getResolver(Library.SUBTITLES);
         Path            path     = resolver.file(track.getEpisode(), track.asFilename());
 
-        return this.webUtils.serve(path, MediaType.parseMediaType(track.getCodec().getMimeType()), null);
+        return this.webFile.serve(path, MediaType.parseMediaType(track.getCodec().getMimeType()), null);
     }
 
     @GetMapping("/event-images/{animeId:[0-9]+}")
@@ -105,7 +105,7 @@ public class LibraryController {
                                  .build();
         }
 
-        return this.webUtils.serve(path, WEBP, path.getFileName().toString());
+        return this.webFile.serve(path, WEBP, path.getFileName().toString());
     }
 
     @RequireAuth(allowGuests = false)
