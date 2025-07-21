@@ -1,6 +1,6 @@
 package fr.anisekai.web;
 
-import fr.anisekai.discord.DiscordConfiguration;
+import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.services.UserService;
@@ -33,15 +33,15 @@ public class AuthenticationManager {
     private static final long INACTIVITY_TIMEOUT  = Duration.of(1, ChronoUnit.HOURS).getSeconds();
     private static final long TOKEN_REFRESH_LIMIT = Duration.of(10, ChronoUnit.MINUTES).getSeconds();
 
-    private final DiscordConfiguration configuration;
-    private final UserService          userService;
+    private final ApplicationConfiguration.Discord.OAuth configuration;
+    private final UserService                            userService;
 
     private final Map<SessionToken, Session>          sessions   = new HashMap<>();
     private final Map<SessionToken, IsolationSession> isolations = new HashMap<>();
 
-    public AuthenticationManager(DiscordConfiguration configuration, UserService userService) {
+    public AuthenticationManager(ApplicationConfiguration configuration, UserService userService) {
 
-        this.configuration = configuration;
+        this.configuration = configuration.getDiscord().getOauth();
         this.userService   = userService;
     }
 
@@ -123,4 +123,5 @@ public class AuthenticationManager {
         this.sessions.put(session.getToken(), session);
         return session;
     }
+
 }

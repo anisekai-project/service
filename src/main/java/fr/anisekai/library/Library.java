@@ -1,5 +1,6 @@
 package fr.anisekai.library;
 
+import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.sanctum.Sanctum;
 import fr.anisekai.sanctum.enums.StorePolicy;
 import fr.anisekai.sanctum.exceptions.StorageException;
@@ -37,12 +38,12 @@ public class Library extends Sanctum {
     public static final FileStore DOWNLOADS = new RawStorage("downloads");
     public static final FileStore IMPORTS   = new RawStorage("imports");
 
-    private final LibraryConfiguration          configuration;
+    private final ApplicationConfiguration.Library configuration;
 
-    public Library(LibraryConfiguration configuration) {
+    public Library(ApplicationConfiguration configuration) {
 
-        super(configuration.getLocation());
-        this.configuration = configuration;
+        super(configuration.getLibrary().getIoPath());
+        this.configuration = configuration.getLibrary();
 
         this.registerStore(CHUNKS, StorePolicy.FULL_SWAP);
         this.registerStore(EPISODES, StorePolicy.OVERWRITE);
@@ -57,7 +58,7 @@ public class Library extends Sanctum {
 
     public Path relativize(Path other) {
 
-        return this.configuration.getLocation().relativize(other);
+        return this.configuration.getIoPath().relativize(other);
     }
 
     public Optional<Path> findDownload(TorrentFile torrentFile) {

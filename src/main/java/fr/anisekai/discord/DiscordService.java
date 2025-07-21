@@ -12,6 +12,7 @@ import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutoCom
 import fr.alexpado.jda.interactions.interfaces.interactions.autocomplete.AutocompleteInteractionTarget;
 import fr.alexpado.jda.interactions.meta.InteractionMeta;
 import fr.alexpado.jda.interactions.meta.OptionMeta;
+import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.BuildInfo;
 import fr.anisekai.discord.annotations.InteractAt;
 import fr.anisekai.discord.annotations.InteractionBean;
@@ -43,21 +44,22 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
 
     private final static Logger LOGGER = LoggerFactory.getLogger(DiscordService.class);
 
-    private final DiscordConfiguration              configuration;
-    private final Map<String, AutoCompleteProvider> completionProviders = new HashMap<>();
-    private final InteractionExtension              extension           = new InteractionExtension();
-    private       ListableBeanFactory               beanFactory;
+    private final ApplicationConfiguration.Discord.Bot configuration;
+    private final Map<String, AutoCompleteProvider>    completionProviders = new HashMap<>();
+    private final InteractionExtension                 extension           = new InteractionExtension();
+    private       ListableBeanFactory                  beanFactory;
 
-    public DiscordService(InteractionService interactionService, DiscordConfiguration configuration) {
+    public DiscordService(InteractionService interactionService, ApplicationConfiguration configuration) {
 
-        this.configuration = configuration;
+        this.configuration = configuration.getDiscord().getBot();
         this.extension.useDefaultMapping();
         interactionService.using(this.extension, this.completionProviders);
     }
 
     public void login(ListableBeanFactory beanFactory) {
 
-        if (this.configuration.getBotToken().isBlank() || !this.configuration.isBotEnabled()) {
+
+        if (this.configuration.getToken().isBlank() || !this.configuration.isEnabled()) {
             LOGGER.info("Discord token is missing or the bot is disabled.");
             return;
         }
@@ -67,7 +69,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
         LOGGER.info("Booting up discord service...");
 
         JDABuilder builder = JDABuilder.create(
-                this.configuration.getBotToken(),
+                this.configuration.getToken(),
                 GatewayIntent.getIntents(GatewayIntent.DEFAULT)
         );
 
@@ -99,7 +101,6 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
         for (Method method : interactionMethods) {
             Interact interact = method.getAnnotation(Interact.class);
 
-            //noinspection DataFlowIssue — We are sure we have the interaction here, due to the filtering above.
             List<OptionMeta>            options = Arrays.stream(interact.options()).map(OptionMeta::new).toList();
             Collection<InteractionType> types   = new ArrayList<>();
 
@@ -127,7 +128,6 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
 
             if (method.isAnnotationPresent(InteractAt.class)) {
                 InteractAt interactAt = method.getAnnotation(InteractAt.class);
-                //noinspection DataFlowIssue — We are sure we have the interaction here, due to the `if` above.
                 types.addAll(Arrays.asList(interactAt.value()));
             } else {
                 types.addAll(Arrays.asList(InteractionType.values()));

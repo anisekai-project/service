@@ -1,21 +1,79 @@
 package fr.anisekai.web.configs;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import fr.anisekai.ApplicationConfiguration;
+import fr.anisekai.web.interceptors.AuthenticationInterceptor;
+import fr.anisekai.web.interceptors.IsolationInterceptor;
+import fr.anisekai.web.resolvers.SessionArgumentResolver;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@org.springframework.context.annotation.Configuration
-@ConfigurationProperties(prefix = "web")
-public class WebConfig {
+import java.util.List;
 
-    private String host;
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
 
-    public String getHost() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebConfig.class);
 
-        return this.host;
+    private final SessionArgumentResolver      sessionArgumentResolver;
+    private final AuthenticationInterceptor    authenticationInterceptor;
+    private final IsolationInterceptor         isolationInterceptor;
+    private final ApplicationConfiguration.Api config;
+
+    public WebConfig(SessionArgumentResolver sessionArgumentResolver, AuthenticationInterceptor authenticationInterceptor, IsolationInterceptor isolationInterceptor, ApplicationConfiguration config) {
+
+        this.sessionArgumentResolver   = sessionArgumentResolver;
+        this.authenticationInterceptor = authenticationInterceptor;
+        this.isolationInterceptor      = isolationInterceptor;
+        this.config                    = config.getApi();
     }
 
-    public void setHost(String host) {
+    @Bean
+    public RestOperations restOperations() {
 
-        this.host = host;
+        return new RestTemplate();
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+
+        LOGGER.info("CORS: Setting allowed hosts to {},{}", this.config.getWebUrl(), this.config.getAllowedHost());
+
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NotNull CorsRegistry registry) {
+
+                registry.addMapping("/**") // Allow all endpoints
+                        .allowedOrigins(WebConfig.this.config.getWebUrl(), WebConfig.this.config.getAllowedHost()) // Allow frontend origin
+                        .allowedMethods("*") // GET, POST, etc.
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+
+        registry.addInterceptor(this.authenticationInterceptor)
+                .addPathPatterns("/api/v3/**");
+
+        registry.addInterceptor(this.isolationInterceptor)
+                .addPathPatterns("/api/v3/**");
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+
+        resolvers.add(this.sessionArgumentResolver);
     }
 
 }

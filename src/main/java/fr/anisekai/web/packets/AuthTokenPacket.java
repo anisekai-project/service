@@ -3,8 +3,8 @@ package fr.anisekai.web.packets;
 import fr.alexpado.lib.rest.RestAction;
 import fr.alexpado.lib.rest.enums.RequestMethod;
 import fr.alexpado.lib.rest.interfaces.IRestResponse;
+import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.BuildInfo;
-import fr.anisekai.discord.DiscordConfiguration;
 import fr.anisekai.web.packets.results.UserToken;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -20,10 +20,10 @@ public class AuthTokenPacket extends RestAction<UserToken> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthTokenPacket.class);
 
-    private final DiscordConfiguration configuration;
-    private final String               code;
+    private final ApplicationConfiguration.Discord.OAuth configuration;
+    private final String                                 code;
 
-    public AuthTokenPacket(DiscordConfiguration configuration, String code) {
+    public AuthTokenPacket(ApplicationConfiguration.Discord.OAuth configuration, String code) {
 
         this.configuration = configuration;
         this.code          = code;

@@ -90,7 +90,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-            LOGGER.info("[{}] Denied access: No bearer provided.", route);
+            LOGGER.debug("[{}] Denied access: No bearer provided.", route);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header missing or invalid");
             return false;
         }
