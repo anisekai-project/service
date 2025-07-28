@@ -3,6 +3,7 @@ package fr.anisekai.web.configs;
 import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.web.interceptors.AuthenticationInterceptor;
 import fr.anisekai.web.interceptors.IsolationInterceptor;
+import fr.anisekai.web.resolvers.IsolationArgumentResolver;
 import fr.anisekai.web.resolvers.SessionArgumentResolver;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -24,13 +25,15 @@ public class WebConfig implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebConfig.class);
 
     private final SessionArgumentResolver      sessionArgumentResolver;
+    private final IsolationArgumentResolver    isolationArgumentResolver;
     private final AuthenticationInterceptor    authenticationInterceptor;
     private final IsolationInterceptor         isolationInterceptor;
     private final ApplicationConfiguration.Api config;
 
-    public WebConfig(SessionArgumentResolver sessionArgumentResolver, AuthenticationInterceptor authenticationInterceptor, IsolationInterceptor isolationInterceptor, ApplicationConfiguration config) {
+    public WebConfig(SessionArgumentResolver sessionArgumentResolver, IsolationArgumentResolver isolationArgumentResolver, AuthenticationInterceptor authenticationInterceptor, IsolationInterceptor isolationInterceptor, ApplicationConfiguration config) {
 
         this.sessionArgumentResolver   = sessionArgumentResolver;
+        this.isolationArgumentResolver = isolationArgumentResolver;
         this.authenticationInterceptor = authenticationInterceptor;
         this.isolationInterceptor      = isolationInterceptor;
         this.config                    = config.getApi();
@@ -42,22 +45,16 @@ public class WebConfig implements WebMvcConfigurer {
         return new RestTemplate();
     }
 
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
+    @Override
+    public void addCorsMappings(@NotNull CorsRegistry registry) {
 
         LOGGER.info("CORS: Setting allowed hosts to {},{}", this.config.getWebUrl(), this.config.getAllowedHost());
 
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(@NotNull CorsRegistry registry) {
-
-                registry.addMapping("/**") // Allow all endpoints
-                        .allowedOrigins(WebConfig.this.config.getWebUrl(), WebConfig.this.config.getAllowedHost()) // Allow frontend origin
-                        .allowedMethods("*") // GET, POST, etc.
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
+        registry.addMapping("/**") // Allow all endpoints
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PATCH", "DELETE") // GET, POST, etc.
+                .allowedHeaders("*")
+                .allowCredentials(false);
     }
 
     @Override
@@ -74,6 +71,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
 
         resolvers.add(this.sessionArgumentResolver);
+        resolvers.add(this.isolationArgumentResolver);
     }
 
 }

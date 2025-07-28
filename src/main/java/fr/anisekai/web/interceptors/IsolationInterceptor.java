@@ -1,11 +1,10 @@
 package fr.anisekai.web.interceptors;
 
+import fr.anisekai.library.Library;
 import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
-import fr.anisekai.web.AuthenticationManager;
+import fr.anisekai.server.entities.SessionToken;
 import fr.anisekai.web.annotations.RequireAuth;
 import fr.anisekai.web.annotations.RequireIsolation;
-import fr.anisekai.web.data.Session;
-import fr.anisekai.web.data.SessionToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +22,11 @@ public class IsolationInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IsolationInterceptor.class);
 
-    private final AuthenticationManager manager;
+    private final Library library;
 
-    public IsolationInterceptor(AuthenticationManager manager) {
+    public IsolationInterceptor(Library library) {
 
-        this.manager = manager;
+        this.library = library;
     }
 
     @Override
@@ -49,26 +48,38 @@ public class IsolationInterceptor implements HandlerInterceptor {
             return false;
         }
 
-
-        Session session = (Session) request.getAttribute("session");
+        SessionToken sessionToken = (SessionToken) request.getAttribute("session");
 
         // Previous interceptor (authentication) should have handled this, but better safe than sorry.
-        if (session == null) {
+        if (sessionToken == null) {
             LOGGER.warn("[{}] Can't provide isolation context: No session available", route);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "IsolationSession not available right now.");
             return false;
         }
 
-        SessionToken token = session.getToken();
-        Optional<IsolationSession> isolationSession = this.manager.resolveIsolation(token);
+        String isolation = request.getHeader("X-Isolation-Context");
 
-        if (isolationSession.isEmpty()) {
-            LOGGER.warn("[{}] Can't provide isolation context: No isolation available", route);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Your session does not have any isolation session attached.");
+        if (isolation == null) {
+            LOGGER.warn("[{}] Can't provide isolation context: No session available", route);
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Unable to read the isolation context id from headers"
+            );
             return false;
         }
 
-        request.setAttribute("isolation", isolationSession.get());
+        Optional<IsolationSession> optionalIsolation = this.library.resolveIsolation(sessionToken, isolation);
+
+        if (optionalIsolation.isEmpty()) {
+            LOGGER.warn("[{}] Can't provide isolation context: No matching isolation", route);
+            response.sendError(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "The provided isolation id does not match any allowed isolation session."
+            );
+            return false;
+        }
+
+        request.setAttribute("isolation", optionalIsolation.get());
         return true;
     }
 

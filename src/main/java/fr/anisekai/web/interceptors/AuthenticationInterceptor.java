@@ -1,11 +1,12 @@
 package fr.anisekai.web.interceptors;
 
+import fr.anisekai.ApplicationConfiguration;
 import fr.anisekai.server.entities.DiscordUser;
+import fr.anisekai.server.entities.SessionToken;
 import fr.anisekai.web.AuthenticationManager;
 import fr.anisekai.web.annotations.RequireAuth;
-import fr.anisekai.web.data.Session;
-import fr.anisekai.web.data.SessionToken;
-import fr.anisekai.web.enums.SessionType;
+import fr.anisekai.web.enums.TokenType;
+import fr.anisekai.web.exceptions.auth.AuthorizationHeadersMissingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Set;
+import java.util.UUID;
 
 @Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
@@ -28,20 +29,20 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
      */
     private static class RouteRule {
 
-        private final boolean              authRequired;
-        private       boolean              adminRequired       = false;
-        private       boolean              guestsAllowed       = true;
-        private       EnumSet<SessionType> sessionTypesAllowed = EnumSet.of(SessionType.OAUTH, SessionType.APP);
+        private final boolean            authRequired;
+        private       boolean            adminRequired     = false;
+        private       boolean            guestsAllowed     = true;
+        private       EnumSet<TokenType> tokenTypesAllowed = EnumSet.of(TokenType.USER, TokenType.APPLICATION);
 
         public RouteRule(@Nullable RequireAuth auth) {
 
             this.authRequired = auth != null;
 
             if (this.authRequired) {
-                this.adminRequired       = auth.requireAdmin();
-                this.guestsAllowed       = auth.allowGuests();
-                this.sessionTypesAllowed = EnumSet.noneOf(SessionType.class);
-                Collections.addAll(this.sessionTypesAllowed, auth.allowedSessionTypes());
+                this.adminRequired     = auth.requireAdmin();
+                this.guestsAllowed     = auth.allowGuests();
+                this.tokenTypesAllowed = EnumSet.noneOf(TokenType.class);
+                Collections.addAll(this.tokenTypesAllowed, auth.allowedSessionTypes());
             }
         }
 
@@ -50,14 +51,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             return this.authRequired;
         }
 
-        public boolean canAccess(Session session) {
+        public boolean canAccess(SessionToken sessionToken) {
 
-            DiscordUser  user  = session.getIdentity();
-            SessionToken token = session.getToken();
+            DiscordUser user = sessionToken.getOwner();
 
             boolean guestCheckPass = !user.isGuest() || this.guestsAllowed;
             boolean adminCheckPass = user.isAdministrator() || !this.adminRequired;
-            boolean typeCheckPass  = this.sessionTypesAllowed.contains(token.auth().type());
+            boolean typeCheckPass  = this.tokenTypesAllowed.contains(sessionToken.getType());
 
             return guestCheckPass && adminCheckPass && typeCheckPass;
         }
@@ -68,7 +68,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     private final AuthenticationManager manager;
 
-    public AuthenticationInterceptor(AuthenticationManager manager) {
+    public AuthenticationInterceptor(AuthenticationManager manager, ApplicationConfiguration configuration) {
 
         this.manager = manager;
     }
@@ -90,38 +90,23 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
-            LOGGER.debug("[{}] Denied access: No bearer provided.", route);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authorization header missing or invalid");
-            return false;
+            LOGGER.trace("[{}] Denied access: No bearer provided", route);
+            throw new AuthorizationHeadersMissingException();
         }
 
-        String       bearer = authHeader.substring(7).trim();
-        SessionToken token;
-
-        try {
-            token = SessionToken.fromBase64(bearer);
-        } catch (Exception e) {
-            LOGGER.warn("[{}] Denied access: Bearer format invalid.", route, e);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token format");
-            return false;
-        }
-
-        Session session = this.manager.resolveSession(token).orElse(null);
-        if (session == null) {
-            LOGGER.warn("[{}] Denied access: Session not found.", route);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session not found");
-            return false;
-        }
+        String       accessToken = authHeader.substring(7).trim();
+        UUID         uuid        = this.manager.getJti(accessToken);
+        SessionToken session     = this.manager.getAccessToken(uuid);
 
         if (!rule.canAccess(session)) {
-            LOGGER.info("[{}] ({}) Denied access: Rules mismatch.", route, session.getIdentity().getId());
+            LOGGER.info("[{}] ({}) Denied access: Rules mismatch.", route, session.getOwner().getId());
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
             return false;
         }
 
         // Optionally store session for later use
         request.setAttribute("session", session);
-        LOGGER.trace("[{}] ({}) Accessed secured resource.", route, session.getIdentity().getId());
+        LOGGER.trace("[{}] ({}) Accessed secured resource.", route, session.getOwner().getId());
         return true; // Allow
     }
 

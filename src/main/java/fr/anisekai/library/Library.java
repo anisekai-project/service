@@ -1,6 +1,7 @@
 package fr.anisekai.library;
 
 import fr.anisekai.ApplicationConfiguration;
+import fr.anisekai.sanctum.AccessScope;
 import fr.anisekai.sanctum.Sanctum;
 import fr.anisekai.sanctum.enums.StorePolicy;
 import fr.anisekai.sanctum.exceptions.StorageException;
@@ -10,19 +11,13 @@ import fr.anisekai.sanctum.interfaces.resolvers.StorageResolver;
 import fr.anisekai.sanctum.stores.RawStorage;
 import fr.anisekai.sanctum.stores.ScopedDirectoryStorage;
 import fr.anisekai.sanctum.stores.ScopedFileStorage;
-import fr.anisekai.server.entities.Anime;
-import fr.anisekai.server.entities.Episode;
-import fr.anisekai.server.entities.Torrent;
-import fr.anisekai.server.entities.TorrentFile;
+import fr.anisekai.server.entities.*;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -40,6 +35,8 @@ public class Library extends Sanctum {
 
     private final ApplicationConfiguration.Library configuration;
 
+    private final Map<SessionToken, List<IsolationSession>> isolationMap = new HashMap<>();
+
     public Library(ApplicationConfiguration configuration) {
 
         super(configuration.getLibrary().getIoPath());
@@ -53,6 +50,22 @@ public class Library extends Sanctum {
 
         this.registerStore(DOWNLOADS, StorePolicy.PRIVATE);
         this.registerStore(IMPORTS, StorePolicy.PRIVATE);
+    }
+
+    public Optional<IsolationSession> resolveIsolation(SessionToken sessionToken, String isolation) {
+
+        if (!this.isolationMap.containsKey(sessionToken)) return Optional.empty();
+        return this.isolationMap.get(sessionToken).stream()
+                                .filter(item -> item.name().equals(isolation))
+                                .findFirst();
+    }
+
+    public IsolationSession createIsolation(SessionToken sessionToken, AccessScope... scopes) {
+
+        IsolationSession isolation = this.createIsolation(scopes);
+        this.isolationMap.computeIfAbsent(sessionToken, item -> new ArrayList<>());
+        this.isolationMap.get(sessionToken).add(isolation);
+        return isolation;
     }
 
 

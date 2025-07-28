@@ -1,6 +1,6 @@
 package fr.anisekai.web.resolvers;
 
-import fr.anisekai.server.entities.SessionToken;
+import fr.anisekai.sanctum.interfaces.isolation.IsolationSession;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -13,14 +13,14 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
-public class SessionArgumentResolver implements HandlerMethodArgumentResolver {
+public class IsolationArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SessionArgumentResolver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IsolationArgumentResolver.class);
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
 
-        return parameter.getParameterType().equals(SessionToken.class);
+        return parameter.getParameterType().equals(IsolationSession.class);
     }
 
     @Override
@@ -32,14 +32,14 @@ public class SessionArgumentResolver implements HandlerMethodArgumentResolver {
             return null;
         }
 
-        SessionToken sessionToken = (SessionToken) request.getAttribute("session");
+        IsolationSession session = (IsolationSession) request.getAttribute("isolation");
 
-        if (sessionToken == null) {
-            LOGGER.warn("Tried to resolve Session parameter: No session was available.");
+        if (session == null) {
+            LOGGER.warn("Tried to resolve IsolationSession parameter: No isolation session was available.");
             return null;
         }
 
-        return sessionToken;
+        return session;
     }
 
 }

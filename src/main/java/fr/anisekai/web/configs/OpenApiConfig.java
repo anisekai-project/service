@@ -1,6 +1,6 @@
 package fr.anisekai.web.configs;
 
-import fr.anisekai.web.data.Session;
+import fr.anisekai.server.entities.SessionToken;
 import fr.anisekai.web.annotations.RequireAuth;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -70,7 +70,7 @@ public class OpenApiConfig {
     public ParameterCustomizer sessionParameterHider() {
 
         return (parameterModel, methodParameter) -> {
-            if (Session.class.isAssignableFrom(methodParameter.getParameterType())) {
+            if (SessionToken.class.isAssignableFrom(methodParameter.getParameterType())) {
                 return null;
             }
             return parameterModel;

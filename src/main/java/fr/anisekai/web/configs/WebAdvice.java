@@ -15,7 +15,7 @@ public class WebAdvice {
 
         return ResponseEntity
                 .status(ex.status)
-                .body(DETAILS_ENABLED ? ex : WebException.Dto.from(ex));
+                .body(DETAILS_ENABLED ? ex : WebException.Dto.from(ex, DETAILS_ENABLED));
     }
 
 }

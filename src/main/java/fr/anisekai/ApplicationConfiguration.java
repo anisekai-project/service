@@ -3,7 +3,10 @@ package fr.anisekai;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.file.Path;
+import java.util.Base64;
 
 @Configuration
 @ConfigurationProperties(prefix = "anisekai")
@@ -33,6 +36,7 @@ public class ApplicationConfiguration {
         private String allowedHost;
         private String webUrl;
         private String baseUrl;
+        private String signingKey;
 
         public String getAllowedHost() {
 
@@ -62,6 +66,22 @@ public class ApplicationConfiguration {
         public void setBaseUrl(String baseUrl) {
 
             this.baseUrl = baseUrl;
+        }
+
+        public String getSigningKey() {
+
+            return this.signingKey;
+        }
+
+        public void setSigningKey(String signingKey) {
+
+            this.signingKey = signingKey;
+        }
+
+        public SecretKey getSigningSecretKey() {
+
+            byte[] decodedKey = Base64.getDecoder().decode(this.getSigningKey());
+            return new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
         }
 
     }

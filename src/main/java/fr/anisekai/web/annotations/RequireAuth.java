@@ -1,6 +1,6 @@
 package fr.anisekai.web.annotations;
 
-import fr.anisekai.web.enums.SessionType;
+import fr.anisekai.web.enums.TokenType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  * Authorization checks based on this annotation are typically enforced via a custom security interceptor or aspect. It
  * does not integrate with Spring Security by default.
  * <b>Limitations:</b> Session type filtering does not affect Spring's routing behavior —
- * you cannot define multiple identical endpoints with different {@link SessionType} constraints. If different behavior
+ * you cannot define multiple identical endpoints with different {@link TokenType} constraints. If different behavior
  * is needed, implement manual branching in the controller.
  */
 @Target(ElementType.METHOD)
@@ -38,15 +38,15 @@ public @interface RequireAuth {
     boolean allowGuests() default true;
 
     /**
-     * Specifies the allowed {@link SessionType}s for this route. This can be useful for restricting access to
+     * Specifies the allowed {@link TokenType}s for this route. This can be useful for restricting access to
      * application-only or OAuth-only sessions.
      * <p>
      * <b>Limitations:</b> Session type filtering does not affect Spring's routing behavior —
-     * you cannot define multiple identical endpoints with different {@link SessionType} constraints. If different
+     * you cannot define multiple identical endpoints with different {@link TokenType} constraints. If different
      * behavior is needed, implement manual branching in the controller.
      *
      * @return The allowed session types for this route.
      */
-    SessionType[] allowedSessionTypes() default {SessionType.OAUTH, SessionType.APP};
+    TokenType[] allowedSessionTypes() default {TokenType.USER, TokenType.APPLICATION};
 
 }
