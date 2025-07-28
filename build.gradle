@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets
 
 plugins {
-    id 'org.springframework.boot' version '3.5.0'
+    id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'com.github.ben-manes.versions' version '0.52.0'
@@ -55,17 +55,17 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.13.3'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.5'
+    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.17.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.6'
-    implementation group: 'com.github.f4b6a3', name: 'uuid-creator', version: '6.1.0'
+    implementation group: 'com.github.f4b6a3', name: 'uuid-creator', version: '6.1.1'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.6'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.6'
 
-    runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.3'
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.9.1'
-    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.9.1'
+    runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.4'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.10.4'
+    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.10.4'
 
     implementation group: 'net.dv8tion', name: 'JDA', version: '5.6.1'
 
@@ -78,7 +78,7 @@ dependencies {
     }
 
     implementation group: 'com.github.slugify', name: 'slugify', version: '3.0.7'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.20.1'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.21.1'
     implementation group: 'org.json', name: 'json', version: '20250517'
 
     implementation group: 'org.jetbrains', name: 'annotations', version: '26.0.2'
