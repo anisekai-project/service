@@ -1,12 +1,12 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.TaskEventAdapter;
+import fr.anisekai.server.types.JSONType;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
 import fr.anisekai.wireless.remote.interfaces.TaskEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.TaskEventAdapter;
-import fr.anisekai.server.types.JSONType;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -192,6 +192,7 @@ public class Task implements TaskEventAdapter {
     }
 
     public String toDiscordName() {
+
         return String.format(
                 "Tâche **%s** (**%s** : `%s`)",
                 this.getId(),
@@ -199,4 +200,5 @@ public class Task implements TaskEventAdapter {
                 this.getName()
         );
     }
+
 }

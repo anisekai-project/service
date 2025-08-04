@@ -1,11 +1,11 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.SelectionEventAdapter;
 import fr.anisekai.wireless.remote.enums.AnimeSeason;
 import fr.anisekai.wireless.remote.enums.SelectionStatus;
 import fr.anisekai.wireless.remote.interfaces.SelectionEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.SelectionEventAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;

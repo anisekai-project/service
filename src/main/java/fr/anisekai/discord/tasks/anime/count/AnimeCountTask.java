@@ -1,13 +1,13 @@
 package fr.anisekai.discord.tasks.anime.count;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
-import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.exceptions.tasks.UndefinedWatchlistChannelException;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.tasking.TaskExecutor;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 import java.util.List;

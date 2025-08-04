@@ -1,12 +1,12 @@
 package fr.anisekai.server.proxy;
 
-import fr.anisekai.wireless.remote.keys.VoterKey;
 import fr.anisekai.server.entities.Voter;
 import fr.anisekai.server.entities.adapters.VoterEventAdapter;
 import fr.anisekai.server.events.VoterCreatedEvent;
 import fr.anisekai.server.exceptions.voter.VoterNotFoundException;
 import fr.anisekai.server.persistence.ProxyService;
 import fr.anisekai.server.repositories.VoterRepository;
+import fr.anisekai.wireless.remote.keys.VoterKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 

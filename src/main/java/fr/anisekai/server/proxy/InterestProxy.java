@@ -1,12 +1,12 @@
 package fr.anisekai.server.proxy;
 
-import fr.anisekai.wireless.remote.keys.InterestKey;
 import fr.anisekai.server.entities.Interest;
 import fr.anisekai.server.entities.adapters.InterestEventAdapter;
 import fr.anisekai.server.events.InterestCreatedEvent;
 import fr.anisekai.server.exceptions.interest.InterestNotFoundException;
 import fr.anisekai.server.persistence.ProxyService;
 import fr.anisekai.server.repositories.InterestRepository;
+import fr.anisekai.wireless.remote.keys.InterestKey;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 

@@ -1,10 +1,10 @@
 package fr.anisekai.discord.responses.messages;
 
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import fr.anisekai.discord.responses.embeds.ProfileEmbed;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.remote.interfaces.InterestEntity;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import fr.anisekai.discord.responses.embeds.ProfileEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 
 public class ProfileMessage implements SlashResponse {
 
-    private final User                      user;
-    private final UserEntity                discordUser;
-    private final List<? extends AnimeEntity<?>> animes;
+    private final User                                 user;
+    private final UserEntity                           discordUser;
+    private final List<? extends AnimeEntity<?>>       animes;
     private final List<? extends InterestEntity<?, ?>> interests;
 
 

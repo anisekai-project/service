@@ -1,9 +1,9 @@
 package fr.anisekai.server.repositories;
 
-import fr.anisekai.wireless.remote.keys.VoterKey;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.entities.Selection;
 import fr.anisekai.server.entities.Voter;
+import fr.anisekai.wireless.remote.keys.VoterKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

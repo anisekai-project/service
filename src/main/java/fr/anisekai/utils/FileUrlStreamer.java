@@ -92,6 +92,7 @@ public class FileUrlStreamer extends RestAction<Boolean> {
                     // Replace is.transferTo(os); with a manual, memory-safe buffer.
                     byte[] buffer = new byte[8192]; // 8KB buffer
                     int    bytesRead;
+                    //noinspection NestedAssignment
                     while ((bytesRead = is.read(buffer)) != -1) {
                         os.write(buffer, 0, bytesRead);
                     }

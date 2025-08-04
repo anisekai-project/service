@@ -1,8 +1,8 @@
 package fr.anisekai.server.events.anime;
 
-import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.events.AnimeUpdatedEvent;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 
 public class AnimeListUpdatedEvent extends AnimeUpdatedEvent<AnimeList> {
 

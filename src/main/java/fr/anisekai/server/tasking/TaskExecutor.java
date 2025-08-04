@@ -1,10 +1,8 @@
 package fr.anisekai.server.tasking;
 
 import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.server.exceptions.task.TaskArgumentException;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
-import org.json.JSONException;
 
 public interface TaskExecutor {
 
@@ -15,11 +13,8 @@ public interface TaskExecutor {
      *
      * @param params
      *         A {@link AnisekaiJson}
-     *
-     * @throws TaskArgumentException
-     *         Thrown when the validation fails
      */
-    default void validateParams(AnisekaiJson params) throws TaskArgumentException {
+    default void validateParams(AnisekaiJson params) {
 
         params.validate(
                 new JsonObjectRule(OPTION_PRIORITY, true, Integer.class, int.class)

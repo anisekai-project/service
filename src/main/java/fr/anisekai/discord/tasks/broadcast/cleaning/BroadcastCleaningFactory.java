@@ -1,13 +1,13 @@
 package fr.anisekai.discord.tasks.broadcast.cleaning;
 
-import fr.anisekai.server.enums.TaskPipeline;
-import fr.anisekai.server.tasking.TaskBuilder;
-import jakarta.annotation.PostConstruct;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.server.entities.Task;
+import fr.anisekai.server.enums.TaskPipeline;
 import fr.anisekai.server.services.BroadcastService;
 import fr.anisekai.server.services.TaskService;
+import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.server.tasking.TaskFactory;
+import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 
 public class BroadcastCleaningFactory implements TaskFactory<BroadcastCleaningTask> {

@@ -15,7 +15,7 @@ public class DiscordIdentity {
         this.id            = Long.parseLong(json.getString("id"));
         this.username      = json.getString("username");
         this.discriminator = json.getString("discriminator");
-        this.globalName   = json.getString("global_name");
+        this.globalName    = json.getString("global_name");
         this.avatar        = json.getString("avatar");
     }
 

@@ -1,12 +1,12 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.library.services.SpringTransmissionClient;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.adapters.TorrentEventAdapter;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.TorrentProxy;
 import fr.anisekai.server.repositories.TorrentRepository;
+import fr.anisekai.wireless.api.services.Transmission;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;

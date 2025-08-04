@@ -1,9 +1,9 @@
 package fr.anisekai.server.repositories;
 
-import fr.anisekai.wireless.remote.keys.InterestKey;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.entities.Interest;
+import fr.anisekai.wireless.remote.keys.InterestKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

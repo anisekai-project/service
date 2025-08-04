@@ -121,7 +121,6 @@ public class MediaUpdateTask implements TaskExecutor {
             if (track == null) {
                 throw new IllegalStateException("The stream " + stream.getId() + " is mapped to an unknown track.");
             }
-            ;
 
             int       id   = counter.getAndIncrement();
             CodecType type = codec.getType();

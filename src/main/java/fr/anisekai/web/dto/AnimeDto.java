@@ -14,13 +14,13 @@ public class AnimeDto {
 
     private static final String IMAGE_URL = "/api/v3/library/event-images/%s";
 
-    public long             id;
-    public String           group;
-    public byte             order;
-    public String           title;
-    public String           url;
-    public String           imageUrl;
-    public List<EpisodeDto> episodes;
+    public final long             id;
+    public final String           group;
+    public final byte             order;
+    public final String           title;
+    public final String           url;
+    public final String           imageUrl;
+    public final List<EpisodeDto> episodes;
 
     public AnimeDto(Anime anime, Collection<Episode> episodes) {
 

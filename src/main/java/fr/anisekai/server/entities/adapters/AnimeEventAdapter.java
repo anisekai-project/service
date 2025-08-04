@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities.adapters;
 
+import fr.anisekai.server.entities.DiscordUser;
+import fr.anisekai.server.events.anime.*;
 import fr.anisekai.wireless.api.persistence.TriggerEvent;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
-import fr.anisekai.server.entities.DiscordUser;
-import fr.anisekai.server.events.anime.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

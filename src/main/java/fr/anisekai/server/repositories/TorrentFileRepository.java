@@ -1,9 +1,9 @@
 package fr.anisekai.server.repositories;
 
-import fr.anisekai.wireless.remote.keys.TorrentKey;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
+import fr.anisekai.wireless.remote.keys.TorrentKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

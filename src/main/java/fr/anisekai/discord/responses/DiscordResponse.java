@@ -6,8 +6,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.awt.*;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.function.Consumer;
 
 public class DiscordResponse implements SlashResponse, ButtonResponse {

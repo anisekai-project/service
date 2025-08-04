@@ -1,38 +1,25 @@
 import java.nio.charset.StandardCharsets
 
 plugins {
+    id 'java'
     id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'java'
     id 'com.github.ben-manes.versions' version '0.52.0'
     id 'org.ajoberstar.reckon' version '0.19.2'
 }
 
-def generalCharset = StandardCharsets.UTF_8.name()
-
-static def isNonStable(String version) {
-    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
-    def regex = /^[0-9,.v-]+(-r)?$/
-    return !stableKeyword && !(version ==~ regex)
-}
-
 group = 'fr.anisekai'
 
-compileJava.options.encoding = generalCharset
-compileTestJava.options.encoding = generalCharset
-javadoc.options.encoding = generalCharset
-
-reckon {
-    defaultInferredScope = 'patch'
-    stages('dev', 'beta', 'rc', 'final')
-
-    scopeCalc = calcScopeFromProp() | calcScopeFromCommitMessages()
-    stageCalc = calcStageFromProp()
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = StandardCharsets.UTF_8.name()
 }
 
 configurations {
@@ -53,35 +40,35 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation group: 'io.sentry', name: 'sentry-spring-boot-starter-jakarta', version: '8.17.0'
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.18.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.6'
-    implementation group: 'com.github.f4b6a3', name: 'uuid-creator', version: '6.1.1'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.6'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.6'
+    implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-    runtimeOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.4'
-    implementation group: 'org.flywaydb', name: 'flyway-core', version: '11.10.4'
-    implementation group: 'org.flywaydb', name: 'flyway-mysql', version: '11.10.4'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.4'
+    implementation 'org.flywaydb:flyway-core:11.10.5'
+    implementation 'org.flywaydb:flyway-mysql:11.10.5'
 
-    implementation group: 'net.dv8tion', name: 'JDA', version: '5.6.1'
+    implementation 'net.dv8tion:JDA:5.6.1'
 
-    implementation group: 'fr.anisekai', name: 'wireless', version: '1.6.0'
-    implementation group: 'fr.anisekai', name: 'sanctum', version: '1.0.1'
+    implementation 'fr.anisekai:wireless:1.6.0'
+    implementation 'fr.anisekai:sanctum:1.0.1'
 
-    implementation group: 'fr.alexpado', name: 'simple-http-client', version: '1.1.2'
-    implementation(group: 'fr.alexpado', name: 'jda-interactions-extension', version: '1.0.0-rc.2') {
-        exclude(group: 'io.sentry')
+    implementation 'fr.alexpado:simple-http-client:1.1.2'
+    implementation('fr.alexpado:jda-interactions-extension:1.0.0-rc.2') {
+        exclude group: 'io.sentry'
     }
 
-    implementation group: 'com.github.slugify', name: 'slugify', version: '3.0.7'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.21.1'
-    implementation group: 'org.json', name: 'json', version: '20250517'
-
-    implementation group: 'org.jetbrains', name: 'annotations', version: '26.0.2'
+    implementation 'com.github.slugify:slugify:3.0.7'
+    implementation 'org.jsoup:jsoup:1.21.1'
+    implementation 'org.json:json:20250517'
+    implementation 'org.jetbrains:annotations:26.0.2'
 
     implementation group: 'rome', name: 'rome', version: '1.0'
 }
@@ -90,19 +77,32 @@ test {
     useJUnitPlatform()
 }
 
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
 dependencyUpdates {
     rejectVersionIf {
         isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
     }
 }
 
-tasks.register('generateJava', Copy) {
-    def context = [version: project.version.toString()]
-    inputs.properties context
-    from 'src/template/java'
-    into "$buildDir/generated/java"
-    expand context
+reckon {
+    defaultInferredScope = 'patch'
+    stages('dev', 'beta', 'rc', 'final')
+
+    scopeCalc = calcScopeFromProp() | calcScopeFromCommitMessages()
+    stageCalc = calcStageFromProp()
 }
 
-sourceSets.main.java.srcDir "$buildDir/generated/java"
-compileJava.dependsOn 'generateJava'
+tasks.register('generateJava', Copy) {
+    def context = [version: project.version.toString()]
+    inputs.properties(context)
+    from 'src/template/java'
+    into layout.buildDirectory.dir("generated/java")
+    expand(context)
+}
+
+sourceSets.main.java.srcDir layout.buildDirectory.dir("generated/java")

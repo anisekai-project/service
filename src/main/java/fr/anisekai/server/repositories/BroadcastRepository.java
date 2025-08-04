@@ -1,8 +1,8 @@
 package fr.anisekai.server.repositories;
 
-import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Broadcast;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

@@ -4,8 +4,8 @@ import java.util.List;
 
 public class GroupDto {
 
-    public String         name;
-    public List<AnimeDto> animes;
+    public final String         name;
+    public       List<AnimeDto> animes;
 
     public GroupDto(String name) {
 

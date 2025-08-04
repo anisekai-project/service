@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.BroadcastEventAdapter;
 import fr.anisekai.wireless.remote.enums.BroadcastStatus;
 import fr.anisekai.wireless.remote.interfaces.BroadcastEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.BroadcastEventAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

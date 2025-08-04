@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.InterestEventAdapter;
 import fr.anisekai.wireless.remote.interfaces.InterestEntity;
 import fr.anisekai.wireless.remote.keys.InterestKey;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.InterestEventAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;

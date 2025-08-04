@@ -4,8 +4,8 @@ import fr.anisekai.server.entities.Episode;
 
 public class EpisodeDto {
 
-    public Long id;
-    public long number;
+    public       Long id;
+    public final long number;
 
     public EpisodeDto(Episode episode) {
 

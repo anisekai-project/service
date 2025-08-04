@@ -1,12 +1,12 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.SettingEventAdapter;
 import fr.anisekai.wireless.remote.interfaces.SettingEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PreUpdate;
-import fr.anisekai.server.entities.adapters.SettingEventAdapter;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;

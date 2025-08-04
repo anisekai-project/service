@@ -7,7 +7,6 @@ import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Track;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.EpisodeService;
-import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.services.TrackService;
 import fr.anisekai.web.WebFile;
 import fr.anisekai.web.annotations.RequireAuth;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,26 +33,24 @@ public class LibraryController {
     private static final MediaType DASH    = MediaType.parseMediaType("application/dash+xml");
     private static final MediaType WEBP    = MediaType.parseMediaType("image/webp");
 
-    private final Library      library;
-    private final WebFile      webFile;
-    private final AnimeService animeService;
+    private final Library        library;
+    private final WebFile        webFile;
+    private final AnimeService   animeService;
     private final EpisodeService episodeService;
     private final TrackService   trackService;
-    private final TorrentService torrentService;
 
-    public LibraryController(Library library, WebFile webFile, AnimeService animeService, EpisodeService episodeService, TrackService trackService, TorrentService torrentService) {
+    public LibraryController(Library library, WebFile webFile, AnimeService animeService, EpisodeService episodeService, TrackService trackService) {
 
         this.library        = library;
         this.webFile        = webFile;
         this.animeService   = animeService;
         this.episodeService = episodeService;
         this.trackService   = trackService;
-        this.torrentService = torrentService;
     }
 
     @RequireAuth(allowGuests = false)
     @GetMapping("/chunks/{episodeId:[0-9]+}/{name}")
-    public ResponseEntity<InputStreamResource> getChunkItem(@PathVariable long episodeId, @PathVariable String name) throws FileNotFoundException {
+    public ResponseEntity<InputStreamResource> getChunkItem(@PathVariable long episodeId, @PathVariable String name) {
 
         Episode         episode  = this.episodeService.fetch(episodeId);
         StorageResolver resolver = this.library.getResolver(Library.CHUNKS);
@@ -65,7 +61,7 @@ public class LibraryController {
 
     @RequireAuth(allowGuests = false)
     @GetMapping("/episodes/{episodeId:[0-9]+}")
-    public ResponseEntity<InputStreamResource> getEpisode(@PathVariable long episodeId) throws FileNotFoundException {
+    public ResponseEntity<InputStreamResource> getEpisode(@PathVariable long episodeId) {
 
         Episode         episode  = this.episodeService.fetch(episodeId);
         Anime           anime    = episode.getAnime();
@@ -79,7 +75,7 @@ public class LibraryController {
 
     @RequireAuth(allowGuests = false)
     @GetMapping("/subtitles/{trackId:[0-9]+}")
-    public ResponseEntity<InputStreamResource> getSubtitle(@PathVariable long trackId) throws FileNotFoundException {
+    public ResponseEntity<InputStreamResource> getSubtitle(@PathVariable long trackId) {
 
         Track track = this.trackService.fetch(trackId);
         if (track.getCodec().getType() != CodecType.SUBTITLE) return ResponseEntity.badRequest().build();
@@ -91,7 +87,7 @@ public class LibraryController {
     }
 
     @GetMapping("/event-images/{animeId:[0-9]+}")
-    public ResponseEntity<InputStreamResource> getEventImage(@PathVariable long animeId) throws FileNotFoundException {
+    public ResponseEntity<InputStreamResource> getEventImage(@PathVariable long animeId) {
 
         Anime anime = this.animeService.fetch(animeId);
 

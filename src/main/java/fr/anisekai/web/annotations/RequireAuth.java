@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
  * Authorization checks based on this annotation are typically enforced via a custom security interceptor or aspect. It
  * does not integrate with Spring Security by default.
  * <b>Limitations:</b> Session type filtering does not affect Spring's routing behavior —
- * you cannot define multiple identical endpoints with different {@link TokenType} constraints. If different behavior
- * is needed, implement manual branching in the controller.
+ * you cannot define multiple identical endpoints with different {@link TokenType} constraints. If different behavior is
+ * needed, implement manual branching in the controller.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

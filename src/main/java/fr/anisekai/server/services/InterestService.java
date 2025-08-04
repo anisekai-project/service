@@ -1,6 +1,5 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.keys.InterestKey;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.entities.Interest;
@@ -9,6 +8,7 @@ import fr.anisekai.server.events.InterestCreatedEvent;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.InterestProxy;
 import fr.anisekai.server.repositories.InterestRepository;
+import fr.anisekai.wireless.remote.keys.InterestKey;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;

@@ -1,11 +1,11 @@
 package fr.anisekai.server.persistence;
 
+import fr.anisekai.server.events.EntityCreatedEventAdapter;
 import fr.anisekai.wireless.api.persistence.interfaces.Entity;
 import fr.anisekai.wireless.api.persistence.interfaces.EventProxy;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import fr.anisekai.server.events.EntityCreatedEventAdapter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.util.Assert;
@@ -27,13 +27,11 @@ import java.util.function.Supplier;
  * @param <I>
  *         Main interface the entity implements.
  * @param <R>
- *         Type  of the repository.
+ *         Type of the repository.
  */
 public abstract class ProxyService<E extends I, ID extends Serializable, I extends Entity<ID>, R extends JpaRepository<E, ID>> {
 
     private final class ProxyBulk {
-
-        private final Function<R, List<E>> selector;
 
         private final Map<ID, EventProxy<I, E>> proxyMap    = new HashMap<>();
         private final Collection<E>             entities    = new ArrayList<>();
@@ -41,7 +39,6 @@ public abstract class ProxyService<E extends I, ID extends Serializable, I exten
 
         private ProxyBulk(Function<R, List<E>> selector) {
 
-            this.selector = selector;
             List<E> data = selector.apply(ProxyService.this.repository);
 
             for (E entity : data) {
@@ -119,7 +116,7 @@ public abstract class ProxyService<E extends I, ID extends Serializable, I exten
      * Retrieve an entity that has been updated or created using the consumer provided.
      *
      * @param id
-     *         Id of the entity to "upsert"
+     *         Identifier of the entity to "upsert"
      * @param eventCreator
      *         BiFunction to use to instantiate a creation event to publish
      * @param upsert
@@ -142,7 +139,7 @@ public abstract class ProxyService<E extends I, ID extends Serializable, I exten
      * no entity of the provided id was found.
      *
      * @param id
-     *         Id of the entity to "upsert"
+     *         Identifier of the entity to "upsert"
      * @param eventCreator
      *         BiFunction to use to instantiate a creation event to publish
      * @param initializer
