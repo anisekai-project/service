@@ -18,10 +18,6 @@ java {
     targetCompatibility = JavaVersion.VERSION_24
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = StandardCharsets.UTF_8.name()
-}
-
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -103,6 +99,11 @@ tasks.register('generateJava', Copy) {
     from 'src/template/java'
     into layout.buildDirectory.dir("generated/java")
     expand(context)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = StandardCharsets.UTF_8.name()
+    dependsOn tasks.named('generateJava')
 }
 
 sourceSets.main.java.srcDir layout.buildDirectory.dir("generated/java")
