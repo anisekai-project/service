@@ -1,6 +1,5 @@
 package fr.anisekai.library.tasks.executors;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.library.Library;
 import fr.anisekai.library.exceptions.NoMediaException;
 import fr.anisekai.sanctum.AccessScope;
@@ -16,6 +15,7 @@ import fr.anisekai.wireless.api.media.bin.FFMpeg;
 import fr.anisekai.wireless.api.media.enums.CodecType;
 import fr.anisekai.wireless.api.media.enums.Disposition;
 import fr.anisekai.wireless.api.media.interfaces.MediaStreamMapper;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import fr.anisekai.wireless.remote.interfaces.TrackEntity;
 import fr.anisekai.wireless.utils.MapUtils;
 import org.jetbrains.annotations.NotNull;

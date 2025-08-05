@@ -1,12 +1,12 @@
 package fr.anisekai.discord.tasks.broadcast.cancel;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.tasks.broadcast.BroadcastTask;
 import fr.anisekai.library.Library;
 import fr.anisekai.server.entities.Broadcast;
 import fr.anisekai.server.services.BroadcastService;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ScheduledEvent;
 import org.slf4j.Logger;

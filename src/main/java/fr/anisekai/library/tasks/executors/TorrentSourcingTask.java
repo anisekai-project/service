@@ -1,6 +1,5 @@
 package fr.anisekai.library.tasks.executors;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.library.services.SpringTransmissionClient;
 import fr.anisekai.server.entities.*;
 import fr.anisekai.server.services.AnimeService;
@@ -10,6 +9,7 @@ import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import fr.anisekai.wireless.api.services.Nyaa;
 import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.wireless.utils.MapUtils;
