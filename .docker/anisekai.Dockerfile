@@ -1,4 +1,4 @@
-FROM gradle:8.14.2-jdk21-alpine AS build
+FROM gradle:9-jdk24-alpine AS build
 
 ARG namespace="anisekai-project"
 ARG project="anisekai-service"
@@ -13,7 +13,7 @@ RUN git clone https://github.com/$namespace/$project.git && \
     mv /source/$project/build/libs/*.jar /app.jar &&  \
     rm -rf /source
 
-FROM openjdk:21-bookworm AS service
+FROM openjdk:24-bookworm AS service
 LABEL authors="anisekai"
 
 WORKDIR /app
