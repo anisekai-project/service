@@ -50,7 +50,7 @@ public class TorrentSynchronizationTask implements TaskExecutor {
             // Find a matching torrent in the download list.
             Optional<Transmission.Torrent> optionalTransmissionTorrent = torrents
                     .stream()
-                    .filter(item -> item.hash().equals(downloadingTorrent.getId()))
+                    .filter(item -> item.hash().equals(downloadingTorrent.getHash()))
                     .findFirst();
 
 

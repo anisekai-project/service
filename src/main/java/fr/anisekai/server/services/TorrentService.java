@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Service
-public class TorrentService extends DataService<Torrent, String, TorrentEventAdapter, TorrentRepository, TorrentProxy> {
+public class TorrentService extends DataService<Torrent, UUID, TorrentEventAdapter, TorrentRepository, TorrentProxy> {
 
     private final SpringTransmissionClient client;
 

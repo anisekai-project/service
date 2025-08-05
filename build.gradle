@@ -57,11 +57,11 @@ dependencies {
 
     implementation 'net.dv8tion:JDA:5.6.1'
 
-    implementation 'fr.anisekai:wireless:1.6.0'
+    implementation 'fr.anisekai:wireless:2.0.2'
     implementation 'fr.anisekai:sanctum:1.0.1'
 
     implementation 'fr.alexpado:simple-http-client:1.1.2'
-    implementation('fr.alexpado:jda-interactions-extension:1.0.0-rc.2') {
+    implementation('fr.alexpado:jda-interactions-extension:1.1.0') {
         exclude group: 'io.sentry'
     }
 
@@ -70,7 +70,7 @@ dependencies {
     implementation 'org.json:json:20250517'
     implementation 'org.jetbrains:annotations:26.0.2'
 
-    implementation group: 'rome', name: 'rome', version: '1.0'
+    implementation 'com.rometools:rome:2.1.0'
 }
 
 test {

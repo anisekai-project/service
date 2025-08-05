@@ -116,7 +116,7 @@ public class TorrentSourcingTask implements TaskExecutor {
 
                     timer.action("saving-entities", "Saving entities to database");
                     Torrent torrent = this.torrentService.getProxy().create(entity -> {
-                        entity.setId(transmissionTorrent.hash());
+                        entity.setHash(transmissionTorrent.hash());
                         entity.setName(entry.title());
                         entity.setStatus(transmissionTorrent.status());
                         entity.setProgress(transmissionTorrent.percentDone());

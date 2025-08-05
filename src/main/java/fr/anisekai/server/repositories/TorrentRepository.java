@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface TorrentRepository extends JpaRepository<Torrent, String> {
+public interface TorrentRepository extends JpaRepository<Torrent, UUID> {
 
     List<Torrent> findByStatusIn(Collection<Transmission.TorrentStatus> statuses);
 
