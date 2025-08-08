@@ -2,6 +2,7 @@ package fr.anisekai.web.dto;
 
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Episode;
+import fr.anisekai.web.enums.AnimeStorageState;
 import fr.anisekai.wireless.remote.interfaces.EpisodeEntity;
 
 import java.util.ArrayList;
@@ -14,13 +15,14 @@ public class AnimeDto {
 
     private static final String IMAGE_URL = "/api/v3/library/event-images/%s";
 
-    public final long             id;
-    public final String           group;
-    public final byte             order;
-    public final String           title;
-    public final String           url;
-    public final String           imageUrl;
-    public final List<EpisodeDto> episodes;
+    public final long              id;
+    public final String            group;
+    public final byte              order;
+    public final String            title;
+    public final String            url;
+    public final String            imageUrl;
+    public final AnimeStorageState state;
+    public final List<EpisodeDto>  episodes;
 
     public AnimeDto(Anime anime, Collection<Episode> episodes) {
 
@@ -34,6 +36,16 @@ public class AnimeDto {
                                 .sorted(Comparator.comparing(Episode::getNumber))
                                 .filter(EpisodeEntity::isReady)
                                 .map(EpisodeDto::new).toList();
+
+        if (anime.getTotal() == this.episodes.size()) {
+            this.state = AnimeStorageState.COMPLETE;
+        } else {
+            this.state = switch (anime.getList()) {
+                case SIMULCAST, SIMULCAST_AVAILABLE -> AnimeStorageState.RELEASING;
+                default -> AnimeStorageState.INCOMPLETE;
+            };
+        }
+
     }
 
     public AnimeDto(Anime anime) {
@@ -45,6 +57,7 @@ public class AnimeDto {
         this.url      = anime.getUrl();
         this.imageUrl = String.format(IMAGE_URL, anime.getId());
         this.episodes = new ArrayList<>();
+        this.state    = AnimeStorageState.COMPLETE;
 
         int amount = Math.abs(anime.getTotal());
 
