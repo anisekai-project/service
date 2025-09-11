@@ -11,8 +11,8 @@ import java.util.Optional;
 @Repository
 public interface EpisodeRepository extends JpaRepository<Episode, Long> {
 
-    List<Episode> findByAnime(Anime anime);
-
     Optional<Episode> findByAnimeAndNumber(Anime anime, int number);
+
+    List<Episode> findAllByReadyTrue();
 
 }

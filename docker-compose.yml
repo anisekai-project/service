@@ -1,14 +1,33 @@
 services:
   service:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/anisekai.Dockerfile
-    image: akionakao/anisekai:alpha
-    user: '1000:1000'
+    restart: unless-stopped
+    image:   akionakao/anisekai:beta
+    user:    '${UID:-1000}:${GID:-1000}'
     ports:
-      - '10000:${SERVER_PORT:-8080}'
+      - '${FORWARD_SERVICE_ON:-8080}:8080'
+    environment:
+      DB_CONNECTION:         "${DB_CONNECTION}"
+      DB_HOST:               "mariadb"
+      DB_PORT:               "${DB_PORT}"
+      DB_DATABASE:           "${DB_DATABASE}"
+      DB_USERNAME:           "${DB_USERNAME}"
+      DB_PASSWORD:           "${DB_PASSWORD}"
+      SENTRY_DSN:            "${SENTRY_SERVICE_DSN}"
+      SENTRY_ENV:            "${SENTRY_SERVICE_ENV}"
+      LOG_APPLICATION_LEVEL: "${LOG_APPLICATION_LEVEL}"
+      LOG_API_LEVEL:         "${LOG_API_LEVEL}"
+      LOG_LIBRARY_LEVEL:     "${LOG_LIBRARY_LEVEL}"
+      LOG_FRAMEWORK_LEVEL:   "${LOG_FRAMEWORK_LEVEL}"
+      DISCORD_CLIENT_ID:     "${DISCORD_CLIENT_ID}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET}"
+      DISCORD_GRANT_TYPE:    "${DISCORD_GRANT_TYPE}"
+      DISCORD_SCOPE:         "${DISCORD_SCOPE}"
+      DISCORD_REDIRECT_URI:  "${DISCORD_REDIRECT_URI}"
+      DISCORD_BOT_TOKEN:     "${DISCORD_BOT_TOKEN}"
+      DISCORD_BOT_ENABLED:   "${DISCORD_BOT_ENABLED}"
+      WEB_URL:               "${WEB_URL}"
+      API_URL:               "${API_URL}"
+      CORS_ALLOWED_HOST:     "${CORS_ALLOWED_HOST}"
     networks:
       - anisekai
     links:
@@ -18,43 +37,74 @@ services:
       - mariadb
       - transmission
     volumes:
-      - './data/torrents:/app/data/torrents'
-      - './data/web:/app/data/library'
+      - './data/library:/app/data/library'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", 'http://localhost:8080/actuator/health' ]
+      start_period: 10s
+      interval:     10s
+      timeout:      5s
+      retries:      3
+  website:
+    restart: unless-stopped
+    image:   akionakao/anisekai-website:beta
+    user:    '${UID:-1000}:${GID:-1000}'
+    environment:
+      NUXT_PUBLIC_DISCORD_CLIENT_ID:    "${DISCORD_CLIENT_ID}"
+      NUXT_PUBLIC_DISCORD_GRANT_TYPE:   "${DISCORD_GRANT_TYPE}"
+      NUXT_PUBLIC_DISCORD_SCOPE:        "${DISCORD_SCOPE}"
+      NUXT_PUBLIC_DISCORD_REDIRECT_URI: "${DISCORD_REDIRECT_URI}"
+      SENTRY_DSN:                       "${SENTRY_WEBSITE_DSN}"
+      SENTRY_ENV:                       "${SENTRY_WEBSITE_ENV}"
+      NUXT_PUBLIC_API_URL:              '${API_URL}'
+    ports:
+      - "${FW_WEB_PORT:-3000}:3000"
+    networks:
+      - anisekai
+    depends_on:
+      - service
+    healthcheck:
+      test: [ "CMD", "curl", "-f", 'http://localhost:3000' ]
+      start_period: 10s
+      interval:     10s
+      timeout:      5s
+      retries:      3
   mariadb:
     image: 'mariadb:11.8.2'
-    user: '1000:1000'
     ports:
-      - '10001:${DB_PORT}'
+      - '${FORWARD_DATABASE_ON:-3306}:3306'
     environment:
       MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_DATABASE: '${DB_DATABASE}'
-      MYSQL_USER: '${DB_USERNAME}'
-      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ROOT_HOST:     "localhost"
+      MYSQL_DATABASE:      '${DB_DATABASE}'
+      MYSQL_USER:          '${DB_USERNAME}'
+      MYSQL_PASSWORD:      '${DB_PASSWORD}'
     volumes:
       - 'anisekai:/var/lib/mysql'
     networks:
       - anisekai
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      test: [ "CMD", "mariadb", "-u", '${DB_USERNAME}', '-p${DB_PASSWORD}', '-e', 'EXIT' ]
       start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      interval:     10s
+      timeout:      5s
+      retries:      3
   transmission:
-    build:
-      context: .
-      dockerfile: .docker/transmission.Dockerfile
     image: akionakao/transmission:4.0.5
-    user: '1000:1000'
+    user:  '${UID:-1000}:${GID:-1000}'
     ports:
-      - '10003:9091'
-      - '10004:51423'
+      - '${FORWARD_TRANSMISSION_ON:-9091}:9091'
+      - '${FORWARD_TRANSMISSION_PEER_ON:-51423}:51423'
     networks:
       - anisekai
     volumes:
       - './data/transmission:/app/data'
-      - './data/torrents:/app/downloads'
+      - './data/library/downloads:/app/downloads'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", 'http://localhost:9091/transmission/rpc' ]
+      start_period: 10s
+      interval:     10s
+      timeout:      5s
+      retries:      3
 networks:
   anisekai:
     driver: bridge

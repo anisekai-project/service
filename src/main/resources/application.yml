@@ -1,0 +1,57 @@
+spring:
+  datasource:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url:      jdbc:${DB_CONNECTION}://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+    hikari:
+      maximum-pool-size:  10
+      minimum-idle:       5
+      connection-timeout: 30000
+      idle-timeout:       600000
+      max-lifetime:       1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age:      1d
+          cache-public: true
+
+sentry:
+  dsn:                      ${SENTRY_DSN}
+  environment:              ${SENTRY_ENV}
+  traces-sample-rate:       ${SENTRY_SAMPLE_RATE:0.1}
+  exception-resolver-order: -2147483647
+
+anisekai:
+  api:
+    base-url:     ${API_URL}
+    web-url:      ${WEB_URL}
+    allowed-host: ${CORS_ALLOWED_HOST}
+    signing-key:  ${SIGNING_KEY}
+  library:
+    path: ${LIBRARY_PATH:/app/data/library}
+  discord:
+    bot:
+      token:   ${DISCORD_BOT_TOKEN}
+      enabled: ${DISCORD_BOT_ENABLED:false}
+    oauth:
+      client-id:     ${DISCORD_CLIENT_ID}
+      client-secret: ${DISCORD_CLIENT_SECRET}
+      scope:         ${DISCORD_SCOPE}
+      redirect-uri:  ${DISCORD_REDIRECT_URI}
+
+
+logging:
+  level:
+    fr.anisekai:     ${LOG_APPLICATION_LEVEL}
+    fr.anisekai.web: ${LOG_API_LEVEL}
+    fr.alexpado:     ${LOG_LIBRARY_LEVEL}
+    net.dv8tion:     ${LOG_LIBRARY_LEVEL}
+    root:            ${LOG_FRAMEWORK_LEVEL}

@@ -1,8 +1,8 @@
 package fr.anisekai.server.events.torrent;
 
-import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.events.TorrentUpdatedEvent;
+import fr.anisekai.wireless.api.services.Transmission;
 
 public class TorrentStatusUpdatedEvent extends TorrentUpdatedEvent<Transmission.TorrentStatus> {
 

@@ -1,6 +1,5 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.keys.TorrentKey;
 import fr.anisekai.server.entities.Episode;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.TorrentFile;
@@ -8,6 +7,7 @@ import fr.anisekai.server.entities.adapters.TorrentFileEventAdapter;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.TorrentFileProxy;
 import fr.anisekai.server.repositories.TorrentFileRepository;
+import fr.anisekai.wireless.remote.keys.TorrentKey;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -1,6 +1,5 @@
 package fr.anisekai.library.tasks.executors;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.library.services.SpringTransmissionClient;
 import fr.anisekai.library.tasks.factories.MediaImportFactory;
 import fr.anisekai.server.entities.Torrent;
@@ -8,6 +7,7 @@ import fr.anisekai.server.services.TaskService;
 import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import fr.anisekai.wireless.api.services.Transmission;
 
 import java.util.List;
@@ -50,7 +50,7 @@ public class TorrentSynchronizationTask implements TaskExecutor {
             // Find a matching torrent in the download list.
             Optional<Transmission.Torrent> optionalTransmissionTorrent = torrents
                     .stream()
-                    .filter(item -> item.hash().equals(downloadingTorrent.getId()))
+                    .filter(item -> item.hash().equals(downloadingTorrent.getHash()))
                     .findFirst();
 
 

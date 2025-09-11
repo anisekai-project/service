@@ -1,9 +1,5 @@
 package fr.anisekai.discord.tasks.watchlist.update;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
-import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
-import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.responses.embeds.WatchlistEmbed;
 import fr.anisekai.server.entities.Anime;
@@ -14,6 +10,10 @@ import fr.anisekai.server.services.InterestService;
 import fr.anisekai.server.services.WatchlistService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.utils.DiscordUtils;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;

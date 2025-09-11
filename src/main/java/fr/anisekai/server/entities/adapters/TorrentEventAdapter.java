@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities.adapters;
 
+import fr.anisekai.server.events.torrent.TorrentStatusUpdatedEvent;
 import fr.anisekai.wireless.api.persistence.TriggerEvent;
 import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.wireless.remote.interfaces.TaskEntity;
 import fr.anisekai.wireless.remote.interfaces.TorrentEntity;
-import fr.anisekai.server.events.torrent.TorrentStatusUpdatedEvent;
 import org.jetbrains.annotations.NotNull;
 
 public interface TorrentEventAdapter extends TorrentEntity {

@@ -1,11 +1,14 @@
 package fr.anisekai.library.services;
 
+import fr.anisekai.server.services.SettingService;
 import fr.anisekai.wireless.api.services.Nyaa;
 import fr.anisekai.wireless.api.services.Transmission;
-import fr.anisekai.server.services.SettingService;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 public class SpringTransmissionClient {

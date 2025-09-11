@@ -1,10 +1,10 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.TorrentFileEventAdapter;
 import fr.anisekai.wireless.remote.interfaces.TorrentFileEntity;
 import fr.anisekai.wireless.remote.keys.TorrentKey;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.TorrentFileEventAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;

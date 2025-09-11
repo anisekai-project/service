@@ -1,18 +1,18 @@
 package fr.anisekai.library.tasks.executors;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
-import fr.anisekai.server.entities.*;
-import fr.anisekai.wireless.api.json.AnisekaiJson;
-import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
-import fr.anisekai.wireless.api.services.Nyaa;
-import fr.anisekai.wireless.api.services.Transmission;
-import fr.anisekai.wireless.utils.MapUtils;
 import fr.anisekai.library.services.SpringTransmissionClient;
+import fr.anisekai.server.entities.*;
 import fr.anisekai.server.services.AnimeService;
 import fr.anisekai.server.services.EpisodeService;
 import fr.anisekai.server.services.TorrentFileService;
 import fr.anisekai.server.services.TorrentService;
 import fr.anisekai.server.tasking.TaskExecutor;
+import fr.anisekai.wireless.api.json.AnisekaiJson;
+import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
+import fr.anisekai.wireless.api.services.Nyaa;
+import fr.anisekai.wireless.api.services.Transmission;
+import fr.anisekai.wireless.utils.MapUtils;
 
 import java.net.URI;
 import java.util.List;
@@ -116,7 +116,7 @@ public class TorrentSourcingTask implements TaskExecutor {
 
                     timer.action("saving-entities", "Saving entities to database");
                     Torrent torrent = this.torrentService.getProxy().create(entity -> {
-                        entity.setId(transmissionTorrent.hash());
+                        entity.setHash(transmissionTorrent.hash());
                         entity.setName(entry.title());
                         entity.setStatus(transmissionTorrent.status());
                         entity.setProgress(transmissionTorrent.percentDone());

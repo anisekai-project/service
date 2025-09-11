@@ -8,11 +8,12 @@ import jakarta.persistence.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Episode implements EpisodeEventAdapter, ScopedEntity {
+public class Episode implements EpisodeEventAdapter, ScopedEntity, Comparable<Episode> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -119,6 +120,17 @@ public class Episode implements EpisodeEventAdapter, ScopedEntity {
 
         if (this.isNew()) throw new IllegalStateException("Cannot use a non persisted entity as scoped entity.");
         return String.valueOf(this.getId());
+    }
+
+    @Override
+    public int compareTo(@NotNull Episode o) {
+
+        return EntityUtils.compare(
+                this,
+                o,
+                Comparator.comparing(Episode::getAnime),
+                Comparator.comparing(Episode::getNumber)
+        );
     }
 
 }

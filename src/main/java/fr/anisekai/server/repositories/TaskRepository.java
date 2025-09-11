@@ -1,7 +1,7 @@
 package fr.anisekai.server.repositories;
 
-import fr.anisekai.wireless.remote.enums.TaskStatus;
 import fr.anisekai.server.entities.Task;
+import fr.anisekai.wireless.remote.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

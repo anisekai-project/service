@@ -1,11 +1,7 @@
 package fr.anisekai.listeners;
 
-import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateFactory;
-import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateTask;
-import fr.anisekai.wireless.remote.enums.AnimeList;
-import fr.anisekai.wireless.remote.enums.BroadcastStatus;
-import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.discord.tasks.anime.announcement.create.AnnouncementCreateFactory;
+import fr.anisekai.discord.tasks.anime.announcement.update.AnnouncementUpdateFactory;
 import fr.anisekai.discord.tasks.broadcast.schedule.BroadcastScheduleFactory;
 import fr.anisekai.discord.tasks.watchlist.update.WatchlistUpdateFactory;
 import fr.anisekai.server.entities.Anime;
@@ -21,6 +17,9 @@ import fr.anisekai.server.events.interest.InterestLevelUpdatedEvent;
 import fr.anisekai.server.events.selection.SelectionStatusUpdatedEvent;
 import fr.anisekai.server.events.user.UserEmoteUpdatedEvent;
 import fr.anisekai.server.services.*;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.enums.BroadcastStatus;
+import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;

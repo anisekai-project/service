@@ -11,7 +11,7 @@ public class BookedSpot<T extends WatchTarget> implements ScheduleSpotData<T> {
 
     private T             target;
     private ZonedDateTime startingAt;
-    private int          episodeCount;
+    private int           episodeCount;
 
     public BookedSpot(T target, ZonedDateTime startingAt, int episodeCount) {
 

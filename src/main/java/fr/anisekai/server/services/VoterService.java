@@ -1,6 +1,5 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.keys.VoterKey;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.DiscordUser;
 import fr.anisekai.server.entities.Selection;
@@ -11,6 +10,7 @@ import fr.anisekai.server.exceptions.voter.VoterMaxReachedException;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.VoterProxy;
 import fr.anisekai.server.repositories.VoterRepository;
+import fr.anisekai.wireless.remote.keys.VoterKey;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

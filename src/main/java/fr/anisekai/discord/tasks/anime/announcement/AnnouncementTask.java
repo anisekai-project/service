@@ -1,6 +1,5 @@
 package fr.anisekai.discord.tasks.anime.announcement;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.discord.exceptions.tasks.UndefinedAnnouncementChannelException;
 import fr.anisekai.discord.exceptions.tasks.UndefinedAnnouncementRoleException;
@@ -12,6 +11,7 @@ import fr.anisekai.server.services.InterestService;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.wireless.api.json.AnisekaiJson;
 import fr.anisekai.wireless.api.json.validation.JsonObjectRule;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 

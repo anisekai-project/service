@@ -1,12 +1,12 @@
 package fr.anisekai.server.proxy;
 
-import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.server.entities.Watchlist;
 import fr.anisekai.server.entities.adapters.WatchlistEventAdapter;
 import fr.anisekai.server.events.WatchlistCreatedEvent;
 import fr.anisekai.server.exceptions.watchlist.WatchlistNotFoundException;
 import fr.anisekai.server.persistence.ProxyService;
 import fr.anisekai.server.repositories.WatchlistRepository;
+import fr.anisekai.wireless.remote.enums.AnimeList;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 

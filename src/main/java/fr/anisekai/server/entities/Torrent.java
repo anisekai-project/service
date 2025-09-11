@@ -1,21 +1,28 @@
 package fr.anisekai.server.entities;
 
+import fr.anisekai.server.entities.adapters.TorrentEventAdapter;
 import fr.anisekai.wireless.api.services.Transmission;
 import fr.anisekai.wireless.remote.interfaces.TorrentEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
 import jakarta.persistence.*;
-import fr.anisekai.server.entities.adapters.TorrentEventAdapter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Types;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 public class Torrent implements TorrentEventAdapter {
 
     @Id
-    private String id;
+    @JdbcTypeCode(Types.BINARY)
+    private UUID id;
+
+    @Column(unique = true, nullable = false, length = 40)
+    private String hash;
 
     @Column(nullable = false)
     private String name;
@@ -46,15 +53,27 @@ public class Torrent implements TorrentEventAdapter {
     private Set<TorrentFile> files;
 
     @Override
-    public String getId() {
+    public UUID getId() {
 
         return this.id;
     }
 
     @Override
-    public void setId(String id) {
+    public void setId(UUID id) {
 
         this.id = id;
+    }
+
+    @Override
+    public String getHash() {
+
+        return this.hash;
+    }
+
+    @Override
+    public void setHash(String hash) {
+
+        this.hash = hash;
     }
 
     @Override
@@ -168,7 +187,7 @@ public class Torrent implements TorrentEventAdapter {
     public Transmission.Torrent asTransmissionIdentifier() {
 
         return new Transmission.Torrent(
-                this.id,
+                this.hash,
                 this.status,
                 this.downloadDirectory,
                 this.progress,

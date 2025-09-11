@@ -1,5 +1,6 @@
 package fr.anisekai.server.proxy;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import fr.anisekai.server.entities.Torrent;
 import fr.anisekai.server.entities.adapters.TorrentEventAdapter;
 import fr.anisekai.server.events.TorrentCreatedEvent;
@@ -10,12 +11,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Component
-public class TorrentProxy extends ProxyService<Torrent, String, TorrentEventAdapter, TorrentRepository> {
+public class TorrentProxy extends ProxyService<Torrent, UUID, TorrentEventAdapter, TorrentRepository> {
 
     public TorrentProxy(ApplicationEventPublisher publisher, TorrentRepository repository) {
 
@@ -39,7 +41,10 @@ public class TorrentProxy extends ProxyService<Torrent, String, TorrentEventAdap
 
     public Torrent create(Consumer<TorrentEventAdapter> consumer) {
 
-        return this.create(consumer, TorrentCreatedEvent::new);
+        return this.create(entity -> {
+            entity.setId(UuidCreator.getTimeOrderedEpoch());
+            consumer.accept(entity);
+        }, TorrentCreatedEvent::new);
     }
 
 }

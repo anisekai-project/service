@@ -1,13 +1,13 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.enums.AnimeSeason;
-import fr.anisekai.wireless.remote.enums.SelectionStatus;
 import fr.anisekai.server.entities.Anime;
 import fr.anisekai.server.entities.Selection;
 import fr.anisekai.server.entities.adapters.SelectionEventAdapter;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.SelectionProxy;
 import fr.anisekai.server.repositories.SelectionRepository;
+import fr.anisekai.wireless.remote.enums.AnimeSeason;
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;

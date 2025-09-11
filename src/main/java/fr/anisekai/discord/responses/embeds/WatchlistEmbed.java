@@ -1,12 +1,12 @@
 package fr.anisekai.discord.responses.embeds;
 
+import fr.anisekai.Texts;
+import fr.anisekai.utils.DiscordUtils;
 import fr.anisekai.wireless.remote.enums.AnimeList;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.remote.interfaces.InterestEntity;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import fr.anisekai.wireless.utils.EntityUtils;
-import fr.anisekai.Texts;
-import fr.anisekai.utils.DiscordUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 

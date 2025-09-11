@@ -5,7 +5,6 @@ import fr.alexpado.lib.rest.enums.RequestMethod;
 import fr.alexpado.lib.rest.exceptions.RestException;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -90,7 +89,13 @@ public class FileUrlStreamer extends RestAction<Boolean> {
         if (isOk) {
             try (InputStream is = http.getInputStream()) {
                 try (OutputStream os = new FileOutputStream(this.file.toFile())) {
-                    is.transferTo(os);
+                    // Replace is.transferTo(os); with a manual, memory-safe buffer.
+                    byte[] buffer = new byte[8192]; // 8KB buffer
+                    int    bytesRead;
+                    //noinspection NestedAssignment
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, bytesRead);
+                    }
                 }
             }
             http.disconnect();

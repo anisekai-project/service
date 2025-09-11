@@ -1,13 +1,13 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.enums.AnimeList;
-import fr.anisekai.wireless.remote.enums.AnimeList.Property;
-import fr.anisekai.wireless.remote.interfaces.WatchlistEntity;
 import fr.anisekai.server.entities.Watchlist;
 import fr.anisekai.server.entities.adapters.WatchlistEventAdapter;
 import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.WatchlistProxy;
 import fr.anisekai.server.repositories.WatchlistRepository;
+import fr.anisekai.wireless.remote.enums.AnimeList;
+import fr.anisekai.wireless.remote.enums.AnimeList.Property;
+import fr.anisekai.wireless.remote.interfaces.WatchlistEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -32,9 +32,7 @@ public class WatchlistService extends DataService<Watchlist, AnimeList, Watchlis
      */
     private Watchlist create(AnimeList list) {
 
-        return this.getProxy().create(entity -> {
-            entity.setId(list);
-        });
+        return this.getProxy().create(entity -> entity.setId(list));
     }
 
     /**

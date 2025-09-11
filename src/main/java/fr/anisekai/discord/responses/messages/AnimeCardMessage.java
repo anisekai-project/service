@@ -1,10 +1,10 @@
 package fr.anisekai.discord.responses.messages;
 
 import fr.alexpado.jda.interactions.responses.SlashResponse;
+import fr.anisekai.discord.responses.embeds.AnimeCardEmbed;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.remote.interfaces.InterestEntity;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import fr.anisekai.discord.responses.embeds.AnimeCardEmbed;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.interactions.components.ActionRow;

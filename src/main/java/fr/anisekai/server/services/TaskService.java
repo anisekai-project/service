@@ -1,6 +1,5 @@
 package fr.anisekai.server.services;
 
-import fr.alexpado.jda.interactions.ext.sentry.ITimedAction;
 import fr.anisekai.annotations.FatalTask;
 import fr.anisekai.discord.JDAStore;
 import fr.anisekai.server.entities.Task;
@@ -15,6 +14,7 @@ import fr.anisekai.server.tasking.TaskBuilder;
 import fr.anisekai.server.tasking.TaskExecutor;
 import fr.anisekai.server.tasking.TaskFactory;
 import fr.anisekai.wireless.api.json.exceptions.JSONValidationException;
+import fr.anisekai.wireless.api.sentry.ITimedAction;
 import fr.anisekai.wireless.remote.enums.TaskStatus;
 import fr.anisekai.wireless.remote.interfaces.TaskEntity;
 import io.sentry.Sentry;

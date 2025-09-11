@@ -6,8 +6,6 @@ import fr.alexpado.jda.interactions.annotations.Option;
 import fr.alexpado.jda.interactions.annotations.Param;
 import fr.alexpado.jda.interactions.responses.ButtonResponse;
 import fr.alexpado.jda.interactions.responses.SlashResponse;
-import fr.anisekai.wireless.remote.enums.SelectionStatus;
-import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import fr.anisekai.discord.annotations.InteractAt;
 import fr.anisekai.discord.annotations.InteractionBean;
 import fr.anisekai.discord.exceptions.RequireAdministratorException;
@@ -17,6 +15,8 @@ import fr.anisekai.server.entities.Selection;
 import fr.anisekai.server.entities.Voter;
 import fr.anisekai.server.services.SelectionService;
 import fr.anisekai.server.services.VoterService;
+import fr.anisekai.wireless.remote.enums.SelectionStatus;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import org.springframework.stereotype.Component;
 

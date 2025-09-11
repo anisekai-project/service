@@ -12,6 +12,10 @@
     <JetCodeStyleSettings>
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
     </JetCodeStyleSettings>
+    <Properties>
+      <option name="SPACES_AROUND_KEY_VALUE_DELIMITER" value="true" />
+      <option name="KEEP_BLANK_LINES" value="true" />
+    </Properties>
     <SqlCodeStyleSettings version="7">
       <option name="KEYWORD_CASE" value="2" />
       <option name="TYPE_CASE" value="3" />
@@ -20,6 +24,9 @@
       <option name="QUOTE_IDENTIFIER" value="2" />
       <option name="QUOTE_TYPE" value="31" />
     </SqlCodeStyleSettings>
+    <yaml>
+      <option name="ALIGN_VALUES_PROPERTIES" value="1" />
+    </yaml>
     <codeStyleSettings language="JAVA">
       <option name="BLANK_LINES_BEFORE_METHOD_BODY" value="1" />
       <option name="BLANK_LINES_AFTER_CLASS_HEADER" value="1" />
@@ -46,6 +53,9 @@
       <option name="WHILE_BRACE_FORCE" value="3" />
       <option name="FOR_BRACE_FORCE" value="3" />
       <option name="ENUM_CONSTANTS_WRAP" value="5" />
+    </codeStyleSettings>
+    <codeStyleSettings language="Properties">
+      <option name="ALIGN_GROUP_FIELD_DECLARATIONS" value="true" />
     </codeStyleSettings>
     <codeStyleSettings language="kotlin">
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />

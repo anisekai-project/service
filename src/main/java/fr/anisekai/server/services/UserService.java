@@ -1,12 +1,14 @@
 package fr.anisekai.server.services;
 
-import fr.anisekai.wireless.remote.interfaces.UserEntity;
-import fr.anisekai.server.entities.adapters.UserEventAdapter;
-import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.entities.DiscordUser;
+import fr.anisekai.server.entities.adapters.UserEventAdapter;
 import fr.anisekai.server.events.UserCreatedEvent;
+import fr.anisekai.server.persistence.DataService;
 import fr.anisekai.server.proxy.UserProxy;
 import fr.anisekai.server.repositories.UserRepository;
+import fr.anisekai.web.packets.results.DiscordIdentity;
+import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import net.dv8tion.jda.api.entities.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +24,7 @@ public class UserService extends DataService<DiscordUser, Long, UserEventAdapter
         super(proxy);
     }
 
-    public DiscordUser of(net.dv8tion.jda.api.entities.User user) {
+    public DiscordUser of(User user) {
 
         return this.getProxy().upsertEntity(
                 user.getIdLong(),
@@ -34,6 +36,19 @@ public class UserService extends DataService<DiscordUser, Long, UserEventAdapter
                     discordUser.setNickname(user.getGlobalName());
                 }
         );
+    }
+
+    public DiscordUser ensureUserExists(DiscordIdentity identity) {
+
+        return this.getProxy()
+                   .fetchEntity(identity.getId())
+                   .orElseGet(() -> this.getProxy().create(user -> {
+                       user.setId(identity.getId());
+                       user.setUsername(identity.getGlobalName());
+                       user.setNickname(identity.getUsername());
+                       user.setAvatarUrl(identity.getAvatar());
+                   }));
+
     }
 
     public Optional<DiscordUser> getByApiKey(String apiKey) {
@@ -63,6 +78,11 @@ public class UserService extends DataService<DiscordUser, Long, UserEventAdapter
     public List<DiscordUser> getActiveUsers() {
 
         return this.fetchAll(UserRepository::findAllByActiveIsTrue);
+    }
+
+    public Optional<DiscordUser> findFromIdentity(DiscordIdentity identity) {
+
+        return this.getProxy().fetchEntity(identity.getId());
     }
 
 }
