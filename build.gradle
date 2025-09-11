@@ -2,10 +2,10 @@ import java.nio.charset.StandardCharsets
 
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.4'
+    id 'org.springframework.boot' version '3.5.5'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'org.ajoberstar.reckon' version '0.19.2'
+    id 'org.ajoberstar.reckon' version '1.0.1'
 }
 
 group = 'fr.anisekai'
@@ -39,17 +39,17 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.18.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.21.1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
 
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.4'
-    implementation 'org.flywaydb:flyway-core:11.10.5'
-    implementation 'org.flywaydb:flyway-mysql:11.10.5'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
+    implementation 'org.flywaydb:flyway-core:11.12.0'
+    implementation 'org.flywaydb:flyway-mysql:11.12.0'
 
     implementation 'net.dv8tion:JDA:5.6.1'
 
@@ -62,9 +62,9 @@ dependencies {
     }
 
     implementation 'com.github.slugify:slugify:3.0.7'
-    implementation 'org.jsoup:jsoup:1.21.1'
+    implementation 'org.jsoup:jsoup:1.21.2'
     implementation 'org.json:json:20250517'
-    implementation 'org.jetbrains:annotations:26.0.2'
+    implementation 'org.jetbrains:annotations:26.0.2-1'
 
     implementation 'com.rometools:rome:2.1.0'
 }
