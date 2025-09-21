@@ -40,16 +40,18 @@ public class WatchlistEmbed extends EmbedBuilder {
             return;
         }
 
-        for (AnimeEntity<?> anime : animes) {
-            List<? extends InterestEntity<?, ?>> animeInterests = interests
-                    .stream()
-                    .filter(interest -> EntityUtils.equals(interest.getAnime(), anime))
-                    .filter(interest -> !Objects.isNull(interest.getUser().getEmote()))
-                    .sorted(Comparator.comparing(interest -> interest.getUser().getUsername()))
-                    .toList();
+        animes.stream()
+              .sorted(Comparator.comparing((AnimeEntity<?> anime) -> anime.getTitle()))
+              .forEach(anime -> {
+                  List<? extends InterestEntity<?, ?>> animeInterests = interests
+                          .stream()
+                          .filter(interest -> EntityUtils.equals(interest.getAnime(), anime))
+                          .filter(interest -> !Objects.isNull(interest.getUser().getEmote()))
+                          .sorted(Comparator.comparing(interest -> interest.getUser().getUsername()))
+                          .toList();
 
-            this.submitAnime(anime, animeInterests, list.hasProperty(AnimeList.Property.PROGRESS));
-        }
+                  this.submitAnime(anime, animeInterests, list.hasProperty(AnimeList.Property.PROGRESS));
+              });
 
         String fullContent       = String.join("\n\n", this.full);
         String fullNoLinkContent = String.join("\n\n", this.fullNoLink);
