@@ -36,7 +36,7 @@ sourceSets {
 
 
 tasks.register('generateJava', Copy) {
-    def context = [version: project.version.toString()]
+    def context = [version: project.version.toString(), date: ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)]
     inputs.properties(context)
     from sourceSets.template.java.srcDirs
     into layout.buildDirectory.dir("generated/java")
