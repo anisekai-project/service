@@ -1,22 +1,15 @@
-import java.nio.charset.StandardCharsets
-
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.5'
-    id 'io.spring.dependency-management' version '1.1.7'
-    id 'com.github.ben-manes.versions' version '0.52.0'
-    id 'org.ajoberstar.reckon' version '1.0.1'
+    alias(libs.plugins.spring.framework)
+    alias(libs.plugins.spring.dependencyManagement)
+    alias(libs.plugins.catalogUpdater)
+    alias(libs.plugins.reckon)
 }
 
 group = 'fr.anisekai'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
-    }
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
-}
+apply from: 'gradle/reckon.gradle'
+apply from: 'gradle/java.gradle'
 
 configurations {
     compileOnly {
@@ -30,80 +23,40 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    implementation(libs.springframework.actuator)
+    implementation(libs.springframework.data.jpa)
+    implementation(libs.springframework.jdbc)
+    implementation(libs.springframework.web)
 
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation(libs.testing.springframework.test)
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation(libs.stats.sentry.spring)
+    implementation(libs.springdoc.openapi)
 
-    implementation 'io.sentry:sentry-spring-boot-starter-jakarta:8.21.1'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+    implementation(libs.security.uuid)
+    implementation(libs.security.jjwt.api)
+    runtimeOnly(libs.security.jjwt.impl)
+    runtimeOnly(libs.security.jjwt.jackson)
 
-    implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
-    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    runtimeOnly(libs.database.mariadb.client)
+    implementation(libs.database.flyway.core)
+    implementation(libs.database.flyway.mysql)
 
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
-    implementation 'org.flywaydb:flyway-core:11.12.0'
-    implementation 'org.flywaydb:flyway-mysql:11.12.0'
+    implementation(libs.api.discord.jda)
+    implementation(libs.api.discord.jda.interactions)
+    implementation(libs.api.anisekai.wireless)
+    implementation(libs.api.anisekai.sanctum)
 
-    implementation 'net.dv8tion:JDA:5.6.1'
+    implementation(libs.util.http.client)
+    implementation(libs.util.json)
+    implementation(libs.util.jsoup)
+    implementation(libs.util.rome)
+    implementation(libs.util.slugify)
 
-    implementation 'fr.anisekai:wireless:2.0.2'
-    implementation 'fr.anisekai:sanctum:1.0.1'
-
-    implementation 'fr.alexpado:simple-http-client:1.1.2'
-    implementation('fr.alexpado:jda-interactions-extension:1.1.0') {
-        exclude group: 'io.sentry'
-    }
-
-    implementation 'com.github.slugify:slugify:3.0.7'
-    implementation 'org.jsoup:jsoup:1.21.2'
-    implementation 'org.json:json:20250517'
-    implementation 'org.jetbrains:annotations:26.0.2-1'
-
-    implementation 'com.rometools:rome:2.1.0'
+    annotationProcessor(libs.dev.spring.configuration.processor)
+    implementation(libs.dev.annotations.jetbrains)
 }
 
 test {
     useJUnitPlatform()
 }
-
-def isNonStable = { String version ->
-    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { version.toUpperCase().contains(it) }
-    def regex = /^[0-9,.v-]+(-r)?$/
-    return !stableKeyword && !(version ==~ regex)
-}
-
-dependencyUpdates {
-    rejectVersionIf {
-        isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
-    }
-}
-
-reckon {
-    defaultInferredScope = 'patch'
-    stages('dev', 'beta', 'rc', 'final')
-
-    scopeCalc = calcScopeFromProp() | calcScopeFromCommitMessages()
-    stageCalc = calcStageFromProp()
-}
-
-tasks.register('generateJava', Copy) {
-    def context = [version: project.version.toString()]
-    inputs.properties(context)
-    from 'src/template/java'
-    into layout.buildDirectory.dir("generated/java")
-    expand(context)
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = StandardCharsets.UTF_8.name()
-    dependsOn tasks.named('generateJava')
-}
-
-sourceSets.main.java.srcDir layout.buildDirectory.dir("generated/java")

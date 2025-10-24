@@ -1,0 +1,54 @@
+[versions]
+anisekai-sanctum = "1.0.1"
+anisekai-wireless = "2.0.2"
+catalogUpdater = "1.0.1"
+flyway = "11.12.0"
+jda = "5.6.1"
+jda-interactions = "1.1.0"
+jetbrains-annotations = "26.0.2-1"
+jjwt = "0.13.0"
+json = "20250517"
+jsoup = "1.21.2"
+mariadb = "3.5.6"
+reckon = "1.0.1"
+rome = "2.1.0"
+sentry = "8.21.1"
+simple-http = "1.1.2"
+slugify = "3.0.7"
+springboot-dependency-management = "1.1.7"
+springboot-framework = "3.5.5"
+springdoc = "2.8.13"
+uuid-creator = "6.1.1"
+
+[libraries]
+api-anisekai-sanctum = { module = "fr.anisekai:sanctum", version.ref = "anisekai-sanctum" }
+api-anisekai-wireless = { module = "fr.anisekai:wireless", version.ref = "anisekai-wireless" }
+api-discord-jda = { module = "net.dv8tion:JDA", version.ref = "jda" }
+api-discord-jda-interactions = { module = "fr.alexpado:jda-interactions-extension", version.ref = "jda-interactions" }
+database-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+database-flyway-mysql = { module = "org.flywaydb:flyway-mysql", version.ref = "flyway" }
+database-mariadb-client = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb" }
+dev-annotations-jetbrains = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+dev-spring-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+security-jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+security-jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+security-jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+security-uuid = { module = "com.github.f4b6a3:uuid-creator", version.ref = "uuid-creator" }
+springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+springframework-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+springframework-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+springframework-jdbc = { module = "org.springframework.boot:spring-boot-starter-jdbc" }
+springframework-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+stats-sentry-spring = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+testing-springframework-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+util-http-client = { module = "fr.alexpado:simple-http-client", version.ref = "simple-http" }
+util-json = { module = "org.json:json", version.ref = "json" }
+util-jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+util-rome = { module = "com.rometools:rome", version.ref = "rome" }
+util-slugify = { module = "com.github.slugify:slugify", version.ref = "slugify" }
+
+[plugins]
+catalogUpdater = { id = "nl.littlerobots.version-catalog-update", version.ref = "catalogUpdater" }
+reckon = { id = "org.ajoberstar.reckon", version.ref = "reckon" }
+spring-dependencyManagement = { id = "io.spring.dependency-management", version.ref = "springboot-dependency-management" }
+spring-framework = { id = "org.springframework.boot", version.ref = "springboot-framework" }
