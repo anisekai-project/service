@@ -164,7 +164,7 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Une erreur est survenue.");
         builder.setDescription("Une erreur est survenue lors du traitement de cette action. Merci de réessayer.");
-        builder.setFooter(event.getPath().toString());
+        builder.setFooter(event.path().toString());
         builder.setColor(Color.RED);
         return builder;
     }
@@ -172,31 +172,31 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
     @Override
     public <T extends Interaction> void handleException(DispatchEvent<T> event, Exception exception) {
 
-        if (event.getInteraction() instanceof IReplyCallback callback) {
+        if (event.interaction() instanceof IReplyCallback callback) {
             if (exception instanceof DiscordEmbeddable embeddable) {
-                LOGGER.info("Interaction '{}' threw an embeddable exception.", event.getPath());
+                LOGGER.info("Interaction '{}' threw an embeddable exception.", event.path());
                 this.answer(callback, embeddable.asEmbed().build(), !embeddable.showToEveryone());
                 return;
             }
 
-            LOGGER.warn("Interaction '{}' threw an exception.", event.getPath());
+            LOGGER.warn("Interaction '{}' threw an exception.", event.path());
 
             Sentry.withScope(scope -> {
                 Map<String, Object> discord = new HashMap<>();
-                discord.put("path", event.getPath());
-                discord.put("interaction", event.getInteraction().getId());
-                discord.put("user", event.getInteraction().getUser().getId());
+                discord.put("path", event.path());
+                discord.put("interaction", event.interaction().getId());
+                discord.put("user", event.interaction().getUser().getId());
                 discord.put(
                         "guild",
-                        Optional.ofNullable(event.getInteraction().getGuild()).map(ISnowflake::getId).orElse(null)
+                        Optional.ofNullable(event.interaction().getGuild()).map(ISnowflake::getId).orElse(null)
                 );
                 discord.put(
                         "channel",
-                        Optional.ofNullable(event.getInteraction().getChannel()).map(ISnowflake::getId).orElse(null)
+                        Optional.ofNullable(event.interaction().getChannel()).map(ISnowflake::getId).orElse(null)
                 );
 
                 scope.setContexts("interaction", discord);
-                scope.setContexts("options", event.getOptions());
+                scope.setContexts("options", event.options());
 
                 Sentry.captureException(exception);
             });
@@ -209,11 +209,11 @@ public class DiscordService extends ListenerAdapter implements InteractionErrorH
     @Override
     public <T extends Interaction> void onNoResponseHandlerFound(DispatchEvent<T> event, Object response) {
 
-        if (event.getInteraction() instanceof IReplyCallback callback) {
+        if (event.interaction() instanceof IReplyCallback callback) {
             EmbedBuilder builder = new EmbedBuilder();
             builder.setTitle("Alors comment dire...");
             builder.setDescription("La commande a réussi mais son résultat ne peut être affiché. Oups.");
-            builder.setFooter(event.getPath().toString());
+            builder.setFooter(event.path().toString());
             builder.setColor(Color.ORANGE);
             this.answer(callback, builder.build(), true);
         }

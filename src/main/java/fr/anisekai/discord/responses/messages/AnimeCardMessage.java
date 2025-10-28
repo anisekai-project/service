@@ -5,10 +5,10 @@ import fr.anisekai.discord.responses.embeds.AnimeCardEmbed;
 import fr.anisekai.wireless.remote.interfaces.AnimeEntity;
 import fr.anisekai.wireless.remote.interfaces.InterestEntity;
 import fr.anisekai.wireless.remote.interfaces.UserEntity;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageRequest;
 
 import java.util.Collection;
@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.function.Consumer;
 
 public class AnimeCardMessage implements SlashResponse {
-
 
     private final AnimeEntity<? extends UserEntity>          anime;
     private final Collection<? extends InterestEntity<?, ?>> interests;

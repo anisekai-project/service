@@ -56,12 +56,12 @@ public class InteractionService {
 
     private <T extends Interaction> Injection<DispatchEvent<T>, DiscordUser> entityUserMapper() {
 
-        return (event, option) -> () -> this.userService.of(event.getInteraction().getUser());
+        return (event, option) -> () -> this.userService.of(event.interaction().getUser());
     }
 
     private <T extends Interaction> Injection<DispatchEvent<T>, UserEntity> entityUserInterfaceMapper() {
 
-        return (event, option) -> () -> this.userService.of(event.getInteraction().getUser());
+        return (event, option) -> () -> this.userService.of(event.interaction().getUser());
     }
 
     private List<Command.Choice> animeCompletion(DispatchEvent<CommandAutoCompleteInteraction> event, String name, String completionName, String value) {
